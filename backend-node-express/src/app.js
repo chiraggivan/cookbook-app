@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 
+const cors = require("cors");
 const testRoutes = require("./routes/testRoutes");
 const authRoutes = require("./routes/authRoutes");
 const recipeRoutes = require("./routes/recipeRoutes");
@@ -11,6 +12,7 @@ const foodPlanRoutes = require("./routes/foodPlanRoutes");
 const weeklyDashboardRoutes = require("./routes/weeklyDashboardRoutes");
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
