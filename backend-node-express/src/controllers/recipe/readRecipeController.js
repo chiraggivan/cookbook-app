@@ -1,0 +1,231 @@
+const db = require("../../config/database");
+
+// get all the recipes
+exports.get_recipes = async (req, res) => {
+  try {
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+
+    const [result] = await db.query(
+      `
+        SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, u.username, u.display_name 
+        FROM recipes r JOIN users u ON r.user_id = u.user_id
+        WHERE r.is_active = TRUE
+        AND (r.user_id = ? OR r.privacy = 'public') 
+        `,
+      [user.id],
+    );
+
+    res.json({
+      success: true,
+      message: `All recipes found`,
+      data: result,
+    });
+  } catch (err) {
+    console.error("Error in readRecipeController - get_recipes is : ", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  } finally {
+  }
+};
+
+// Get all the recipe of a certain user
+exports.get_user_recipes = async (req, res) => {
+  try {
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const find_user = Number(req.params.q);
+
+    if (!find_user || find_user < 1 || !Number.isInteger(find_user)) {
+      return res.status(404).json({
+        success: false,
+        message: "user not found in params or not defined properly",
+      });
+    }
+
+    // searched user is same as logged in user
+    if (user.id === find_user) {
+    }
+
+    // verify user exists
+    const [userResult] = await db.query(
+      "SELECT username FROM users WHERE user_id = ? AND is_active = 1",
+      [find_user],
+    );
+
+    if (userResult.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "searched user not found",
+      });
+    }
+
+    // search list of public recipes of a particular user
+    const [finalResult] = await db.query(
+      `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, u.username
+            FROM recipes r 
+            JOIN users u ON r.user_id = u.user_id
+            WHERE r.is_active = TRUE
+            AND r.user_id = ?
+            AND r.privacy = 'public'`,
+      [find_user],
+    );
+
+    // response the data
+    res.json({
+      success: true,
+      message: `Recipes found for ${find_user}`,
+      data: finalResult,
+    });
+  } catch (err) {
+    console.error("Error in readRecipeController - get_user_recipes:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  } finally {
+  }
+};
+
+// Get my recipes
+exports.get_my_recipes = async (req, res) => {
+  try {
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+
+    // verify user exists
+    const [userResult] = await db.query(
+      "SELECT username FROM users WHERE user_id = ? AND is_active = 1",
+      [user.id],
+    );
+    if (userResult.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: " user not active or not found",
+      });
+    }
+
+    // find all the recipes of logged in user
+    const [finalResult] = await db.query(
+      `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, u.username
+        FROM recipes r 
+        JOIN users u ON r.user_id = u.user_id
+        WHERE r.is_active = TRUE
+        AND r.user_id = ? `,
+      [user.id],
+    );
+
+    // response the data back
+    res.json({
+      success: true,
+      message: `Recipes found for user`,
+      data: finalResult,
+    });
+  } catch (err) {
+    console.error("Error in readRecipeController - get_my_recipes:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  } finally {
+  }
+};
+
+// Get a recipe details
+exports.get_recipe_details = async (req, res) => {
+  try {
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const recipeId = Number(req.params.q);
+
+    //  check if recipeId is negative
+    if (!recipeId || recipeId < 1 || !Number.isInteger(recipeId)) {
+      return res.status(404).json({
+        success: false,
+        message: "Recipe id must a positive number",
+      });
+    }
+
+    // query recipes table
+    const [recipeResult] = await db.query(
+      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.created_at, r.user_id, u.username, u.display_name
+        FROM recipes r JOIN users u ON r.user_id = u.user_id 
+        WHERE r.recipe_id = ? 
+        AND r.is_active = 1
+        AND (r.user_id = ?
+        OR r.privacy = 'public')`,
+      [recipeId, user.id],
+    );
+
+    //  check any recipe found
+    if (recipeResult.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Dint find any such recipe",
+      });
+    }
+
+    // get ingredients for  recipe if found
+    const [ingredientResult] = await db.query(
+      `SELECT 
+            rc.recipe_component_id,
+            rc.display_order as component_display_order,
+            rc.component_text,
+            ri.display_order as ingredient_display_order,
+            COALESCE(i.ingredient_id, ui.user_ingredient_id) as ingredient_id,
+            COALESCE(i.name, ui.name) as name,
+            ri.recipe_ingredient_id,
+            ri.quantity,
+            ri.ingredient_source,
+            ui.submitted_by as ingredient_by,
+            u.unit_id,
+            u.unit_name,
+            ri.quantity * COALESCE(ui.base_price, COALESCE(up.custom_price, i.default_price))  * u.conversion_factor AS price,
+            COALESCE(ui.display_quantity, 1) as base_quantity,
+            COALESCE(ui.display_price, COALESCE(up.custom_price, i.default_price)) AS cost,
+            COALESCE(ui.display_unit, COALESCE(up.base_unit, i.base_unit)) AS unit
+        FROM recipe_ingredients ri 
+        LEFT JOIN recipe_components rc ON rc.recipe_component_id = ri.component_id
+        LEFT JOIN ingredients i ON ri.ingredient_id = i.ingredient_id AND ri.ingredient_source = 'main'
+        LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = ri.ingredient_id AND ri.ingredient_source = 'user'
+        JOIN units u ON ri.unit_id = u.unit_id
+        LEFT JOIN user_prices up ON up.user_id = ? 
+            AND up.ingredient_id = i.ingredient_id 
+            AND up.is_active = TRUE
+        WHERE ri.recipe_id = ?
+        AND ri.is_active = TRUE
+        ORDER BY rc.display_order, ri.display_order`,
+      [user.id, recipeId],
+    );
+
+    // check if any ingredients found
+    // if (ingredientResult.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "Dint find any ingredients for the recipe",
+    //   });
+    // }
+
+    // Get steps for the recipe
+    const [stepResult] = await db.query(
+      `SELECT step_order, step_text, estimated_time
+        FROM recipe_procedures
+        WHERE recipe_id = ?
+        AND is_active = 1
+        ORDER BY step_order`,
+      [recipeId],
+    );
+
+    // response the data
+    res.json({
+      success: true,
+      message: `Recipe details found`,
+      data: { recipe: recipeResult, ingredients: ingredientResult, steps: stepResult },
+    });
+  } catch (err) {
+    console.error("Error in readRecipeController - get_recipe_details:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  } finally {
+  }
+};
