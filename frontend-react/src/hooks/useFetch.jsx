@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function useFetch(url, token, method = "get", body = null) {
   const [success, setSuccess] = useState(false);
@@ -35,10 +36,23 @@ function useFetch(url, token, method = "get", body = null) {
           });
         }
 
+        // check if response success is false from middleware in backend for authenticateToken.js
+        if (res.data.success === false && res.data.message === "Invalid or Expired token") {
+          const navigate = useNavigate();
+          navigate("/login", {
+            replace: true,
+            state: {
+              message: "Login expired. please login again",
+            },
+          });
+        }
+
         setSuccess(res.data.success);
         setData(res.data.data);
         setMessage(res.data.message);
       } catch (err) {
+        setSuccess(false);
+        setMessage("Error in useFetch hoook");
         setError(err);
         console.log("Error in useFetch hoook is :", err);
       } finally {

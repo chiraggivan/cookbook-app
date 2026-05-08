@@ -4,7 +4,9 @@ const db = require("../../config/database");
 exports.delete_recipe = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+
     const recipeId = Number(req.params.recipeId);
+
     if (!recipeId || recipeId < 1 || !Number.isInteger(recipeId)) {
       return res.status(404).json({
         success: false,
@@ -28,14 +30,14 @@ exports.delete_recipe = async (req, res) => {
     }
 
     // Call the procedure to delete the recipe
-    try {
-      await db.query(`CALL delete_recipe(?, ?)`, [user.id, recipeId]);
-    } catch (err) {
-      return res.status(500).json({
-        success: false,
-        message: "Error while deleting in db.",
-      });
-    }
+    // try {
+    //   await db.query(`CALL delete_recipe(?, ?)`, [user.id, recipeId]);
+    // } catch (err) {
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Error while deleting in db.",
+    //   });
+    // }
 
     // response the data back
     res.json({

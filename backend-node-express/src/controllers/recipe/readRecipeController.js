@@ -196,6 +196,14 @@ exports.get_recipe_details = async (req, res) => {
       [user.id, recipeId],
     );
 
+    // convert decimal columns - which are auto converted to string - to Number type
+    for (const ing of ingredientResult) {
+      const toNumberFields = ["base_quantity", "cost", "price", "quantity"];
+      for (const field of toNumberFields) {
+        ing[field] = Number(ing[field]);
+      }
+    }
+
     // check if any ingredients found
     // if (ingredientResult.length === 0) {
     //   return res.status(404).json({
@@ -222,6 +230,57 @@ exports.get_recipe_details = async (req, res) => {
     });
   } catch (err) {
     console.error("Error in readRecipeController - get_recipe_details:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  } finally {
+  }
+};
+
+// get last dish prepared info
+exports.get_last_record = async (req, res) => {
+  try {
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const recipeId = Number(req.params.recipeId);
+    if (!recipeId || recipeId < 1 || !Number.isInteger(recipeId)) {
+      return res.status(404).json({
+        success: false,
+        message: `recipeId provided is not defined properly. should be positive integer`,
+      });
+    }
+    // check db to get the dish prepared in the past
+    const [lastPrepared] = await db.query(
+      `SELECT preparation_date, time_prepared, created_at 
+        FROM dishes 
+        WHERE recipe_id =  ? AND user_id = ? AND is_active = 1 ORDER BY preparation_date DESC, time_prepared DESC LIMIT 1`,
+      [recipeId, user.id],
+    );
+    if (lastPrepared.length !== 0) {
+      lastPrepared[0].preparation_date = new Date(lastPrepared[0].preparation_date).toISOString();
+    }
+    // console.log("last record : ", lastPrepared);
+    let date_prepared;
+    let time_prepared;
+    let created_at;
+    if (lastPrepared.length === 0) {
+      date_prepared = "";
+      time_prepared = "";
+      created_at = "";
+    } else {
+      date_prepared = lastPrepared[0].preparation_date.split("T")[0];
+      time_prepared = lastPrepared[0].time_prepared;
+      created_at = lastPrepared[0].created_at;
+    }
+
+    // FINAL response
+    res.json({
+      success: true,
+      message: `Recipe last record found.`,
+      data: { date_prepared, time_prepared, created_at },
+    });
+  } catch (err) {
+    console.error("Error in createDishController - get_last_record is:", err);
     res.status(500).json({
       success: false,
       message: "Server error",

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import ax from "axios";
 
@@ -6,6 +6,9 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const message = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,8 +19,15 @@ function Login() {
         password: password,
       });
       console.log("response is : ", res.data);
-      localStorage.setItem("token", res.data.token);
-      navigate("/");
+      if (res.data.success === true) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/");
+        return;
+      } else {
+        const errMessage = res.data.message;
+        navigate("/login", { state: { message: errMessage } });
+      }
     } catch (err) {
       console.log("Error in Login.jsx is : ", err);
     }
@@ -33,6 +43,7 @@ function Login() {
         <label>Password:</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </div>
+      {message && <p style={{ color: "red" }}>{message}</p>}
       <button type="submit">Login</button>
     </form>
   );

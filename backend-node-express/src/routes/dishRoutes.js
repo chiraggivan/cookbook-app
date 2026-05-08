@@ -14,7 +14,7 @@ router.get("/:dishId", authenticateToken, readDishController.get_dish_details);
 router.delete("/delete/:dishId", authenticateToken, deleteDishController.delete_dish);
 
 // create api for dishes
-router.get("/last-record/:recipeId", authenticateToken, createDishController.get_last_record);
+
 router.post("/create", authenticateToken, createDishController.create_dish);
 
 module.exports = router;
