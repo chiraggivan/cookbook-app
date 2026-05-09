@@ -1,5 +1,6 @@
 const db = require("../../config/database");
 
+// Get dishes prepared by user
 exports.get_dishes = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
@@ -40,6 +41,7 @@ exports.get_dishes = async (req, res) => {
   }
 };
 
+// Get dish details for selected dish
 exports.get_dish_details = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
@@ -66,8 +68,27 @@ exports.get_dish_details = async (req, res) => {
       });
     }
 
+    // get dish details
+    const [dishResult] = await db.query(
+      `SELECT d.dish_id, d.recipe_id, d.recipe_name, d.portion_size, d.preparation_date, 
+              d.total_cost, d.comment, d.time_prepared, d.meal, d.recipe_by, d.created_at, u.username AS recipe_by_name
+      FROM dishes d JOIN users u ON d.recipe_by = u.user_id
+      WHERE d.dish_id = ? AND d.is_active = 1`,
+      [dishId],
+    );
+    if (dishResult.length === 0) {
+      return res.status(500).json({
+        success: "false",
+        message: "Couldnt get details of the dish.",
+      });
+    }
+    const dish = dishResult[0];
+    dish.preparation_date = new Date(dish.preparation_date).toISOString().split("T")[0];
+    dish.created_at = new Date(dish.created_at).toISOString();
+    dish.total_cost = parseFloat(dish.total_cost);
+
     // get dish ingredients
-    const [result] = await db.query(
+    const [ingResult] = await db.query(
       `SELECT component_display_order, component_text, ingredient_display_order, ingredient_id, ingredient_name, quantity,
             unit_id, unit_name, cost, base_price, base_unit
         FROM dish_ingredients
@@ -76,14 +97,14 @@ exports.get_dish_details = async (req, res) => {
     );
 
     // convert string values(quantity, cost, base_price) to float before sending
-    for (const ing of result) {
+    for (const ing of ingResult) {
       ing.quantity = Number(ing.quantity);
       ing.cost = Number(ing.cost);
       ing.base_price = Number(ing.base_price);
       if (!ing.quantity || !ing.cost || !ing.base_price) {
         return res.status(500).json({
           success: "false",
-          message: "Could convert quantity, cost, base_price into float.",
+          message: "Could not convert quantity, cost, base_price into float.",
         });
       }
     }
@@ -92,7 +113,7 @@ exports.get_dish_details = async (req, res) => {
     res.json({
       success: true,
       message: `Dishes found`,
-      data: result,
+      data: { dish: dish, ingredients: ingResult },
     });
   } catch (err) {
     console.error("Error in readDishController - get_dish_details :", err);
