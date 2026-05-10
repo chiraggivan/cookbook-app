@@ -43,6 +43,7 @@ function MyDishes() {
           <h4>Cost : £{i.total_cost}</h4>
           <h4>Comment : {i.comment}</h4>
           <h4>Meal Type : {i.meal}</h4>
+          <button>Delete</button>
           <p></p>
         </div>
       ))}

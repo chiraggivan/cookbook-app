@@ -8,6 +8,7 @@ function RecipeDetails() {
   const { id } = useParams();
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  let tableRows = [];
 
   // delete button function
   const handleDelete = async (e) => {
@@ -62,15 +63,15 @@ function RecipeDetails() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // fetch data from backend with the help of useFetch HOOK
+  // fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
   const method = "get";
   const url = `http://localhost:5001/recipe/api/${id}`;
-
+  const body = null;
   const { success, data, message, loading, error } = useFetch(
     token ? url : null,
     token,
     method,
-    null,
+    body ? body : null,
   );
 
   // get the total cost of recipe
@@ -99,6 +100,54 @@ function RecipeDetails() {
     return <h1> Page Loading .............</h1>;
   }
   // console.log("data is :", data);
+
+  // Create html for table with components and ingredients rows
+  if (data) {
+    const recipeData = data?.ingredients;
+
+    const uniqueComp = [...new Set(recipeData.map((i) => i.component_display_order))].sort(
+      (a, b) => a - b,
+    );
+    console.log("unique comps are:", uniqueComp);
+
+    for (const u of uniqueComp) {
+      const compIngs = recipeData
+        .filter((i) => i.component_display_order === u)
+        .sort((a, b) => a.ingredient_display_order - b.ingredient_display_order);
+      const comp_text = compIngs[0].component_text;
+      if (u === 0 && comp_text === "") {
+        // console.log("first component text is empty");
+      } else if (u === 0 && comp_text !== "") {
+        tableRows.push(
+          <tr colSpan={7}>
+            <td>{comp_text}</td>
+          </tr>,
+        );
+      } else if (u !== 0) {
+        tableRows.push(
+          <tr colSpan={7}>
+            <td>{comp_text}</td>
+          </tr>,
+        );
+      }
+
+      for (const i of compIngs) {
+        tableRows.push(
+          <tr key={i.ingredient_display_order}>
+            <td>{i.name}</td>
+            <td>{i.quantity}</td>
+            <td>{i.unit_name}</td>
+            <td>{i.price}</td>
+            <td>{i.base_quantity}</td>
+            <td>{i.unit}</td>
+            <td>{i.cost}</td>
+          </tr>,
+        );
+      }
+    }
+  }
+
+  console.log("table rows :", tableRows);
   return (
     <div>
       <p></p>
@@ -125,19 +174,7 @@ function RecipeDetails() {
             <th>Base Price</th>
           </tr>
         </thead>
-        <tbody>
-          {data?.ingredients.map((i) => (
-            <tr key={i.ingredient_display_order}>
-              <td>{i.name}</td>
-              <td>{i.quantity}</td>
-              <td>{i.unit_name}</td>
-              <td>{i.price}</td>
-              <td>{i.base_quantity}</td>
-              <td>{i.unit}</td>
-              <td>{i.cost}</td>
-            </tr>
-          ))}
-        </tbody>
+        <tbody>{tableRows}</tbody>
       </table>
       <table>
         <thead>

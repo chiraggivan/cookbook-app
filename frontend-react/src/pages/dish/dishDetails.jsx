@@ -8,9 +8,7 @@ function DishDetails() {
   const { id } = useParams();
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
-  const method = "get";
-  const url = `http://localhost:5001/dish/api/${id}`;
+  let tableRows = [];
 
   // Redirect effect
   useEffect(() => {
@@ -19,21 +17,72 @@ function DishDetails() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
+  // fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
+  const method = "get";
+  const url = `http://localhost:5001/dish/api/${id}`;
+  const body = null;
   const { success, data, message, loading, error } = useFetch(
     token ? url : null,
     token,
     method,
-    null,
+    body ? body : null,
   );
 
   if (loading) {
     return <h1> Page Loading .............</h1>;
   }
   // console.log("data before return html : ", fetchData);
+
+  // Create html for table woith components and ingredients rows
+  if (data) {
+    const recipeData = data?.ingredients;
+
+    const uniqueComp = [...new Set(recipeData.map((i) => i.component_display_order))].sort(
+      (a, b) => a - b,
+    );
+    console.log("unique comps are:", uniqueComp);
+
+    for (const u of uniqueComp) {
+      const compIngs = recipeData
+        .filter((i) => i.component_display_order === u)
+        .sort((a, b) => a.ingredient_display_order - b.ingredient_display_order);
+      const comp_text = compIngs[0].component_text;
+      if (u === 0 && comp_text === "") {
+        // console.log("first component text is empty");
+      } else if (u === 0 && comp_text !== "") {
+        tableRows.push(
+          <tr colSpan={7}>
+            <td>{comp_text}</td>
+          </tr>,
+        );
+      } else if (u !== 0) {
+        tableRows.push(
+          <tr colSpan={7}>
+            <td>{comp_text}</td>
+          </tr>,
+        );
+      }
+
+      for (const i of compIngs) {
+        tableRows.push(
+          <tr key={i.ingredient_display_order}>
+            <td>{i.ingredient_name}</td>
+            <td>{i.quantity}</td>
+            <td>{i.unit_name}</td>
+            <td>{i.cost}</td>
+            <td>{1}</td>
+            <td>{i.base_unit}</td>
+            <td>{i.base_price}</td>
+          </tr>,
+        );
+      }
+    }
+  }
+
   return (
     <>
       <p></p>
-      <h1>{data?.dish.name}</h1>
+      <h1>{data?.dish.recipe_name}</h1>
       <h3>Portion size: {data?.dish.portion_size}</h3>
       <h3>Comment: {data?.dish.comment}</h3>
       <h5>Meal type: {data?.dish.meal}</h5>
@@ -55,19 +104,7 @@ function DishDetails() {
             <th>Base Price</th>
           </tr>
         </thead>
-        <tbody>
-          {data?.ingredients.map((i) => (
-            <tr key={i.ingredient_display_order}>
-              <td>{i.ingredient_name}</td>
-              <td>{i.quantity}</td>
-              <td>{i.unit_name}</td>
-              <td>{i.cost}</td>
-              <td>{i.base_quantity}</td>
-              <td>{i.base_unit}</td>
-              <td>{i.base_price}</td>
-            </tr>
-          ))}
-        </tbody>
+        <tbody>{tableRows}</tbody>
       </table>
       {/* <table>
         <thead>
