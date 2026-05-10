@@ -35,7 +35,7 @@ function AdminIngredientDetails() {
     ingDetail = data[0];
   }
 
-  console.log("data before return html : ", ingDetail);
+  //   console.log("data before return html : ", ingDetail);
   return (
     <>
       <p></p>

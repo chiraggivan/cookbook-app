@@ -29,7 +29,7 @@ function AdminAllIngredients() {
   if (loading) {
     return <h1> Page Loading .............</h1>;
   }
-  console.log("data before return html : ", data);
+  //   console.log("data before return html : ", data);
   return (
     <>
       <table>

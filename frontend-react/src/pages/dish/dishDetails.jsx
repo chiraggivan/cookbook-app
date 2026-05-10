@@ -40,18 +40,19 @@ function DishDetails() {
     const uniqueComp = [...new Set(recipeData.map((i) => i.component_display_order))].sort(
       (a, b) => a - b,
     );
-    console.log("unique comps are:", uniqueComp);
+    // console.log("unique comps are:", uniqueComp);
 
     for (const u of uniqueComp) {
       const compIngs = recipeData
         .filter((i) => i.component_display_order === u)
         .sort((a, b) => a.ingredient_display_order - b.ingredient_display_order);
-      const comp_text = compIngs[0].component_text;
+
+      const comp_text = compIngs[0].component_text; // find the first ing for the component and get the component_text
       if (u === 0 && comp_text === "") {
         // console.log("first component text is empty");
       } else if (u === 0 && comp_text !== "") {
         tableRows.push(
-          <tr colSpan={7}>
+          <tr colSpan={8}>
             <td>{comp_text}</td>
           </tr>,
         );
@@ -73,6 +74,7 @@ function DishDetails() {
             <td>{1}</td>
             <td>{i.base_unit}</td>
             <td>{i.base_price}</td>
+            <td>{i.ingredient_source}</td>
           </tr>,
         );
       }
@@ -102,6 +104,7 @@ function DishDetails() {
             <th>Base Quantity</th>
             <th>Base Unit</th>
             <th>Base Price</th>
+            <th>Ing Source</th>
           </tr>
         </thead>
         <tbody>{tableRows}</tbody>

@@ -125,7 +125,7 @@ function RecipeDetails() {
         );
       } else if (u !== 0) {
         tableRows.push(
-          <tr colSpan={7}>
+          <tr colSpan={8}>
             <td>{comp_text}</td>
           </tr>,
         );
@@ -141,13 +141,14 @@ function RecipeDetails() {
             <td>{i.base_quantity}</td>
             <td>{i.unit}</td>
             <td>{i.cost}</td>
+            <td>{i.ingredient_source}</td>
           </tr>,
         );
       }
     }
   }
 
-  console.log("table rows :", tableRows);
+  // console.log("table rows :", tableRows);
   return (
     <div>
       <p></p>
@@ -172,6 +173,7 @@ function RecipeDetails() {
             <th>Base Quantity</th>
             <th>Base Unit</th>
             <th>Base Price</th>
+            <th>Ing. Source</th>
           </tr>
         </thead>
         <tbody>{tableRows}</tbody>
