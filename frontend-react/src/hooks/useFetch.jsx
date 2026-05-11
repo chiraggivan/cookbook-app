@@ -35,26 +35,27 @@ function useFetch(url, token, method = "get", body = null) {
             },
           });
         }
-
-        // check if response success is false from middleware in backend for authenticateToken.js
-        if (res.data.success === false && res.data.message === "Invalid or Expired token") {
-          const navigate = useNavigate();
-          navigate("/login", {
-            replace: true,
-            state: {
-              message: "Login expired. please login again",
-            },
-          });
-        }
+        // console.log("response in useFetch is: ", res);
 
         setSuccess(res.data.success);
         setData(res.data.data);
         setMessage(res.data.message);
+        // In axios every status other than 200-299 will go to  catch block.
+        // from here will handle accordingly
       } catch (err) {
+        // Handle if backend sends custom data for status 401 along with some data object
+        if (
+          err.response.status === 401 &&
+          err.response.data.message === "Invalid or Expired token"
+        ) {
+          localStorage.removeItem("token");
+          navigate(`/login?exipred=true&msg=${err.response.data.message}`);
+          return;
+        }
         setSuccess(false);
         setMessage("Error in useFetch hoook");
         setError(err);
-        console.log("Error in useFetch hoook is :", err);
+        console.log("Error in useFetch hoook is :", err.response.data);
       } finally {
         setLoading(false);
       }

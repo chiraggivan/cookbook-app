@@ -75,14 +75,6 @@ function RecipeDetails() {
   );
 
   // get the total cost of recipe
-  // useEffect(() => {
-  //   if (!data) {
-  //     return;
-  //   }
-  //   let totalCost = 0;
-  //   data?.ingredients.map((i) => (totalCost += i.price));
-  // }, [data]);
-
   const totalCost =
     Math.ceil(data?.ingredients?.reduce((sum, i) => sum + i.price, 0) * 100) / 100 || 0;
 
@@ -119,7 +111,7 @@ function RecipeDetails() {
         // console.log("first component text is empty");
       } else if (u === 0 && comp_text !== "") {
         tableRows.push(
-          <tr colSpan={7}>
+          <tr colSpan={8}>
             <td>{comp_text}</td>
           </tr>,
         );

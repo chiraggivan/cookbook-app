@@ -58,7 +58,7 @@ function DishDetails() {
         );
       } else if (u !== 0) {
         tableRows.push(
-          <tr colSpan={7}>
+          <tr colSpan={8}>
             <td>{comp_text}</td>
           </tr>,
         );

@@ -1,15 +1,22 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import ax from "axios";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
+  // const exipred = new URLSearchParams(location.search).get("expired");
+  // const errorMessage = new URLSearchParams(location.search).get("msg");
+  const [searchParams] = useSearchParams();
+  const expired = searchParams.get("expired");
+  const errorMessage = searchParams.get("msg");
 
-  const message = location.state?.message;
+  const message = expired ? errorMessage : null;
+  // const message = location.state?.message;
 
+  // submit button function
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -29,6 +36,13 @@ function Login() {
         navigate("/login", { state: { message: errMessage } });
       }
     } catch (err) {
+      if (
+        err.response.status === 401 &&
+        err.response.data.message === "Username and password does not match"
+      ) {
+        navigate(`/login?expired=true&msg=${err.response.data.message}`);
+        return;
+      }
       console.log("Error in Login.jsx is : ", err);
     }
   };
