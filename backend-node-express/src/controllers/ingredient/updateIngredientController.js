@@ -66,7 +66,7 @@ exports.update_ingredient = async (req, res) => {
     const role = user.role;
     //  check is user has admin privilege
     if (role !== "admin") {
-      return res.status(500).json({
+      return res.status(403).json({
         success: false,
         message: "Admin privileges required.",
       });
@@ -75,14 +75,14 @@ exports.update_ingredient = async (req, res) => {
     const ingId = Number(req.params.ingId);
     //  check if ingId is +ve whole number
     if (!ingId || ingId < 1 || !Number.isInteger(ingId)) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: "Ingredient id should be a positive whole Number.",
       });
     }
 
     if (!req.body) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: "Data not sent with the body.",
       });
@@ -93,7 +93,7 @@ exports.update_ingredient = async (req, res) => {
     const error = validateIngredient(data);
 
     if (error) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: `Error while validating ingredient details : ${error} .`,
       });
@@ -106,7 +106,7 @@ exports.update_ingredient = async (req, res) => {
       [user.id],
     );
     if (userResult[0].role !== "admin") {
-      return res.status(500).json({
+      return res.status(403).json({
         success: false,
         message: "Not Authorised to update ingredients.",
       });
@@ -121,7 +121,7 @@ exports.update_ingredient = async (req, res) => {
       [data.name, ingId],
     );
     if (rows.length !== 0) {
-      return res.status(500).json({
+      return res.status(409).json({
         success: false,
         message: `${data.name} - already exists. Give another name.`,
       });
@@ -135,9 +135,9 @@ exports.update_ingredient = async (req, res) => {
       [ingId],
     );
     if (ingRow.length === 0) {
-      return res.status(500).json({
+      return res.status(404).json({
         success: false,
-        message: `${ingId} - already does not exists.`,
+        message: `${ingId} -  does not exists.`,
       });
     }
     const previous_ingredient = ingRow[0];
@@ -261,7 +261,7 @@ exports.update_ingredient = async (req, res) => {
         conn.release();
       }
     } else {
-      return res.status(500).json({
+      return res.status(200).json({
         success: true,
         message: `Data is same. No need to call db`,
       });

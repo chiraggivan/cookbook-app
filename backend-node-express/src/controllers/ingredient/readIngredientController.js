@@ -81,7 +81,8 @@ exports.get_ingredient_details = async (req, res) => {
         message: `ingredientId provided is not found in db.`,
       });
     }
-
+    result[0].cup_weight = parseFloat(result[0].cup_weight);
+    result[0].default_price = parseFloat(result[0].default_price);
     // FINAL response
     res.json({
       success: true,

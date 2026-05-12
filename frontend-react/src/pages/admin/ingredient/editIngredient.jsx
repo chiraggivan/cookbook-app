@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import useAuth from "../../../hooks/useAuth";
 import useFetch from "../../../hooks/useFetch";
@@ -7,17 +7,27 @@ import Input from "../../../components/input";
 import Textarea from "../../../components/textarea";
 import Button from "../../../components/button";
 import Dropdown from "../../../components/dropdown";
+import submitButtonForEdit from "./utils/submitButtonForEdit";
 
-function AddNewIngredient() {
+function EditIngredient() {
+  const role = JSON.parse(localStorage.getItem("user")).role;
+  const navigate = useNavigate();
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const [ingData, setIngData] = useState({});
+  const { id } = useParams();
   const [ingName, setIngName] = useState("");
-  const [existIngs, setExistIngs] = useState("");
   const [selectedMainUnit, setSelectedMainUnit] = useState("");
   const [selectedCupUnit, setSelectedCupUnit] = useState("");
+  const [existIngs, setExistIngs] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
-  const role = JSON.parse(localStorage.getItem("user")).role;
+  const [submitResult, setSubmitResult] = useState(null);
+  const sendData = {};
+  const [refQ, setRefQ] = useState(1);
+
+  const [FSuccess, setFSuccess] = useState(false);
+  const [FMessage, setFMessage] = useState("");
+  const [FData, setFData] = useState({});
+  const [FError, setFError] = useState("");
 
   const mainUnits = ["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"];
   const cupUnits = ["kg", "g", "oz", "lbs"];
@@ -42,9 +52,31 @@ function AddNewIngredient() {
     }));
   };
 
-  //  search all the ingredient with similar name to help admin not create same name ingredient
+  // get data from backend for ing to be edited with the help of useFetch Hook
+  const method = "get";
+  const url = `http://localhost:5001/ingredient/api/${id}`;
+  const { success, data, message, loading, error } = useFetch(
+    token ? url : null,
+    token,
+    method,
+    null,
+  );
+
+  // hook to initialise data
+  useEffect(() => {
+    if (data) {
+      const d = data[0];
+      setIngData(d);
+      setSelectedMainUnit(d?.base_unit);
+      setSelectedCupUnit(d?.cup_unit);
+    }
+  }, [data]);
+
+  // hook to get list of similar ing names
+  // Ref to keep track of timeout ID
   const timeoutRef = useRef(null);
   useEffect(() => {
+    // check if token available for api
     if (!token) {
       return;
     }
@@ -55,6 +87,7 @@ function AddNewIngredient() {
     // up date any error if generated
     setErrorMessage("");
 
+    // set new timeout for the delay
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
@@ -73,9 +106,10 @@ function AddNewIngredient() {
       checkIng();
     }, 500);
 
+    // clear the timeout if the component unmounts or before the next effect
     return () => {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current); // Clear the timeout if the component unmounts or before the next effect
+        clearTimeout(timeoutRef.current);
       }
     };
   }, [ingName]);
@@ -91,7 +125,7 @@ function AddNewIngredient() {
       isValid = false;
       checkData.errors.name = "Name required";
     }
-    if (!checkData.reference_quantity || checkData.reference_quantity <= 0) {
+    if (!refQ || refQ <= 0) {
       isValid = false;
       checkData.errors.reference_quantity = "Quantity can't be empty. Should be positive number";
     }
@@ -99,34 +133,44 @@ function AddNewIngredient() {
       isValid = false;
       checkData.errors.default_price = "Price can't be empty. Should be positive number";
     }
-    if (!checkData.reference_unit || !mainUnits.includes(checkData.reference_unit)) {
+    if (!checkData.base_unit || !mainUnits.includes(checkData.base_unit)) {
       isValid = false;
-      checkData.errors.reference_unit = `Unit required and should be one of these : ${mainUnits}`;
+      checkData.errors.base_unit = `Unit required and should be one of these : ${mainUnits}`;
     }
-    if (checkData.cup_equivalent_weight || checkData.cup_equivalent_unit) {
-      if (!checkData.cup_equivalent_weight || checkData.cup_equivalent_weight <= 0) {
+    if (checkData.cup_weight || checkData.cup_unit) {
+      if (!checkData.cup_weight || checkData.cup_weight <= 0) {
         isValid = false;
-        checkData.errors.cup_equivalent_weight = `Weight required and  should be positive number If cup unit select`;
+        checkData.errors.cup_weight = `Weight required and  should be positive number If cup unit select`;
       }
-      if (!checkData.cup_equivalent_unit || !cupUnits.includes(checkData.cup_equivalent_unit)) {
+      if (!checkData.cup_unit || !cupUnits.includes(checkData.cup_unit)) {
         isValid = false;
-        checkData.errors.cup_equivalent_unit = `Cup weight given - Unit required and should be one of these : ["kg","g","oz","lbs"]`;
+        checkData.errors.cup_unit = `Cup weight given - Unit required and should be one of these : ["kg","g","oz","lbs"]`;
       }
     }
 
     setIngData(checkData);
-    console.log("isValid data:", isValid);
     if (!isValid) {
       console.log("Error found while checking during submit", checkData);
       return;
     }
-    console.log("About to call backend");
-    const method = "post";
-    const url = `http://localhost:5001/ingredient/api/new`;
-    const body = ingData;
 
+    sendData.name = ingName ? ingName : ingData.name;
+    sendData.reference_quantity = Number(refQ);
+    sendData.reference_unit = ingData.base_unit;
+    sendData.default_price = Number(ingData.default_price);
+    sendData.cup_equivalent_weight = Number(ingData.cup_weight);
+    sendData.cup_equivalent_unit = ingData.cup_unit;
+    sendData.notes = ingData.notes;
+
+    const body = sendData;
+
+    console.log("data about to be sent :", body);
+    // return;
+
+    const method = "put";
+    const url = `http://localhost:5001/ingredient/api/edit/${id}`;
     try {
-      const res = await axios.post(url, body, {
+      const res = await axios[method](url, body, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -134,23 +178,36 @@ function AddNewIngredient() {
       });
 
       console.log("response is :", res);
+      alert(res.data.message);
+      navigate("/admin/ingredients/all");
     } catch (err) {
       console.log("Error found in createIngredient while creating :", err.response?.data);
       setErrorMessage(err.response?.data.message);
     }
   };
 
-  //   if (loading) {
-  //     return <h1> Page Loading .............</h1>;
-  //   }
-  // console.log("ingData before return html : ", ingData);
+  // submit button function
+  const handlesubmit1 = () =>
+    submitButtonForEdit(ingData, refQ, mainUnits, cupUnits, ingName).then((result) => {
+      setFSuccess(FSuccess);
+      setFMessage(FMessage);
+      setFData(FData);
+      setFError(FError);
+    });
+
+  console.log("data from backend is :", ingData);
+  if (FMessage) {
+    // setSubmitResult(handlesubmit1);
+    console.log("FSuccess:", FSuccess);
+    console.log("FMessage:", FMessage);
+  }
   return (
     <>
-      <h1>Add new Ingredient</h1>
+      <h1>Edit Ingredient</h1>
       <Input
         label={"Name : "}
         type={"text"}
-        value={ingName}
+        value={ingData?.name ? ingData?.name : ""}
         onChange={(e) => {
           handleChange("name", e.target.value);
           setIngName(e.target.value);
@@ -160,15 +217,16 @@ function AddNewIngredient() {
       <Input
         label={"Quantity :"}
         type={"number"}
-        onChange={(e) => handleChange("reference_quantity", Number(e.target.value))}
+        value={refQ}
+        onChange={(e) => setRefQ(e.target.value)}
         error={ingData?.errors?.reference_quantity}
       />
       <Dropdown
         title={"Unit :"}
         options={mainUnits}
-        value={selectedMainUnit}
+        value={selectedMainUnit ? selectedMainUnit : ""}
         onChange={(e) => {
-          handleChange("reference_unit", e.target.value);
+          handleChange("base_unit", e.target.value);
           setSelectedMainUnit(e.target.value);
         }}
         error={ingData?.errors?.reference_unit}
@@ -176,6 +234,7 @@ function AddNewIngredient() {
       <Input
         label={"Price :"}
         type={"number"}
+        value={ingData?.default_price ? ingData?.default_price : 0}
         placeholder={"0.00"}
         onChange={(e) => handleChange("default_price", Number(e.target.value))}
         error={ingData?.errors?.default_price}
@@ -183,24 +242,26 @@ function AddNewIngredient() {
       <Input
         label={"Cup Weight :"}
         type={"number"}
-        onChange={(e) => handleChange("cup_equivalent_weight", Number(e.target.value))}
+        value={ingData?.cup_weight ? ingData?.cup_weight : ""}
+        onChange={(e) => handleChange("cup_weight", e.target.value)}
         error={ingData?.errors?.cup_equivalent_weight}
       />
       <Dropdown
         title={"Cup Unit :"}
         options={cupUnits}
-        value={selectedCupUnit}
+        value={selectedCupUnit ? selectedCupUnit : ""}
         onChange={(e) => {
-          handleChange("cup_equivalent_unit", e.target.value);
+          handleChange("cup_unit", e.target.value);
           setSelectedCupUnit(e.target.value);
         }}
-        error={ingData?.errors?.cup_equivalent_unit}
+        error={ingData?.errors?.cup_unit}
       />
 
       <Textarea
         label={"Notes :"}
         placeholder=""
         rows={4}
+        value={ingData?.notes ? ingData?.notes : ""}
         onChange={(e) => handleChange("notes", e.target.value)}
         error={ingData?.errors?.notes}
       />
@@ -211,11 +272,10 @@ function AddNewIngredient() {
         rows={4}
         readOnly
       />
-
-      <Button children={"Create"} type="button" onClick={() => handlesubmit()} />
+      <Button children={"Update Ingredient"} type="button" onClick={handlesubmit} />
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </>
   );
 }
 
-export default AddNewIngredient;
+export default EditIngredient;

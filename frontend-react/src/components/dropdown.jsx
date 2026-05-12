@@ -1,13 +1,17 @@
-const Dropdown = ({ options, value, onChange, placeholder = "Select", ...props }) => {
+const Dropdown = ({ title, options, value, onChange, placeholder = "Select", error, ...props }) => {
   return (
-    <select value={value} onChange={onChange} {...props}>
-      <option value="">{placeholder}</option>
-      {options.map((option, index) => (
-        <option key={index} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+    <div>
+      {title && <label>{title}</label>}
+      <select value={value} onChange={onChange} {...props}>
+        <option value="">{placeholder}</option>
+        {options.map((option, index) => (
+          <option key={index} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      {error && <p style={{ color: "red" }}>{error} </p>}
+    </div>
   );
 };
 

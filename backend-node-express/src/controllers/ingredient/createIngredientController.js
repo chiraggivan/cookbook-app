@@ -58,14 +58,14 @@ exports.create_ingredient = async (req, res) => {
     const role = user.role;
     //  check is user has admin privilege
     if (role !== "admin") {
-      return res.status(500).json({
+      return res.status(403).json({
         success: false,
         message: "Admin privileges required.",
       });
     }
 
     if (!req.body) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: "Data not sent with the body.",
       });
@@ -76,7 +76,7 @@ exports.create_ingredient = async (req, res) => {
     const error = validateIngredient(data);
 
     if (error) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: `Error while validating ingredient details : ${error} .`,
       });
@@ -88,7 +88,7 @@ exports.create_ingredient = async (req, res) => {
       user.id,
     ]);
     if (userRow[0].role !== "admin") {
-      return res.status(500).json({
+      return res.status(403).json({
         success: false,
         message: "Not Authorised to search.",
       });
@@ -97,12 +97,16 @@ exports.create_ingredient = async (req, res) => {
     // validate if ingredient name already present in db
     const [ingRows] = await db.query(`SELECT 1 FROM ingredients WHERE name = ?`, [data.name]);
     if (ingRows.length !== 0) {
-      return res.status(500).json({
+      return res.status(409).json({
         success: false,
-        message: "Ingredient already exists.",
+        message: "Ingredient name already exists.",
       });
     }
-
+    // Temporary code need to be removed
+    res.json({
+      success: true,
+      message: `About to call procedure - for ingredient added.`,
+    });
     // ---------- Now insert the data thru procedure -------------------------
     const conn = await db.getConnection();
 

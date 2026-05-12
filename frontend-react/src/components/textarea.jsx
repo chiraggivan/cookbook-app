@@ -1,7 +1,7 @@
-const Textarea = ({ label, value, onChange, placeholder = "", rows = 4, ...props }) => {
+const Textarea = ({ title, value, onChange, placeholder = "", rows = 4, ...props }) => {
   return (
-    <label>
-      {label && <div>{label}</div>}
+    <div>
+      {title && <label>{title}</label>}
       <textarea
         value={value}
         onChange={onChange}
@@ -9,7 +9,7 @@ const Textarea = ({ label, value, onChange, placeholder = "", rows = 4, ...props
         rows={rows}
         {...props}
       />
-    </label>
+    </div>
   );
 };
 
