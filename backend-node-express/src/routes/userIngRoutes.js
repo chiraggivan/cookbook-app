@@ -13,6 +13,11 @@ router.post("/create", authToken, createUseringController.create_user_ingredient
 router.get("/search", authToken, readUserIngController.search_user_ings);
 router.get("/", authToken, readUserIngController.read_user_ings);
 router.get("/list", authToken, readUserIngController.list_user_ings);
+router.get(
+  "/searchCombinedIngs",
+  authToken,
+  readUserIngController.search_user_and_mmain_ings_names,
+);
 
 // update api for ingredients
 router.put("/edit", authToken, updateUserIngController.update_user_ing);

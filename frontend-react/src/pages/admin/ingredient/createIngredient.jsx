@@ -7,34 +7,37 @@ import Input from "../../../components/input";
 import Textarea from "../../../components/textarea";
 import Button from "../../../components/button";
 import Dropdown from "../../../components/dropdown";
+import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
+import Navbar from "../../../components/navbar";
 
 function AddNewIngredient() {
-  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
+  const { token, loading, isAuthenticated } = useAuth();
   const [ingData, setIngData] = useState({});
   const [ingName, setIngName] = useState("");
   const [existIngs, setExistIngs] = useState("");
   const [selectedMainUnit, setSelectedMainUnit] = useState("");
   const [selectedCupUnit, setSelectedCupUnit] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [createBtn, setCreateBtn] = useState(false); // <-- change to true if using activate/deactivate button option
   const navigate = useNavigate();
   const role = JSON.parse(localStorage.getItem("user")).role;
 
-  const mainUnits = ["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"];
-  const cupUnits = ["kg", "g", "oz", "lbs"];
+  // const mainUnits = ["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"];
+  // const cupUnits = ["kg", "g", "oz", "lbs"];
 
-  // Redirect effect
+  // -------------------------- Redirect effect -------------------------------------
   useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated) && role !== "admin") {
-      navigate("/login");
+    if (!loading && (!token || !isAuthenticated)) {
+      navigate(`/login?expired=true&msg=${"Token not found. login again"}`);
     }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
-
+  }, [loading, token, isAuthenticated, navigate]);
+  // if role is NOT admin then redirect
   if (role && role !== "admin") {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate(`/login?expired=true&msg=${"Not authorised. login with admin credientials"}`);
   }
 
-  // function to check the change in fields
+  // ----------------------- function to check the change in fields ---------------------
   const handleChange = (field, value) => {
     setIngData((prev) => ({
       ...prev,
@@ -42,7 +45,7 @@ function AddNewIngredient() {
     }));
   };
 
-  //  search all the ingredient with similar name to help admin not create same name ingredient
+  //------- search all the ingredient with similar name to help admin not create same name ingredient ------
   const timeoutRef = useRef(null);
   useEffect(() => {
     if (!token) {
@@ -80,7 +83,7 @@ function AddNewIngredient() {
     };
   }, [ingName]);
 
-  // submit button function
+  // ----------------- submit button function -------------------------  ------------
   const handlesubmit = async () => {
     const checkData = { ...ingData };
     checkData.errors = {};
@@ -140,12 +143,22 @@ function AddNewIngredient() {
     }
   };
 
-  //   if (loading) {
-  //     return <h1> Page Loading .............</h1>;
+  //---------- active/deactivate create button based on data change or same--------------
+  // useEffect(() => {
+  //   if (!ingName || !ingData.reference_quantity || !selectedMainUnit || !ingData.default_price) {
+  //     setCreateBtn(true);
+  //   } else {
+  //     setCreateBtn(false);
   //   }
+  // }, [ingData]);
+
+  if (loading) {
+    return <h1> Page Loading .............</h1>;
+  }
   // console.log("ingData before return html : ", ingData);
   return (
     <>
+      <Navbar />
       <h1>Add new Ingredient</h1>
       <Input
         label={"Name : "}
@@ -212,7 +225,12 @@ function AddNewIngredient() {
         readOnly
       />
 
-      <Button children={"Create"} type="button" onClick={() => handlesubmit()} />
+      <Button
+        children={"Create"}
+        type="button"
+        disabled={createBtn}
+        onClick={() => handlesubmit()}
+      />
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </>
   );

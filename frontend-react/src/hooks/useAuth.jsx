@@ -7,6 +7,7 @@ const useAuth = () => {
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
+    // console.log("Stored Token : ", token);
 
     if (storedToken) {
       setToken(storedToken);

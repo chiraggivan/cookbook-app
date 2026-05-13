@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import useFetch from "../../../hooks/useFetch";
 import axios from "axios";
+import Button from "../../../components/button";
+import Navbar from "../../../components/navbar";
 
 function AdminIngredientDetails() {
   const { id } = useParams();
@@ -12,11 +14,17 @@ function AdminIngredientDetails() {
   let ingDetail = {};
 
   // Redirect effect
+  // check if token is available
   useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated) && role !== "admin") {
-      navigate("/login");
+    if (!authHookLoading && (!token || !isAuthenticated)) {
+      navigate(`/login?expired=true&msg=${"Token not found. login again"}`);
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
+  // if role is NOT admin then redirect
+  if (role && role !== "admin") {
+    localStorage.removeItem("token");
+    navigate(`/login?expired=true&msg=${"Not authorised. login with admin credientials"}`);
+  }
 
   const method = "get";
   const url = `http://localhost:5001/ingredient/api/${id}`;
@@ -38,7 +46,8 @@ function AdminIngredientDetails() {
   //   console.log("data before return html : ", ingDetail);
   return (
     <>
-      <p></p>
+      <Navbar />
+      <p>Ingredient Details</p>
       <h1>{ingDetail?.name}</h1>
       <h3>Unit: {ingDetail?.base_unit}</h3>
       <h3>Cost : £ {ingDetail?.default_price}</h3>
@@ -49,8 +58,10 @@ function AdminIngredientDetails() {
       <h3>Cup Weight: {ingDetail?.cup_weight}</h3>
       <h3>Cup Unit: {ingDetail?.cup_unit}</h3>
 
-      <button>Edit</button>
-      <button>Delete</button>
+      <Button
+        children={`Edit Ingredient`}
+        onClick={() => navigate(`/admin/ingredients/edit/${id}`)}
+      />
     </>
   );
 }

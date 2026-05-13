@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
+import Navbar from "../../components/navbar";
 
 function RecipeDetails() {
   const { id } = useParams();
@@ -143,6 +144,7 @@ function RecipeDetails() {
   // console.log("table rows :", tableRows);
   return (
     <div>
+      <Navbar />
       <p></p>
       <h1>{data?.recipe[0].name}</h1>
       <h3>{data?.recipe[0].portion_size}</h3>

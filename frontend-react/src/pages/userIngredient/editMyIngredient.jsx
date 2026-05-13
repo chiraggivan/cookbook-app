@@ -1,54 +1,42 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import useAuth from "../../../hooks/useAuth";
-import useFetch from "../../../hooks/useFetch";
+import useAuth from "../../hooks/useAuth";
 import axios from "axios";
-import Input from "../../../components/input";
-import Textarea from "../../../components/textarea";
-import Button from "../../../components/button";
-import Dropdown from "../../../components/dropdown";
-import submitButtonForEdit from "./utils/submitButtonForEdit";
-import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
-import Navbar from "../../../components/navbar";
+import useFetch from "../../hooks/useFetch";
+import Input from "../../components/input";
+import Dropdown from "../../components/dropdown";
+import Textarea from "../../components/textarea";
+import Button from "../../components/button";
+import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
+import Navbar from "../../components/navbar";
 
 function EditIngredient() {
-  const role = JSON.parse(localStorage.getItem("user")).role;
+  const { state } = useLocation();
   const navigate = useNavigate();
-  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
-  const [ingData, setIngData] = useState({});
-  const [orgData, setOrgData] = useState({});
-  const { id } = useParams();
-  const [ingName, setIngName] = useState("");
+  const orgData = state?.data;
+  const [ingData, setIngData] = useState(state?.data);
   const [selectedMainUnit, setSelectedMainUnit] = useState("");
   const [selectedCupUnit, setSelectedCupUnit] = useState("");
   const [existIngs, setExistIngs] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [submitResult, setSubmitResult] = useState(null);
-  const sendData = {};
   const [updateBtn, setUpdateBtn] = useState(true);
-  const [refQ, setRefQ] = useState(1);
+  const sendData = {};
 
-  // const [FSuccess, setFSuccess] = useState(false);
-  // const [FMessage, setFMessage] = useState("");
-  // const [FData, setFData] = useState({});
-  // const [FError, setFError] = useState("");
-
-  // const mainUnits = ["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"];
-  // const cupUnits = ["kg", "g", "oz", "lbs"];
-
-  //--------------- Redirect effect  ----------------------------------------------------
-  useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated)) {
-      navigate(`/login?expired=true&msg=${"Token not found. login again"}`);
-    }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
-  // For this page role should be Admin
-  if (role && role !== "admin") {
-    localStorage.removeItem("token");
-    navigate(`/login?expired=true&msg=${"Not authorised. login with admin credientials"}`);
+  // if no state found in url then return
+  if (!state?.data) {
+    return <Navigate to="/" replace />;
   }
 
-  // ----------------------- function to check the change in fields ----------------------
+  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
+
+  //------------------  Redirect to home if token not found  ------------------------------
+  useEffect(() => {
+    if (!authHookLoading && (!token || !isAuthenticated)) {
+      navigate("/login");
+    }
+  }, [authHookLoading, token, isAuthenticated, navigate]);
+
+  // ------------------------ function to check the change in fields  ----------------------
   const handleChange = (field, value) => {
     setIngData((prev) => ({
       ...prev,
@@ -56,36 +44,15 @@ function EditIngredient() {
     }));
   };
 
-  // ------ get data from backend for ing to be edited with the help of useFetch Hook ----
-  const method = "get";
-  const url = `http://localhost:5001/ingredient/api/${id}`;
-  const { success, data, message, loading, error } = useFetch(
-    token ? url : null,
-    token,
-    method,
-    null,
-  );
-
-  // hook to initialise data
+  // ------------------------- hook to initialise data ---------------------------------
   useEffect(() => {
-    if (data) {
-      const d = data[0];
-      setOrgData(d);
-      setIngData(d);
-      setSelectedMainUnit(d?.base_unit);
-      setSelectedCupUnit(d?.cup_unit);
-      setOrgData((pre) => ({
-        ...pre,
-        ref_quantity: 1,
-      }));
-      setIngData((pre) => ({
-        ...pre,
-        ref_quantity: 1,
-      }));
+    if (ingData) {
+      setSelectedMainUnit(ingData.display_unit);
+      setSelectedCupUnit(ingData.cup_unit);
     }
-  }, [data]);
+  }, [ingData.display_unit, ingData.cup_unit]);
 
-  //------------ hook to get list of similar ing names  ----------------------------------
+  // ----------------- hook to get list of similar ing names -------------------------------
   // Ref to keep track of timeout ID
   const timeoutRef = useRef(null);
   useEffect(() => {
@@ -101,11 +68,12 @@ function EditIngredient() {
     setErrorMessage("");
 
     // set new timeout for the delay
+
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
           const res = await axios.get(
-            `http://localhost:5001/ingredient/api/search/ingredients?q=${ingName}`,
+            `http://localhost:5001/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
@@ -113,9 +81,10 @@ function EditIngredient() {
           const names = ingList.join("\n");
           setExistIngs(names);
         } catch (err) {
-          console.log("error in createIng.jsx while ing search :", err.response.data);
+          console.log("error in editMyIng.jsx while ing search :", err.response);
         }
       };
+
       checkIng();
     }, 500);
 
@@ -125,9 +94,9 @@ function EditIngredient() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [ingName]);
+  }, [ingData.name]);
 
-  // ---------------------- submit button function  ---------------------------------------
+  //------------------------- submit button function ------------------------------
   const handlesubmit = async () => {
     const checkData = { ...ingData };
     checkData.errors = {};
@@ -138,17 +107,17 @@ function EditIngredient() {
       isValid = false;
       checkData.errors.name = "Name required";
     }
-    if (!refQ || refQ <= 0) {
+    if (!checkData.display_quantity || checkData.display_quantity <= 0) {
       isValid = false;
-      checkData.errors.reference_quantity = "Quantity can't be empty. Should be positive number";
+      checkData.errors.display_quantity = "Quantity can't be empty. Should be positive number";
     }
-    if (!checkData.default_price || checkData.default_price <= 0) {
+    if (!checkData.display_price || checkData.display_price <= 0) {
       isValid = false;
-      checkData.errors.default_price = "Price can't be empty. Should be positive number";
+      checkData.errors.display_price = "Price can't be empty. Should be positive number";
     }
-    if (!checkData.base_unit || !mainUnits.includes(checkData.base_unit)) {
+    if (!checkData.display_unit || !mainUnits.includes(checkData.display_unit)) {
       isValid = false;
-      checkData.errors.base_unit = `Unit required and should be one of these : ${mainUnits}`;
+      checkData.errors.display_unit = `Unit required and should be one of these : ${mainUnits}`;
     }
     if (checkData.cup_weight || checkData.cup_unit) {
       if (!checkData.cup_weight || checkData.cup_weight <= 0) {
@@ -163,22 +132,25 @@ function EditIngredient() {
 
     setIngData(checkData);
     if (!isValid) {
+      console.log("isValid :", isValid);
       console.log("Error found while checking during submit", checkData);
       return;
     }
 
-    sendData.name = ingName ? ingName : ingData.name;
-    sendData.reference_quantity = Number(refQ);
-    sendData.reference_unit = ingData.base_unit;
-    sendData.default_price = Number(ingData.default_price);
-    sendData.cup_equivalent_weight = Number(ingData.cup_weight);
-    sendData.cup_equivalent_unit = ingData.cup_unit;
+    sendData.name = ingData.name;
+    sendData.display_quantity = Number(ingData.display_quantity);
+    sendData.display_unit = ingData.display_unit;
+    sendData.display_price = Number(ingData.display_price);
+    sendData.cup_weight = Number(ingData.cup_weight);
+    sendData.cup_unit = ingData.cup_unit;
     sendData.notes = ingData.notes;
+    sendData.user_ingredient_id = ingData.user_ingredient_id;
 
     const body = sendData;
 
     console.log("data about to be sent :", body);
-    // return;
+    console.log("original data: ", orgData);
+    return;
 
     const method = "put";
     const url = `http://localhost:5001/ingredient/api/edit/${id}`;
@@ -199,82 +171,73 @@ function EditIngredient() {
     }
   };
 
-  //----------------- submit button function (currently not used) -------------------------
-  const handlesubmit1 = () =>
-    submitButtonForEdit(ingData, refQ, mainUnits, cupUnits, ingName).then((result) => {
-      setFSuccess(result.success);
-      setFMessage(result.message);
-      setFData(result.data);
-      setFError(result.error);
-    });
-
-  // ---------------- active/deactivate update button based on data change or same ----------
+  // ----------- active/deactivate update button based on data change or same---------------
   useEffect(() => {
     const json1 = JSON.stringify(ingData);
     const json2 = JSON.stringify(orgData);
 
     if (json1 === json2) {
+      // console.log("The objects are the same.");
       setUpdateBtn(true);
     } else {
+      // console.log("The objects are different.");
       setUpdateBtn(false);
     }
   }, [ingData]);
-
   return (
     <>
       <Navbar />
-      <h1>Edit Ingredient</h1>
+      <h1>Edit Users Ingredient</h1>
       <Input
         label={"Name : "}
         type={"text"}
         value={ingData?.name ? ingData?.name : ""}
         onChange={(e) => {
           handleChange("name", e.target.value);
-          setIngName(e.target.value);
+          // setIngName(e.target.value);
         }}
         error={ingData?.errors?.name}
       />
       <Input
         label={"Quantity :"}
         type={"number"}
-        value={refQ}
-        onChange={(e) => {
-          setRefQ(e.target.value);
-          handleChange("ref_quantity", Number(e.target.value));
-        }}
-        error={ingData?.errors?.reference_quantity}
+        value={ingData?.display_quantity ? ingData?.display_quantity : ""}
+        onChange={(e) => handleChange("display_quantity", Number(e.target.value))}
+        error={ingData?.errors?.display_quantity}
       />
       <Dropdown
         title={"Unit :"}
         options={mainUnits}
         value={selectedMainUnit ? selectedMainUnit : ""}
         onChange={(e) => {
-          handleChange("base_unit", e.target.value);
+          handleChange("display_unit", e.target.value);
           setSelectedMainUnit(e.target.value);
         }}
-        error={ingData?.errors?.reference_unit}
+        error={ingData?.errors?.display_unit}
       />
       <Input
         label={"Price :"}
         type={"number"}
-        value={ingData?.default_price ? ingData?.default_price : 0}
+        value={ingData?.display_price ? ingData?.display_price : ""}
         placeholder={"0.00"}
-        onChange={(e) => handleChange("default_price", Number(e.target.value))}
-        error={ingData?.errors?.default_price}
+        onChange={(e) => handleChange("display_price", Number(e.target.value))}
+        error={ingData?.errors?.display_price}
       />
       <Input
         label={"Cup Weight :"}
         type={"number"}
-        value={ingData?.cup_weight ? ingData?.cup_weight : ""}
-        onChange={(e) => handleChange("cup_weight", Number(e.target.value))}
-        error={ingData?.errors?.cup_equivalent_weight}
+        value={ingData?.cup_weight ?? ""}
+        onChange={(e) =>
+          handleChange("cup_weight", e.target.value === "" ? null : Number(e.target.value))
+        }
+        error={ingData?.errors?.cup_weight}
       />
       <Dropdown
         title={"Cup Unit :"}
         options={cupUnits}
-        value={selectedCupUnit ? selectedCupUnit : ""}
+        value={selectedCupUnit ?? ""}
         onChange={(e) => {
-          handleChange("cup_unit", e.target.value);
+          handleChange("cup_unit", e.target.value === "" ? null : e.target.value);
           setSelectedCupUnit(e.target.value);
         }}
         error={ingData?.errors?.cup_unit}

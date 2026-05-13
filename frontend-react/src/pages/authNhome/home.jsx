@@ -4,6 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Button from "../../components/button";
+import Navbar from "../../components/navbar";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -56,6 +57,7 @@ function Home() {
   // console.log("data before return html : ", fetchData);
   return (
     <>
+      <Navbar />
       <h1>Welcome to Home</h1>
       <h2>All the recipes are :</h2>
       <Button children={"Add Recipe"} onClick={() => navigate("/recipe/new")} />

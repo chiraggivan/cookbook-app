@@ -9,6 +9,7 @@ import Toggle from "../../components/toggle";
 import Card from "../../components/card";
 import Table from "../../components/table";
 import Dropdown from "../../components/dropdown";
+import Navbar from "../../components/navbar";
 
 function NewRecipe() {
   const [isPrivate, setIsPrivate] = useState(false);
@@ -42,6 +43,7 @@ function NewRecipe() {
   // console.log("data before return html : ", data);
   return (
     <>
+      <Navbar />
       <h1>Welcome to Create Recipes</h1>
       <Input label={"Recipe name: "} type="text" placeholder={"Name of the recipe...."} />
       <Input label={"Portion of: "} type="text" placeholder={"eg. 2 person, 1kg, 750ml, etc."} />

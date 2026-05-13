@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
+import Navbar from "../../components/navbar";
 
 function MyDishes() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -31,6 +32,7 @@ function MyDishes() {
   // console.log("data before return html : ", fetchData);
   return (
     <>
+      <Navbar />
       <h1>Welcome to My Saved Dishes</h1>
 
       {data?.map((i) => (

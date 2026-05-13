@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
+import Button from "../../components/button";
+import Navbar from "../../components/navbar";
 
 function MyIngredients() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -31,6 +33,7 @@ function MyIngredients() {
   //   console.log("data before return html : ", data);
   return (
     <>
+      <Navbar />
       <h1>entered users ingredient page....</h1>
       {data?.map((i) => (
         <div key={i.user_ingredient_id}>
@@ -43,6 +46,10 @@ function MyIngredients() {
             Cup Weight: {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
           </h3>
           <h4>{i.notes}</h4>
+          <Button
+            children={"Edit"}
+            onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
+          />
         </div>
       ))}
     </>

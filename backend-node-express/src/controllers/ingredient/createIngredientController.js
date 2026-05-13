@@ -26,6 +26,15 @@ exports.search_ingredients = async (req, res) => {
       });
     }
 
+    // if q (query is empty or "") dont run SQL
+    if (!q) {
+      res.json({
+        success: true,
+        message: `ingredients list found.`,
+        data: [],
+      });
+    }
+
     // get the list of all the ingredients having the searched text
     const [rows] = await db.query(
       `SELECT  i.name

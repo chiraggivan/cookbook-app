@@ -6,7 +6,7 @@ exports.create_user_ingredient = async (req, res) => {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const ogData = JSON.parse(req.body.data);
     if (!ogData) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: "Data not sent with the body.",
       });
@@ -17,7 +17,7 @@ exports.create_user_ingredient = async (req, res) => {
     const error = validateIngredients(data);
 
     if (error) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
         message: `Error while validating user ingredient details : ${error} .`,
       });
@@ -60,7 +60,7 @@ exports.create_user_ingredient = async (req, res) => {
       user.id,
     ]);
     if (userRow.length === 0) {
-      return res.status(500).json({
+      return res.status(401).json({
         success: false,
         message: "User not found or not active.",
       });
@@ -71,7 +71,7 @@ exports.create_user_ingredient = async (req, res) => {
       data.name,
     ]);
     if (ingRow.length !== 0) {
-      return res.status(500).json({
+      return res.status(409).json({
         success: false,
         message: `${data.name} - already exists in general ingredients.`,
       });
@@ -83,7 +83,7 @@ exports.create_user_ingredient = async (req, res) => {
       [data.name, user.id],
     );
     if (row.length !== 0) {
-      return res.status(500).json({
+      return res.status(409).json({
         success: false,
         message: `You already have this ingredient (${data.name}).`,
       });

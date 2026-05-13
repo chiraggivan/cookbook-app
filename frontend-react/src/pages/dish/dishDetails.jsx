@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
+import Navbar from "../../components/navbar";
 
 function DishDetails() {
   const { id } = useParams();
@@ -83,6 +84,7 @@ function DishDetails() {
 
   return (
     <>
+      <Navbar />
       <p></p>
       <h1>{data?.dish.recipe_name}</h1>
       <h3>Portion size: {data?.dish.portion_size}</h3>

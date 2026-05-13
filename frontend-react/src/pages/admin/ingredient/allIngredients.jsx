@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import useFetch from "../../../hooks/useFetch";
 import axios from "axios";
+import Navbar from "../../../components/navbar";
 
 function AdminAllIngredients() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -11,10 +12,15 @@ function AdminAllIngredients() {
 
   // Redirect effect
   useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated) && role !== "admin") {
-      navigate("/login");
+    if (!authHookLoading && (!token || !isAuthenticated)) {
+      navigate(`/login?expired=true&msg=${"Token not found. login again"}`);
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
+  // For this page role should be Admin
+  if (role && role !== "admin") {
+    localStorage.removeItem("token");
+    navigate(`/login?expired=true&msg=${"Not authorised. login with admin credientials"}`);
+  }
 
   const method = "get";
   const url = `http://localhost:5001/ingredient/api/all`;
@@ -32,6 +38,7 @@ function AdminAllIngredients() {
   //   console.log("data before return html : ", data);
   return (
     <>
+      <Navbar />
       <table>
         <thead>
           <tr>

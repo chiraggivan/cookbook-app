@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
+import Navbar from "../../components/navbar";
 
 function MyRecipes() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -31,6 +32,7 @@ function MyRecipes() {
   // console.log("data before return html : ", data);
   return (
     <>
+      <Navbar />
       <h1>Welcome to My Recipes</h1>
 
       {data?.map((i) => (

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
+import Navbar from "../../components/navbar";
 
 function UserRecipes() {
   const { id } = useParams();
@@ -45,6 +46,7 @@ function UserRecipes() {
   //   console.log("data before return html : ", data);
   return (
     <>
+      <Navbar />
       <h1>Welcome to {data?.[0].username}'s Recipes</h1>
 
       {data?.map((i) => (

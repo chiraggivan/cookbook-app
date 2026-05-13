@@ -35,6 +35,48 @@ exports.search_user_ings = async (req, res) => {
   }
 };
 
+// search user ingredients
+exports.search_user_and_mmain_ings_names = async (req, res) => {
+  try {
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const q = (req.query.q || "").trim().toLowerCase();
+
+    const [rows] = await db.query(
+      `SELECT  name
+      FROM user_ingredients 
+      WHERE LOWER(name) LIKE ? AND submitted_by = ? AND is_active = 1
+      UNION
+      SELECT name
+      FROM ingredients
+      WHERE LOWER(name) LIKE ? AND is_active = 1
+      ORDER BY name
+      LIMIT 20
+        `,
+      [`%${q}%`, user.id, `%${q}%`],
+    );
+
+    // if (rows.length === 0) {
+    //   return res.json({
+    //     success: true,
+    //     message: `No such (${q}) ingredients found`,
+    //   });
+    // }
+    // FINAL response
+    res.json({
+      success: true,
+      message: `user ingredients found`,
+      data: rows,
+    });
+  } catch (err) {
+    console.error("Error in readUserIngController - (search__user_ings)  is : ", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  } finally {
+  }
+};
+
 // read user ingredients
 exports.read_user_ings = async (req, res) => {
   try {
