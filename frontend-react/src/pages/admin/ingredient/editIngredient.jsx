@@ -10,6 +10,7 @@ import Dropdown from "../../../components/dropdown";
 import submitButtonForEdit from "./utils/submitButtonForEdit";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbar";
+import EditIngPage from "./editIngredientPage";
 
 function EditIngredient() {
   const role = JSON.parse(localStorage.getItem("user")).role;
@@ -223,7 +224,23 @@ function EditIngredient() {
   return (
     <>
       <Navbar />
-      <h1>Edit Ingredient</h1>
+      <EditIngPage
+        ingData={ingData}
+        handleChange={handleChange}
+        setIngName={setIngName}
+        refQ={refQ}
+        setRefQ={setRefQ}
+        selectedMainUnit={selectedMainUnit}
+        setSelectedMainUnit={setSelectedMainUnit}
+        selectedCupUnit={selectedCupUnit}
+        setSelectedCupUnit={setSelectedCupUnit}
+        existIngs={existIngs}
+        updateBtn={updateBtn}
+        handlesubmit={handlesubmit}
+        errorMessage={errorMessage}
+        navigate={navigate}
+      />
+      {/* <h1>Edit Ingredient</h1>
       <Input
         label={"Name : "}
         type={"text"}
@@ -302,7 +319,7 @@ function EditIngredient() {
         onClick={handlesubmit}
       />
       <Button children={`Cancel`} onClick={() => navigate(-1)} />
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>} */}
     </>
   );
 }

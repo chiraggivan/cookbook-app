@@ -10,21 +10,12 @@ import { HandleDishDelete } from "./utils/handleDishDelete";
 function MyDishes() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [orgData, setOrgData] = useState([]);
   const [dishList, setDishList] = useState();
   const [fetchLoading, setFetchLoading] = useState(true);
-
-  const [success, setSuccess] = useState(false);
-  const [data, setData] = useState(null);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   const [searchParams] = useSearchParams();
   const updated = searchParams.get("changed");
   const id = searchParams.get("id");
-
-  // console.log("id is: ", id, " and updated is :", updated);
+  console.log("id is: ", id, " and updated is :", updated);
 
   // ------------------------------------ Redirect effect ----------------------------------------------------
   useEffect(() => {
@@ -36,34 +27,18 @@ function MyDishes() {
   const method = "get";
   const url = `http://localhost:5001/dish/api/`;
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        setFetchLoading(true);
-        if (token) {
-          const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
-          setSuccess(res?.data.success);
-          setData(res?.data.data);
-          setMessage(res?.data.message);
-          setError(res?.data.error);
-          setFetchLoading(false);
-          // console.log("data is:", data);
-        }
-      } catch (err) {
-        console.log("error while fetching dish list with axios is :", err.response.message);
-      }
-    };
+  const { success, data, message, loading, error } = useFetch(
+    token ? url : null,
+    token,
+    method,
+    null,
+  );
 
-    fetch();
-  }, [token]);
-
-  // console.log("success :", success);
-  // console.log("data :", data);
-  // console.log("message :", message);
-  // console.log("loading :", fetchLoading);
-  // console.log("error :", error);
-  // console.log("token :", token);
-
+  console.log("success :", success);
+  console.log("data :", data);
+  console.log("message :", message);
+  console.log("loading :", loading);
+  console.log("error :", error);
   // setDishList(data);
   //   setFetchLoading(loading);
   // }, [token]);
@@ -73,28 +48,31 @@ function MyDishes() {
     setDishList(data);
   }, [data]);
 
-  //--------------------------- update dish list if changed  ---------------------------------------------
+  // update dish list if changed
   useEffect(() => {
-    if (!id) return;
-    setData((prev) => prev?.filter((i) => i.dish_id !== Number(id)));
+    setDishList(dishList?.filter((i) => i.dish_id !== Number(id)));
+    console.log(" when changed :", dishList);
   }, [id]);
 
-  console.log("data is :", data);
-  if (fetchLoading) {
+  if (loading) {
     return <h1> Page Loading .............</h1>;
   }
 
-  //-------------------------------- delete button function ---------------------------------------------
+  // console.log("id : ", id);
+  // console.log("dishList :", dishList);
+
+  // delete button function
   const handleDelete = async (e, dish, token, navigate) => {
     e.preventDefault();
-    console.log("dish :", dish);
+    console.log("dish: ", dish);
     if (
       window.confirm(
-        `Are you sure you want to delete this recipe - ${dish.recipe_name}, prepared on ${dish.preparation_date.split("T")[0]}`,
+        `Are you sure you want to delete this recipe - ${dish.dish_name}, prepared on ${dish.preparation_date.split("T")[0]}`,
       )
     ) {
       try {
         await HandleDishDelete({ id: dish.dish_id, token, navigate });
+        navigate("/myDishes");
       } catch (err) {
         console.log("Failed to delete item", err);
         console.log(err.response?.data?.message);
@@ -108,7 +86,7 @@ function MyDishes() {
       <Navbar />
       <h1>Welcome to My Saved Dishes</h1>
 
-      {data?.map((i) => (
+      {dishList?.map((i) => (
         <div key={i.dish_id}>
           {/* <h6>{i.recipe_id}</h6> */}
           <h2 onClick={() => navigate(`/dish/${i.dish_id}`)}>{i.recipe_name}</h2>

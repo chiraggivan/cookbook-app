@@ -49,7 +49,7 @@ function useFetch(url, token, method = "get", body = null) {
           err.response.data.message === "Invalid or Expired token"
         ) {
           localStorage.removeItem("token");
-          navigate(`/login?exipred=true&msg=${err.response.data.message}`);
+          navigate(`/login?expired=true&msg=${err.response.data.message}`);
           return;
         }
         setSuccess(false);

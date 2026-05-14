@@ -5,6 +5,7 @@ import useFetch from "../../../hooks/useFetch";
 import axios from "axios";
 import Button from "../../../components/button";
 import Navbar from "../../../components/navbar";
+import IngDetailsPage from "./ingredientDetailsPage";
 
 function AdminIngredientDetails() {
   const { id } = useParams();
@@ -47,7 +48,8 @@ function AdminIngredientDetails() {
   return (
     <>
       <Navbar />
-      <p>Ingredient Details</p>
+      <IngDetailsPage id={id} ingDetail={ingDetail} navigate={navigate} />
+      {/* <p>Ingredient Details</p>
       <h1>{ingDetail?.name}</h1>
       <h3>Unit: {ingDetail?.base_unit}</h3>
       <h3>Cost : £ {ingDetail?.default_price}</h3>
@@ -61,7 +63,7 @@ function AdminIngredientDetails() {
       <Button
         children={`Edit Ingredient`}
         onClick={() => navigate(`/admin/ingredients/edit/${id}`)}
-      />
+      /> */}
     </>
   );
 }

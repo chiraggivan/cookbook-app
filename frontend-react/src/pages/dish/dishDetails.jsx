@@ -4,6 +4,9 @@ import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
 import Navbar from "../../components/navbar";
+import Button from "../../components/button";
+import { HandleDishDelete } from "./utils/handleDishDelete";
+import DishDetailsPage from "./-dishDetailsPage";
 
 function DishDetails() {
   const { id } = useParams();
@@ -30,11 +33,10 @@ function DishDetails() {
   );
 
   if (loading) {
-    return <h1> Page Loading .............</h1>;
+    return <h1> Page Loading ........</h1>;
   }
-  // console.log("data before return html : ", fetchData);
 
-  // Create html for table woith components and ingredients rows
+  // Create html for table with components and ingredients rows
   if (data) {
     const recipeData = data?.ingredients;
 
@@ -82,51 +84,36 @@ function DishDetails() {
     }
   }
 
+  // delete button function
+  const handleDelete = async (e, id, token, navigate) => {
+    e.preventDefault();
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete this recipe - ${data?.dish.recipe_name}, prepared on ${data?.dish.preparation_date}`,
+      )
+    ) {
+      try {
+        await HandleDishDelete({ id, token, navigate });
+        navigate("/myDishes");
+      } catch (err) {
+        console.log("Failed to delete item", err);
+        console.log(err.response?.data?.message);
+        alert(err.response?.data?.message);
+      }
+    }
+  };
+
   return (
     <>
       <Navbar />
-      <p></p>
-      <h1>{data?.dish.recipe_name}</h1>
-      <h3>Portion size: {data?.dish.portion_size}</h3>
-      <h3>Comment: {data?.dish.comment}</h3>
-      <h5>Meal type: {data?.dish.meal}</h5>
-      <h3>Cost : £ {data?.dish.total_cost}</h3>
-      <h4>
-        Prepared on : {data?.dish.preparation_date} @ {data?.dish.time_prepared}
-      </h4>
-
-      <button>Delete</button>
-      <table>
-        <thead>
-          <tr>
-            <th>ingredient name</th>
-            <th>Quantity</th>
-            <th>Unit</th>
-            <th>price</th>
-            <th>Base Quantity</th>
-            <th>Base Unit</th>
-            <th>Base Price</th>
-            <th>Ing Source</th>
-          </tr>
-        </thead>
-        <tbody>{tableRows}</tbody>
-      </table>
-      {/* <table>
-        <thead>
-          <tr>
-            <th>Sr-No.</th>
-            <th>Steps Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.steps.map((s) => (
-            <tr key={s.step_order}>
-              <td>{s.step_order}</td>
-              <td>{s.step_text}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
+      <DishDetailsPage
+        id={id}
+        data={data}
+        navigate={navigate}
+        tableRows={tableRows}
+        handleDelete={handleDelete}
+      />
     </>
   );
 }
