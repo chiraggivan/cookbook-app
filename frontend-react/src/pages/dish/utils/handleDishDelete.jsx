@@ -14,10 +14,9 @@ export async function HandleDishDelete({ id, token, navigate }) {
     if (res?.data?.success === true) {
       alert(res?.data?.message);
       navigate(`/myDishes?changed=true&id=${id}`);
-      console.log(res?.data?.message);
       return;
     } else {
-      alert(res?.data?.message);
+      alert("Alert from handleDishDelete", res?.data?.message);
       console.log(res?.data?.message);
       return;
     }

@@ -5,7 +5,7 @@ import useFetch from "../../../hooks/useFetch";
 import axios from "axios";
 import Navbar from "../../../components/navbar";
 import Button from "../../../components/button";
-import AllIngsSection from "./allIngredientsPage";
+import AllIngsSection from "./-allIngredientsPage";
 
 function AdminAllIngredients() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();

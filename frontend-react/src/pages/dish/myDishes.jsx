@@ -1,30 +1,23 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
 import Navbar from "../../components/navbar";
 import Button from "../../components/button";
 import { HandleDishDelete } from "./utils/handleDishDelete";
+import { DishContext } from "../../context/dishContext";
 
 function MyDishes() {
-  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
+  const token = localStorage.getItem("token");
+  const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [orgData, setOrgData] = useState([]);
-  const [dishList, setDishList] = useState();
+  const { dishes, setDishes, fetchedOnce, setFetchedOnce } = useContext(DishContext);
   const [fetchLoading, setFetchLoading] = useState(true);
-
-  const [success, setSuccess] = useState(false);
-  const [data, setData] = useState(null);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const [searchParams] = useSearchParams();
   const updated = searchParams.get("changed");
   const id = searchParams.get("id");
-
-  // console.log("id is: ", id, " and updated is :", updated);
 
   // ------------------------------------ Redirect effect ----------------------------------------------------
   useEffect(() => {
@@ -36,50 +29,35 @@ function MyDishes() {
   const method = "get";
   const url = `http://localhost:5001/dish/api/`;
 
+  // ----------------------------- fetch data from backend only for once --------------------------------
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        setFetchLoading(true);
-        if (token) {
-          const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
-          setSuccess(res?.data.success);
-          setData(res?.data.data);
-          setMessage(res?.data.message);
-          setError(res?.data.error);
+    if (!fetchedOnce) {
+      const fetch = async () => {
+        try {
+          setFetchLoading(true);
+          if (token) {
+            const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
+            setDishes(res?.data.data);
+            setFetchedOnce(true);
+          }
+        } catch (err) {
+          console.log("error while fetching dish list with axios is :", err.response.message);
+        } finally {
           setFetchLoading(false);
-          // console.log("data is:", data);
         }
-      } catch (err) {
-        console.log("error while fetching dish list with axios is :", err.response.message);
-      }
-    };
-
-    fetch();
-  }, [token]);
-
-  // console.log("success :", success);
-  // console.log("data :", data);
-  // console.log("message :", message);
-  // console.log("loading :", fetchLoading);
-  // console.log("error :", error);
-  // console.log("token :", token);
-
-  // setDishList(data);
-  //   setFetchLoading(loading);
-  // }, [token]);
-
-  // ---------------------------- load dish list when data found -------------------------------------------
-  useEffect(() => {
-    setDishList(data);
-  }, [data]);
+      };
+      fetch();
+    }
+    setFetchLoading(false);
+  }, []);
 
   //--------------------------- update dish list if changed  ---------------------------------------------
   useEffect(() => {
     if (!id) return;
-    setData((prev) => prev?.filter((i) => i.dish_id !== Number(id)));
+    setDishes((prev) => prev?.filter((i) => i.dish_id !== Number(id)));
   }, [id]);
 
-  console.log("data is :", data);
+  // -----------------------  show loading while waiting for data to be ready -------------------------
   if (fetchLoading) {
     return <h1> Page Loading .............</h1>;
   }
@@ -87,7 +65,7 @@ function MyDishes() {
   //-------------------------------- delete button function ---------------------------------------------
   const handleDelete = async (e, dish, token, navigate) => {
     e.preventDefault();
-    console.log("dish :", dish);
+
     if (
       window.confirm(
         `Are you sure you want to delete this recipe - ${dish.recipe_name}, prepared on ${dish.preparation_date.split("T")[0]}`,
@@ -108,7 +86,7 @@ function MyDishes() {
       <Navbar />
       <h1>Welcome to My Saved Dishes</h1>
 
-      {data?.map((i) => (
+      {dishes?.map((i) => (
         <div key={i.dish_id}>
           {/* <h6>{i.recipe_id}</h6> */}
           <h2 onClick={() => navigate(`/dish/${i.dish_id}`)}>{i.recipe_name}</h2>
@@ -127,6 +105,3 @@ function MyDishes() {
 }
 
 export default MyDishes;
-//  await handleDelete(itemId); // Call the child function
-//      // After success, update your state
-//       setItems(items.filter(item => item.id !== itemId));

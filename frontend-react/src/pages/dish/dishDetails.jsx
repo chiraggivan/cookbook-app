@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
@@ -7,11 +7,16 @@ import Navbar from "../../components/navbar";
 import Button from "../../components/button";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import DishDetailsPage from "./-dishDetailsPage";
+import { DishContext } from "../../context/dishContext";
 
 function DishDetails() {
   const { id } = useParams();
-  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
+  const token = localStorage.getItem("token");
+  const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { dishDetails, setDishDetails } = useContext(DishContext);
+  const [foundDish, setFoundDish] = useState();
+  const [fetchLoading, setFetchLoading] = useState(true);
   let tableRows = [];
 
   // Redirect effect
@@ -21,26 +26,50 @@ function DishDetails() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
+  // ---------- fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
   const method = "get";
   const url = `http://localhost:5001/dish/api/${id}`;
   const body = null;
-  const { success, data, message, loading, error } = useFetch(
-    token ? url : null,
-    token,
-    method,
-    body ? body : null,
-  );
 
-  if (loading) {
+  console.log("dishDetails :", dishDetails);
+  const searchDish = dishDetails?.find((d) => d.dish.dish_id === Number(id));
+  // ------------------ fetch data from backend only for once if not found in context ---------------------
+  useEffect(() => {
+    setFoundDish(searchDish);
+  }, [dishDetails]);
+
+  // setFoundDish(dishDetails?.find((d) => d.dish.dish_id === Number(id)));
+  useEffect(() => {
+    if (!searchDish) {
+      const fetchData = async () => {
+        try {
+          setFetchLoading(true);
+          if (token) {
+            const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
+            setDishDetails((prev) => [...prev, res?.data?.data]);
+          }
+        } catch (err) {
+          console.log("error while fetching dish details with axios is :", err.response);
+        } finally {
+          setFetchLoading(false);
+        }
+      };
+
+      fetchData();
+    }
+    setFetchLoading(false);
+  }, []);
+
+  //  initial page loading screen
+  if (fetchLoading) {
     return <h1> Page Loading ........</h1>;
   }
 
   // Create html for table with components and ingredients rows
-  if (data) {
-    const recipeData = data?.ingredients;
+  if (foundDish) {
+    const recipeData = foundDish?.ingredients;
 
-    const uniqueComp = [...new Set(recipeData.map((i) => i.component_display_order))].sort(
+    const uniqueComp = [...new Set(recipeData?.map((i) => i.component_display_order))].sort(
       (a, b) => a - b,
     );
     // console.log("unique comps are:", uniqueComp);
@@ -90,26 +119,26 @@ function DishDetails() {
 
     if (
       window.confirm(
-        `Are you sure you want to delete this recipe - ${data?.dish.recipe_name}, prepared on ${data?.dish.preparation_date}`,
+        `Are you sure you want to delete this recipe - ${foundDish?.dish.recipe_name}, prepared on ${foundDish?.dish.preparation_date}`,
       )
     ) {
       try {
         await HandleDishDelete({ id, token, navigate });
-        navigate("/myDishes");
+        return;
       } catch (err) {
-        console.log("Failed to delete item", err);
-        console.log(err.response?.data?.message);
-        alert(err.response?.data?.message);
+        console.log("catch block Failed to delete item", err);
+        console.log(err.response?.foundDish?.message);
+        alert(err.response?.foundDish?.message);
       }
     }
   };
-
+  console.log("dishD before jsx: ", foundDish);
   return (
     <>
       <Navbar />
       <DishDetailsPage
         id={id}
-        data={data}
+        data={foundDish}
         navigate={navigate}
         tableRows={tableRows}
         handleDelete={handleDelete}

@@ -9,7 +9,7 @@ import Button from "../../../components/button";
 import Dropdown from "../../../components/dropdown";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbar";
-import CreateIngPage from "./createIngredientPage";
+import CreateIngPage from "./-createIngredientPage";
 
 function AddNewIngredient() {
   const { token, loading, isAuthenticated } = useAuth();

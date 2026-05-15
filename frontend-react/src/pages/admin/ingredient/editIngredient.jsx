@@ -10,7 +10,7 @@ import Dropdown from "../../../components/dropdown";
 import submitButtonForEdit from "./utils/submitButtonForEdit";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbar";
-import EditIngPage from "./editIngredientPage";
+import EditIngPage from "./-editIngredientPage";
 
 function EditIngredient() {
   const role = JSON.parse(localStorage.getItem("user")).role;

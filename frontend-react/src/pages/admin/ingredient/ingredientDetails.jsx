@@ -5,7 +5,7 @@ import useFetch from "../../../hooks/useFetch";
 import axios from "axios";
 import Button from "../../../components/button";
 import Navbar from "../../../components/navbar";
-import IngDetailsPage from "./ingredientDetailsPage";
+import IngDetailsPage from "./-ingredientDetailsPage";
 
 function AdminIngredientDetails() {
   const { id } = useParams();
