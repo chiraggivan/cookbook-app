@@ -12,7 +12,8 @@ function MyDishes() {
   const token = localStorage.getItem("token");
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { dishes, setDishes, fetchedOnce, setFetchedOnce } = useContext(DishContext);
+  const { dishes, setDishes, fetchedOnce, setFetchedOnce, setDishDetails } =
+    useContext(DishContext);
   const [fetchLoading, setFetchLoading] = useState(true);
 
   const [searchParams] = useSearchParams();
@@ -32,7 +33,7 @@ function MyDishes() {
   // ----------------------------- fetch data from backend only for once --------------------------------
   useEffect(() => {
     if (!fetchedOnce) {
-      const fetch = async () => {
+      const fetchData = async () => {
         try {
           setFetchLoading(true);
           if (token) {
@@ -46,7 +47,7 @@ function MyDishes() {
           setFetchLoading(false);
         }
       };
-      fetch();
+      fetchData();
     }
     setFetchLoading(false);
   }, []);
@@ -55,6 +56,7 @@ function MyDishes() {
   useEffect(() => {
     if (!id) return;
     setDishes((prev) => prev?.filter((i) => i.dish_id !== Number(id)));
+    setDishDetails((prev) => prev?.filter((i) => i.dish?.dish_id !== Number(id)));
   }, [id]);
 
   // -----------------------  show loading while waiting for data to be ready -------------------------

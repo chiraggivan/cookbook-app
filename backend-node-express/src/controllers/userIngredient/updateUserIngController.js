@@ -4,7 +4,13 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.update_user_ing = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const ogData = JSON.parse(req.body.data);
+
+    const ogData = req?.body;
+    ogData.quantity = Number(ogData.quantity);
+    ogData.price = Number(ogData.price);
+    ogData.cup_weight = Number(ogData.cup_weight);
+    ogData.user_ing_id = Number(ogData.user_ing_id);
+    ogData.user_id = Number(ogData.user_id);
 
     if (!ogData) {
       return res.status(500).json({
@@ -17,20 +23,20 @@ exports.update_user_ing = async (req, res) => {
     const data = normaliseIngredientData(ogData);
     const error = validateIngredients(data);
 
-    // if (error) {
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: `Error while validating user ingredient details : ${error} .`,
-    //   });
-    // }
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: `Error while validating user ingredient details : ${error} .`,
+      });
+    }
     //  -------------------- validating data with db ----------------------------
 
     // Validate user_id exists & user has the privilege to  edit this ingredient
     const [userRow] = await db.query(
       `SELECT 1 
-        FROM users u
-        JOIN user_ingredients ui ON ui.submitted_by = u.user_id AND u.is_active = 1 
-        WHERE u.user_id = ? AND ui.user_ingredient_id = ?`,
+      FROM users u
+      JOIN user_ingredients ui ON ui.submitted_by = u.user_id AND u.is_active = 1 
+      WHERE u.user_id = ? AND ui.user_ingredient_id = ?`,
       [user.id, data.user_ing_id],
     );
     if (userRow.length === 0) {
@@ -52,6 +58,11 @@ exports.update_user_ing = async (req, res) => {
         message: `You already have this ingredient (${data.name}).`,
       });
     }
+
+    return res.json({
+      success: true,
+      message: `user ingredient about to call procedure update_user_ingredient_plus_units.`,
+    });
 
     // create a conn to handle rollback DML operation if any DML
     const conn = await db.getConnection();
@@ -86,7 +97,6 @@ exports.update_user_ing = async (req, res) => {
     }
 
     //  FINAL response
-
     res.json({
       success: true,
       message: `user ingredient updated successfully.`,

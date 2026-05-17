@@ -3,8 +3,11 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 
 exports.create_user_ingredient = async (req, res) => {
   try {
+    console.log("in create user Ingredient");
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const ogData = JSON.parse(req.body.data);
+    console.log("data: ", req.body);
+    const ogData = req.body;
+    console.log("data: ", ogData);
     if (!ogData) {
       return res.status(400).json({
         success: false,

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
@@ -9,9 +9,14 @@ import Textarea from "../../components/textarea";
 import Button from "../../components/button";
 import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
 import Navbar from "../../components/navbar";
+import OnDataChange from "../../utils/submitButtonActivation";
+import { MyIngredientContext } from "../../context/myIngredientContext";
 
 function EditIngredient() {
   const { state } = useLocation();
+  const id = state?.data?.user_ingredient_id;
+  const user = JSON.parse(localStorage.getItem("user"));
+  // console.log("user is :", user);
   const navigate = useNavigate();
   const orgData = state?.data;
   const [ingData, setIngData] = useState(state?.data);
@@ -20,7 +25,10 @@ function EditIngredient() {
   const [existIngs, setExistIngs] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [updateBtn, setUpdateBtn] = useState(true);
-  const sendData = {};
+  const saveLocalData = {};
+  const sendData = new URLSearchParams();
+  const { myIngredients, setMyIngredients } = useContext(MyIngredientContext);
+  const [fetchLoading, setFetchLoading] = useState(true);
 
   // if no state found in url then return
   if (!state?.data) {
@@ -67,8 +75,7 @@ function EditIngredient() {
     // up date any error if generated
     setErrorMessage("");
 
-    // set new timeout for the delay
-
+    // set new timeout for the delay text search
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
@@ -136,54 +143,64 @@ function EditIngredient() {
       console.log("Error found while checking during submit", checkData);
       return;
     }
+    // console.log("user :", JSON.parse(user));
+    saveLocalData.name = ingData.name;
+    saveLocalData.display_quantity = Number(ingData.display_quantity);
+    saveLocalData.display_unit = ingData.display_unit;
+    saveLocalData.display_price = Number(ingData.display_price);
+    saveLocalData.cup_weight = Number(ingData.cup_weight) ?? "";
+    saveLocalData.cup_unit = ingData.cup_unit ?? "";
+    saveLocalData.notes = ingData.notes;
+    saveLocalData.user_ingredient_id = ingData.user_ingredient_id;
+    // saveLocalData.user_id = user.user_id;
 
-    sendData.name = ingData.name;
-    sendData.display_quantity = Number(ingData.display_quantity);
-    sendData.display_unit = ingData.display_unit;
-    sendData.display_price = Number(ingData.display_price);
-    sendData.cup_weight = Number(ingData.cup_weight);
-    sendData.cup_unit = ingData.cup_unit;
-    sendData.notes = ingData.notes;
-    sendData.user_ingredient_id = ingData.user_ingredient_id;
+    sendData.append("name", ingData.name);
+    sendData.append("quantity", Number(ingData.display_quantity));
+    sendData.append("unit", ingData.display_unit);
+    sendData.append("price", Number(ingData.display_price));
+    sendData.append("cup_weight", Number(ingData.cup_weight) ?? "");
+    sendData.append("cup_unit", ingData.cup_unit ?? "");
+    sendData.append("notes", ingData.notes ?? "");
+    sendData.append("user_ing_id", ingData.user_ingredient_id);
+    sendData.append("user_id", user.user_id);
 
-    const body = sendData;
+    const formData = sendData;
 
-    console.log("data about to be sent :", body);
-    console.log("original data: ", orgData);
-    return;
+    // console.log("data about to be sent :", body);
+    // return;
 
     const method = "put";
-    const url = `http://localhost:5001/ingredient/api/edit/${id}`;
+    const url = `http://localhost:5001/useringredient/api/edit`;
     try {
-      const res = await axios[method](url, body, {
+      const res = await axios[method](url, formData, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("response is :", res);
+      // console.log("response is :", res);
       alert(res.data.message);
-      navigate("/admin/ingredients/all");
+      const x = myIngredients.filter(
+        (i) => i.user_ingredient_id !== saveLocalData.user_ingredient_id,
+      );
+      x.push(saveLocalData);
+      x.sort((a, b) => b.user_ingredient_id - a.user_ingredient_id);
+      setMyIngredients(x);
+      navigate("/myIngredients");
     } catch (err) {
-      console.log("Error found in createIngredient while creating :", err.response?.data);
+      console.log("Error found in EditMyIngredient while creating :", err.response);
       setErrorMessage(err.response?.data.message);
     }
   };
 
-  // ----------- active/deactivate update button based on data change or same---------------
+  // ----------- active/deactivate "update" button based on change in data ---------------
   useEffect(() => {
-    const json1 = JSON.stringify(ingData);
-    const json2 = JSON.stringify(orgData);
-
-    if (json1 === json2) {
-      // console.log("The objects are the same.");
-      setUpdateBtn(true);
-    } else {
-      // console.log("The objects are different.");
-      setUpdateBtn(false);
-    }
+    const btnDisabled = OnDataChange(ingData ?? {}, orgData ?? {});
+    setUpdateBtn(btnDisabled);
   }, [ingData]);
+
+  // console.log("my Ingredients are: ", myIngredients);
   return (
     <>
       <Navbar />

@@ -31,7 +31,7 @@ function DishDetails() {
   const url = `http://localhost:5001/dish/api/${id}`;
   const body = null;
 
-  console.log("dishDetails :", dishDetails);
+  // console.log("Data from dishContext for dishDetails is :", dishDetails);
   const searchDish = dishDetails?.find((d) => d.dish.dish_id === Number(id));
   // ------------------ fetch data from backend only for once if not found in context ---------------------
   useEffect(() => {
@@ -132,7 +132,7 @@ function DishDetails() {
       }
     }
   };
-  console.log("dishD before jsx: ", foundDish);
+  // console.log("dishD before jsx: ", foundDish);
   return (
     <>
       <Navbar />

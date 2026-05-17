@@ -29,7 +29,7 @@ function AddIngredient() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // ---------------------- function to check the change in fields --------------------
+  // ---------------------- function to check the change in fields value --------------------
   const handleChange = (field, value) => {
     setIngData((prev) => ({
       ...prev,
@@ -132,17 +132,17 @@ function AddIngredient() {
     }
 
     sendData.name = ingData.name;
-    sendData.display_quantity = Number(ingData.display_quantity);
-    sendData.display_unit = ingData.display_unit;
-    sendData.display_price = Number(ingData.display_price);
-    sendData.cup_weight = Number(ingData.cup_weight);
-    sendData.cup_unit = ingData.cup_unit;
-    sendData.notes = ingData.notes;
+    sendData.quantity = Number(ingData.display_quantity);
+    sendData.unit = ingData.display_unit;
+    sendData.price = Number(ingData.display_price);
+    sendData.cup_weight = Number(ingData.cup_weight) ?? "";
+    sendData.cup_unit = ingData.cup_unit ?? "";
+    sendData.notes = ingData.notes ?? "";
 
     const body = sendData;
 
     console.log("data about to be sent :", body);
-    return;
+    // return;
 
     const method = "post";
     const url = `http://localhost:5001/useringredient/api/create`;
@@ -156,7 +156,7 @@ function AddIngredient() {
 
       console.log("response is :", res);
       alert(res.data.message);
-      navigate("/admin/ingredients/all");
+      navigate("/myIngredients");
     } catch (err) {
       console.log("Error found in createMyIngredient while creating :", err.response?.data);
       setErrorMessage(err.response?.data.message);
