@@ -1,21 +1,30 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Navbar from "../../components/navbar";
+import { MyRecipeContext } from "../../context/myRecipeContext";
 
 function RecipeDetails() {
+  const token = localStorage.getItem("token");
   const { id } = useParams();
-  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
+  const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
+  const [foundRecipeDetails, setFoundRecipeDetails] = useState();
+  const [fetchLoading, setFetchLoading] = useState(true);
   let tableRows = [];
 
-  // delete button function
+  //----------------------------------- delete button function -------------------------------------------------
   const handleDelete = async (e) => {
     e.preventDefault();
 
-    if (window.confirm(`Are you sure you want to delete this recipe - ${data?.recipe[0].name}`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete this recipe - ${recipeDetails[0]?.recipe[0].name}`,
+      )
+    ) {
       const deleteurl = `http://localhost:5001/recipe/api/delete/${id}`;
 
       try {
@@ -45,39 +54,103 @@ function RecipeDetails() {
     }
   };
 
-  // create dish button function
+  // ------------------------------------- create dish button function  ----------------------------------------
   const handleCreateDish = async (e) => {
     e.preventDefault();
 
-    if (window.confirm(`Save - ${data?.recipe[0].name} as dish`)) {
+    if (window.confirm(`Save - ${recipeDetails[0]?.recipe[0].name} as dish`)) {
       console.log("id b4 createDishurl :", id);
-      const createDishurl = ``;
+      const createURL = `http://localhost:5001/dish/api/create`;
+      try {
+        const res = await axios.post(createURL, {
+          body,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("response after delete recipe is : ", res);
+        if (res?.data?.success === true) {
+          alert(res?.data?.message);
+          navigate("/MyRecipes");
+          console.log(res?.data?.message);
+          return;
+        } else {
+          alert(res?.data?.message);
+          console.log(res?.data?.message);
+          return;
+        }
+      } catch (err) {
+        console.log(err.response?.data?.message);
+        alert(err.response?.data?.message);
+        return;
+      }
     } else {
       console.log("cancelled");
     }
   };
 
-  // Redirect effect
+  //----------------------------------------- Redirect effect --------------------------------------------------
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate("/login");
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
+  // ---------- fetch the data by giving url, method and body(if required) with the help of useFetch HOOK ------
   const method = "get";
   const url = `http://localhost:5001/recipe/api/${id}`;
   const body = null;
-  const { success, data, message, loading, error } = useFetch(
-    token ? url : null,
-    token,
-    method,
-    body ? body : null,
-  );
+  // const { success, data, message, loading, error } = useFetch(
+  //   token ? url : null,
+  //   token,
+  //   method,
+  //   body ? body : null,
+  // );
+  // console.log("recipeDetails :", recipeDetails);
+  const searchMyRecipes = recipeDetails?.find((d) => d.recipe[0].recipe_id === Number(id));
+  // ----------------------------- fetch data from backend only for once -------------------------------------
+  useEffect(() => {
+    setFoundRecipeDetails(searchMyRecipes);
+  }, [recipeDetails]);
 
-  // get the total cost of recipe
+  useEffect(() => {
+    if (!searchMyRecipes) {
+      const fetchData = async () => {
+        try {
+          setFetchLoading(true);
+          if (token) {
+            const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
+            const tempRecipe = res?.data?.data;
+            // console.log("temrecipe :", tempRecipe);
+            // adding last prepared timings in recipe section of details
+            const url2 = `http://localhost:5001/recipe/api/last-record/${id}`;
+            const method2 = "get";
+            const res2 = await axios[method2](url2, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            // console.log("res 2 :", res2);
+            if (tempRecipe && tempRecipe.recipe[0]) {
+              tempRecipe.recipe[0].date_prepared = res2.data.data.date_prepared;
+              tempRecipe.recipe[0].time_prepared = res2.data.data.time_prepared;
+            }
+
+            setRecipeDetails((prev) => [...prev, res?.data?.data]);
+          }
+        } catch (err) {
+          console.log("error while fetching reicpe details with axios is :", err.response);
+        } finally {
+          setFetchLoading(false);
+        }
+      };
+
+      fetchData();
+    }
+    setFetchLoading(false);
+  }, []);
+
+  //-------------------------------------- get the total cost of recipe -----------------------------------
   const totalCost =
-    Math.ceil(data?.ingredients?.reduce((sum, i) => sum + i.price, 0) * 100) / 100 || 0;
+    Math.ceil(recipeDetails[0]?.ingredients?.reduce((sum, i) => sum + i.price, 0) * 100) / 100 || 0;
 
   const url2 = `http://localhost:5001/recipe/api/last-record/${id}`;
   const method2 = "get";
@@ -89,19 +162,20 @@ function RecipeDetails() {
     error: e2,
   } = useFetch(token ? url2 : null, token, method2, null);
 
-  if (loading) {
+  // ------------------------------  initial page loading screen -------------------------------------------
+  if (fetchLoading) {
     return <h1> Page Loading .............</h1>;
   }
-  // console.log("data is :", data);
+  // console.log("data is :", recipeDetails[0]);
 
-  // Create html for table with components and ingredients rows
-  if (data) {
-    const recipeData = data?.ingredients;
+  // ------------------------ Create html for table with components and ingredients rows -------------------
+  if (recipeDetails[0]) {
+    const recipeData = recipeDetails[0]?.ingredients;
 
-    const uniqueComp = [...new Set(recipeData.map((i) => i.component_display_order))].sort(
+    const uniqueComp = [...new Set(recipeData?.map((i) => i.component_display_order))].sort(
       (a, b) => a - b,
     );
-    console.log("unique comps are:", uniqueComp);
+    // console.log("unique comps are:", uniqueComp);
 
     for (const u of uniqueComp) {
       const compIngs = recipeData
@@ -146,14 +220,15 @@ function RecipeDetails() {
     <div>
       <Navbar />
       <p></p>
-      <h1>{data?.recipe[0].name}</h1>
-      <h3>{data?.recipe[0].portion_size}</h3>
-      <h3>{data?.recipe[0].description}</h3>
-      <h5>{data?.recipe[0].privacy}</h5>
+      <h1>{recipeDetails[0]?.recipe[0].name}</h1>
+      <h3>{recipeDetails[0]?.recipe[0].portion_size}</h3>
+      <h3>{recipeDetails[0]?.recipe[0].description}</h3>
+      <h5>{recipeDetails[0]?.recipe[0].privacy}</h5>
       <h3>£ {totalCost}</h3>
       <button onClick={handleCreateDish}>create dish</button>
       <h4>
-        Last Prepared on : {d2?.date_prepared} @ {d2?.time_prepared}
+        Last Prepared on : {recipeDetails[0]?.recipe[0].date_prepared} @{" "}
+        {recipeDetails[0]?.recipe[0].time_prepared}
       </h4>
       <button>Edit</button>
       <button onClick={handleDelete}>Delete</button>
@@ -180,7 +255,7 @@ function RecipeDetails() {
           </tr>
         </thead>
         <tbody>
-          {data?.steps.map((s) => (
+          {recipeDetails[0]?.steps.map((s) => (
             <tr key={s.step_order}>
               <td>{s.step_order}</td>
               <td>{s.step_text}</td>

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
@@ -9,6 +9,7 @@ import Button from "../../components/button";
 import Dropdown from "../../components/dropdown";
 import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
 import Navbar from "../../components/navbar";
+import { MyIngredientContext } from "../../context/myIngredientContext";
 
 function AddIngredient() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -19,6 +20,7 @@ function AddIngredient() {
   const [existIngs, setExistIngs] = useState("");
   const [createBtn, setCreateBtn] = useState(true);
   const sendData = {};
+  const { myIngredients, setMyIngredients } = useContext(MyIngredientContext);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -135,7 +137,7 @@ function AddIngredient() {
     sendData.quantity = Number(ingData.display_quantity);
     sendData.unit = ingData.display_unit;
     sendData.price = Number(ingData.display_price);
-    sendData.cup_weight = Number(ingData.cup_weight) ?? "";
+    sendData.cup_weight = ingData.cup_weight ? Number(ingData.cup_weight) : null;
     sendData.cup_unit = ingData.cup_unit ?? "";
     sendData.notes = ingData.notes ?? "";
 
@@ -153,12 +155,14 @@ function AddIngredient() {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("response is :", res);
       alert(res.data.message);
+      const updatedIngredients = [...myIngredients, res?.data?.data];
+      console.log("updatedIngredients", updatedIngredients);
+      updatedIngredients.sort((a, b) => b.user_ingredient_id - a.user_ingredient_id);
+      setMyIngredients(updatedIngredients);
       navigate("/myIngredients");
     } catch (err) {
-      console.log("Error found in createMyIngredient while creating :", err.response?.data);
+      console.log("Error found in createMyIngredient while creating :", err.response);
       setErrorMessage(err.response?.data.message);
     }
   };

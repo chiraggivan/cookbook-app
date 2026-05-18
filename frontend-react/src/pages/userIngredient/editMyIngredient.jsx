@@ -148,7 +148,7 @@ function EditIngredient() {
     saveLocalData.display_quantity = Number(ingData.display_quantity);
     saveLocalData.display_unit = ingData.display_unit;
     saveLocalData.display_price = Number(ingData.display_price);
-    saveLocalData.cup_weight = Number(ingData.cup_weight) ?? "";
+    saveLocalData.cup_weight = Number(ingData.cup_weight) ?? null;
     saveLocalData.cup_unit = ingData.cup_unit ?? "";
     saveLocalData.notes = ingData.notes;
     saveLocalData.user_ingredient_id = ingData.user_ingredient_id;
@@ -158,7 +158,7 @@ function EditIngredient() {
     sendData.append("quantity", Number(ingData.display_quantity));
     sendData.append("unit", ingData.display_unit);
     sendData.append("price", Number(ingData.display_price));
-    sendData.append("cup_weight", Number(ingData.cup_weight) ?? "");
+    sendData.append("cup_weight", ingData.cup_weight ? Number(ingData.cup_weight) : null);
     sendData.append("cup_unit", ingData.cup_unit ?? "");
     sendData.append("notes", ingData.notes ?? "");
     sendData.append("user_ing_id", ingData.user_ingredient_id);
@@ -166,7 +166,7 @@ function EditIngredient() {
 
     const formData = sendData;
 
-    // console.log("data about to be sent :", body);
+    console.log("data about to be sent :", formData);
     // return;
 
     const method = "put";
@@ -189,8 +189,43 @@ function EditIngredient() {
       setMyIngredients(x);
       navigate("/myIngredients");
     } catch (err) {
-      console.log("Error found in EditMyIngredient while creating :", err.response);
+      console.log("Error found in EditMyIngredient while updating :", err.response);
       setErrorMessage(err.response?.data.message);
+    }
+  };
+
+  // ------------------------ Delete Button Function -----------------------------------
+  const handleDelete = async (e) => {
+    e.preventDefault();
+
+    if (window.confirm(`Are you sure you want to delete this recipe - ${ingData.name}`)) {
+      const deleteurl = `http://localhost:5001/useringredient/api/delete/${id}`;
+      try {
+        const res = await axios.delete(deleteurl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // console.log("response after delete user ingredient is : ", res);
+        if (res?.data?.success === true) {
+          alert(res?.data?.message);
+          const x = myIngredients.filter((i) => i.user_ingredient_id !== Number(id));
+          setMyIngredients(x);
+          navigate("/MyIngredients");
+          // console.log(res?.data?.message);
+          return;
+        } else {
+          alert(res?.data?.message);
+          console.log(res?.data?.message);
+          return;
+        }
+      } catch (err) {
+        console.log(err.response?.data?.message);
+        alert(err.response?.data?.message);
+        return;
+      }
+    } else {
+      console.log("cancelled");
     }
   };
 
@@ -282,6 +317,7 @@ function EditIngredient() {
         onClick={handlesubmit}
       />
       <Button children={`Cancel`} onClick={() => navigate(-1)} />
+      <Button children={`Delete`} onClick={handleDelete} />
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </>
   );

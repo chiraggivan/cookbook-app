@@ -5,13 +5,16 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { DishProvider } from "./context/dishContext.jsx";
 import { MyIngredientProvider } from "./context/myIngredientContext.jsx";
+import { MyRecipeProvider } from "./context/myRecipeContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <DishProvider>
-      <MyIngredientProvider>
-        <App />
-      </MyIngredientProvider>
+      <MyRecipeProvider>
+        <MyIngredientProvider>
+          <App />
+        </MyIngredientProvider>
+      </MyRecipeProvider>
     </DishProvider>
   </BrowserRouter>,
 );

@@ -4,13 +4,17 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.update_user_ing = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-
+    console.log("req body :", req?.body);
     const ogData = req?.body;
     ogData.quantity = Number(ogData.quantity);
     ogData.price = Number(ogData.price);
-    ogData.cup_weight = Number(ogData.cup_weight);
+    if (ogData.cup_weight === "null") {
+      ogData.cup_weight = null;
+    }
+    ogData.cup_weight = ogData.cup_weight ? Number(ogData.cup_weight) : null;
     ogData.user_ing_id = Number(ogData.user_ing_id);
     ogData.user_id = Number(ogData.user_id);
+    ogData.notes = ogData.notes ?? "";
 
     if (!ogData) {
       return res.status(500).json({
@@ -21,6 +25,7 @@ exports.update_user_ing = async (req, res) => {
 
     // ----------------- normalise and validate the data --------------------
     const data = normaliseIngredientData(ogData);
+    console.log("data after normalised :", data);
     const error = validateIngredients(data);
 
     if (error) {
@@ -40,7 +45,7 @@ exports.update_user_ing = async (req, res) => {
       [user.id, data.user_ing_id],
     );
     if (userRow.length === 0) {
-      return res.status(500).json({
+      return res.status(403).json({
         success: false,
         message: `User not authorised to edit this ingredient`,
         data,
@@ -53,21 +58,23 @@ exports.update_user_ing = async (req, res) => {
       [data.name, user.id, data.user_ing_id],
     );
     if (row.length !== 0) {
-      return res.status(500).json({
+      return res.status(409).json({
         success: false,
         message: `You already have this ingredient (${data.name}).`,
       });
     }
 
-    return res.json({
-      success: true,
-      message: `user ingredient about to call procedure update_user_ingredient_plus_units.`,
-    });
-
+    // JUST FOR TEST WITHOUT ACTUAL UPDATION
+    // return res.json({
+    //   success: true,
+    //   message: `user ingredient about to call procedure update_user_ingredient_plus_units.`,
+    // });
+    console.log("data for procedure is : ", data);
     // create a conn to handle rollback DML operation if any DML
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
+      console.log("before procedure");
       const [result] = await conn.query(
         `CALL update_user_ingredient_plus_units (?,?,?,?,?,?,?,?,?)`,
         [
@@ -83,6 +90,7 @@ exports.update_user_ing = async (req, res) => {
         ],
       );
       await conn.commit();
+      console.log("result from procedure", result);
     } catch (err) {
       // Rollback EVERYTHING if anything fails
       await conn.rollback();

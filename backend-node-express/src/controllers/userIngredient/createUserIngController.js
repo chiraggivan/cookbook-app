@@ -3,11 +3,8 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 
 exports.create_user_ingredient = async (req, res) => {
   try {
-    console.log("in create user Ingredient");
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    console.log("data: ", req.body);
     const ogData = req.body;
-    console.log("data: ", ogData);
     if (!ogData) {
       return res.status(400).json({
         success: false,
@@ -25,7 +22,7 @@ exports.create_user_ingredient = async (req, res) => {
         message: `Error while validating user ingredient details : ${error} .`,
       });
     }
-    console.log(" normalisation and validation done for data. Now starting with image file.");
+    // console.log(" normalisation and validation done for data. Now starting with image file.");
     // Read & save image file
     const image_file = req.file;
 
@@ -52,7 +49,7 @@ exports.create_user_ingredient = async (req, res) => {
       // file already saved via middleware (e.g., multer)
       data["image_path"] = `ingredients/${unique_filename}`;
     } else {
-      console.log("no image came with data");
+      // console.log("no image came with data");
       data["image_path"] = null;
     }
 
@@ -92,15 +89,36 @@ exports.create_user_ingredient = async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: " done with noramlisation, validation along with db check",
-      data,
-      ogData,
-    });
+    // JUST FOR TEST WITHOUT ACTUAL INSERTION
+    // const sampleData = {
+    //   user_ingredient_id: 99,
+    //   name: "test",
+    //   display_quantity: 1,
+    //   display_unit: "kg",
+    //   display_price: 1,
+    //   cup_weight: 1,
+    //   cup_unit: "kg",
+    //   notes: "",
+    //   image_path: null,
+    // };
+    // return res.status(200).json({
+    //   success: true,
+    //   message: " done with normalisation, validation along with db check",
+    //   sampleData,
+    //   ogData,
+    // });
 
     // ------------------------------ Now insert the data thru procedure ------------------------------------------
 
+    const forFrontEndData = {
+      cup_unit: data.cup_unit,
+      cup_weight: data.cup_weight,
+      display_price: data.price,
+      display_quantity: data.quantity,
+      display_unit: data.unit,
+      name: data.name,
+      notes: data.notes,
+    };
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
@@ -115,6 +133,7 @@ exports.create_user_ingredient = async (req, res) => {
         user.id,
       ]);
 
+      forFrontEndData.user_ingredient_id = result[0][0].insertId;
       await conn.commit();
     } catch (err) {
       // Rollback EVERYTHING if anything fails
@@ -133,6 +152,7 @@ exports.create_user_ingredient = async (req, res) => {
     res.json({
       success: true,
       message: `user ingredient added.`,
+      data: forFrontEndData,
     });
   } catch (err) {
     console.error("Error in createUserIngController - create_user_ingredient is : ", err);

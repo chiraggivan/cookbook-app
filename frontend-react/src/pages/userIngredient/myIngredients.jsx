@@ -22,17 +22,11 @@ function MyIngredients() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
+  //------ fetch the data by giving url, method and body(if required) with the help of useFetch HOOK --------
   const method = "get";
   const url = `http://localhost:5001/useringredient/api/`;
-  // const { success, data, message, loading, error } = useFetch(
-  //   token ? url : null,
-  //   token,
-  //   method,
-  //   null,
-  // );
 
-  // ----------------------------- fetch data from backend only for once --------------------------------
+  // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {
     if (!fetchedOnce) {
       const fetchData = async () => {
@@ -57,7 +51,7 @@ function MyIngredients() {
     setFetchLoading(false);
   }, []);
 
-  // ----------------------------- loading screen -------------------------------------
+  // ------------------------------------------- loading screen ----------------------------------------------
   if (fetchLoading) {
     return <h1> Page Loading .............</h1>;
   }
