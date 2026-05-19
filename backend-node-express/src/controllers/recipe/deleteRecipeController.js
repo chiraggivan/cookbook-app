@@ -42,7 +42,7 @@ exports.delete_recipe = async (req, res) => {
     // response the data back
     res.json({
       success: true,
-      message: `Recipe ${recipeId} deleted`,
+      message: `Recipe deleted`,
     });
   } catch (err) {
     console.error("Error in deleteRecipeController - delete_recipe is : ", err);

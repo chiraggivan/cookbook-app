@@ -6,6 +6,7 @@ import axios from "axios";
 import Navbar from "../../../components/navbar";
 import Button from "../../../components/button";
 import AllIngsSection from "./-allIngredientsPage";
+import { serverURL } from "../../../utils/appUtils";
 
 function AdminAllIngredients() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -25,7 +26,7 @@ function AdminAllIngredients() {
   }
 
   const method = "get";
-  const url = `http://localhost:5001/ingredient/api/all`;
+  const url = `${serverURL}/ingredient/api/all`;
 
   const { success, data, message, loading, error } = useFetch(
     token ? url : null,

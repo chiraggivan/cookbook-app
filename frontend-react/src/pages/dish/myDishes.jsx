@@ -7,6 +7,7 @@ import Navbar from "../../components/navbar";
 import Button from "../../components/button";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import { DishContext } from "../../context/dishContext";
+import { serverURL } from "../../utils/appUtils";
 
 function MyDishes() {
   const token = localStorage.getItem("token");
@@ -28,7 +29,7 @@ function MyDishes() {
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
   const method = "get";
-  const url = `http://localhost:5001/dish/api/`;
+  const url = `${serverURL}/dish/api/`;
 
   // ----------------------------- fetch data from backend only for once --------------------------------
   useEffect(() => {

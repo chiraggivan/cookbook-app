@@ -10,6 +10,7 @@ import Dropdown from "../../../components/dropdown";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbar";
 import CreateIngPage from "./-createIngredientPage";
+import { serverURL } from "../../../utils/appUtils";
 
 function AddNewIngredient() {
   const { token, loading, isAuthenticated } = useAuth();
@@ -63,7 +64,7 @@ function AddNewIngredient() {
       const checkIng = async () => {
         try {
           const res = await axios.get(
-            `http://localhost:5001/ingredient/api/search/ingredients?q=${ingName}`,
+            `${serverURL}/ingredient/api/search/ingredients?q=${ingName}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
@@ -126,7 +127,7 @@ function AddNewIngredient() {
     }
     console.log("About to call backend");
     const method = "post";
-    const url = `http://localhost:5001/ingredient/api/new`;
+    const url = `${serverURL}/ingredient/api/new`;
     const body = ingData;
 
     try {

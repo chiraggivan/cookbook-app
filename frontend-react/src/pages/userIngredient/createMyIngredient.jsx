@@ -10,6 +10,7 @@ import Dropdown from "../../components/dropdown";
 import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
 import Navbar from "../../components/navbar";
 import { MyIngredientContext } from "../../context/myIngredientContext";
+import { serverURL } from "../../utils/appUtils";
 
 function AddIngredient() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -68,7 +69,7 @@ function AddIngredient() {
       const checkIng = async () => {
         try {
           const res = await axios.get(
-            `http://localhost:5001/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
+            `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
@@ -147,7 +148,7 @@ function AddIngredient() {
     // return;
 
     const method = "post";
-    const url = `http://localhost:5001/useringredient/api/create`;
+    const url = `${serverURL}/useringredient/api/create`;
     try {
       const res = await axios[method](url, body, {
         headers: {

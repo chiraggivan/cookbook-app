@@ -8,6 +8,7 @@ import Button from "../../components/button";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import DishDetailsPage from "./-dishDetailsPage";
 import { DishContext } from "../../context/dishContext";
+import { serverURL } from "../../utils/appUtils";
 
 function DishDetails() {
   const { id } = useParams();
@@ -19,7 +20,27 @@ function DishDetails() {
   const [fetchLoading, setFetchLoading] = useState(true);
   let tableRows = [];
 
-  // Redirect effect
+  //----------------------------- delete button function ------------------------------------------------------
+  const handleDelete = async (e, id, token, navigate) => {
+    e.preventDefault();
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete this recipe - ${foundDish?.dish.recipe_name}, prepared on ${foundDish?.dish.preparation_date}`,
+      )
+    ) {
+      try {
+        await HandleDishDelete({ id, token, navigate });
+        return;
+      } catch (err) {
+        console.log("catch block Failed to delete item", err);
+        console.log(err.response?.foundDish?.message);
+        alert(err.response?.foundDish?.message);
+      }
+    }
+  };
+
+  // ------------------------------------ Redirect effect -----------------------------------------------------
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate("/login");
@@ -28,7 +49,7 @@ function DishDetails() {
 
   // ---------- fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
   const method = "get";
-  const url = `http://localhost:5001/dish/api/${id}`;
+  const url = `${serverURL}/dish/api/${id}`;
   const body = null;
 
   // console.log("Data from dishContext for dishDetails is :", dishDetails);
@@ -65,7 +86,7 @@ function DishDetails() {
     return <h1> Page Loading ........</h1>;
   }
 
-  // Create html for table with components and ingredients rows
+  //---------------- Create html for table with components and ingredients rows ---------------------------------
   if (foundDish) {
     const recipeData = foundDish?.ingredients;
 
@@ -113,25 +134,6 @@ function DishDetails() {
     }
   }
 
-  // delete button function
-  const handleDelete = async (e, id, token, navigate) => {
-    e.preventDefault();
-
-    if (
-      window.confirm(
-        `Are you sure you want to delete this recipe - ${foundDish?.dish.recipe_name}, prepared on ${foundDish?.dish.preparation_date}`,
-      )
-    ) {
-      try {
-        await HandleDishDelete({ id, token, navigate });
-        return;
-      } catch (err) {
-        console.log("catch block Failed to delete item", err);
-        console.log(err.response?.foundDish?.message);
-        alert(err.response?.foundDish?.message);
-      }
-    }
-  };
   // console.log("dishD before jsx: ", foundDish);
   return (
     <>

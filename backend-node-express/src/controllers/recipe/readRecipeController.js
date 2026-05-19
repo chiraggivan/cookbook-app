@@ -226,7 +226,7 @@ exports.get_recipe_details = async (req, res) => {
     res.json({
       success: true,
       message: `Recipe details found`,
-      data: { recipe: recipeResult, ingredients: ingredientResult, steps: stepResult },
+      data: { recipe: recipeResult[0], ingredients: ingredientResult, steps: stepResult },
     });
   } catch (err) {
     console.error("Error in readRecipeController - get_recipe_details:", err);

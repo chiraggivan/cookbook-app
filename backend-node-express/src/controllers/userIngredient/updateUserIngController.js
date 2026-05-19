@@ -4,7 +4,7 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.update_user_ing = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    console.log("req body :", req?.body);
+    // console.log("req body :", req?.body);
     const ogData = req?.body;
     ogData.quantity = Number(ogData.quantity);
     ogData.price = Number(ogData.price);
@@ -25,7 +25,7 @@ exports.update_user_ing = async (req, res) => {
 
     // ----------------- normalise and validate the data --------------------
     const data = normaliseIngredientData(ogData);
-    console.log("data after normalised :", data);
+    // console.log("data after normalised :", data);
     const error = validateIngredients(data);
 
     if (error) {
@@ -69,12 +69,12 @@ exports.update_user_ing = async (req, res) => {
     //   success: true,
     //   message: `user ingredient about to call procedure update_user_ingredient_plus_units.`,
     // });
-    console.log("data for procedure is : ", data);
+    // console.log("data for procedure is : ", data);
     // create a conn to handle rollback DML operation if any DML
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      console.log("before procedure");
+      // console.log("before procedure");
       const [result] = await conn.query(
         `CALL update_user_ingredient_plus_units (?,?,?,?,?,?,?,?,?)`,
         [
@@ -90,7 +90,7 @@ exports.update_user_ing = async (req, res) => {
         ],
       );
       await conn.commit();
-      console.log("result from procedure", result);
+      // console.log("result from procedure", result);
     } catch (err) {
       // Rollback EVERYTHING if anything fails
       await conn.rollback();

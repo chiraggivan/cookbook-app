@@ -11,6 +11,7 @@ import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
 import Navbar from "../../components/navbar";
 import OnDataChange from "../../utils/submitButtonActivation";
 import { MyIngredientContext } from "../../context/myIngredientContext";
+import { serverURL } from "../../utils/appUtils";
 
 function EditIngredient() {
   const { state } = useLocation();
@@ -80,7 +81,7 @@ function EditIngredient() {
       const checkIng = async () => {
         try {
           const res = await axios.get(
-            `http://localhost:5001/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
+            `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
@@ -170,7 +171,7 @@ function EditIngredient() {
     // return;
 
     const method = "put";
-    const url = `http://localhost:5001/useringredient/api/edit`;
+    const url = `${serverURL}/useringredient/api/edit`;
     try {
       const res = await axios[method](url, formData, {
         headers: {
@@ -199,7 +200,7 @@ function EditIngredient() {
     e.preventDefault();
 
     if (window.confirm(`Are you sure you want to delete this recipe - ${ingData.name}`)) {
-      const deleteurl = `http://localhost:5001/useringredient/api/delete/${id}`;
+      const deleteurl = `${serverURL}/useringredient/api/delete/${id}`;
       try {
         const res = await axios.delete(deleteurl, {
           headers: {

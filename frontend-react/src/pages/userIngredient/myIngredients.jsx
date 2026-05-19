@@ -6,6 +6,7 @@ import useFetch from "../../hooks/useFetch";
 import Button from "../../components/button";
 import Navbar from "../../components/navbar";
 import { MyIngredientContext } from "../../context/myIngredientContext";
+import { serverURL } from "../../utils/appUtils";
 
 function MyIngredients() {
   const token = localStorage.getItem("token");
@@ -24,7 +25,7 @@ function MyIngredients() {
 
   //------ fetch the data by giving url, method and body(if required) with the help of useFetch HOOK --------
   const method = "get";
-  const url = `http://localhost:5001/useringredient/api/`;
+  const url = `${serverURL}/useringredient/api/`;
 
   // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {

@@ -4,6 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Navbar from "../../components/navbar";
+import { serverURL } from "../../utils/appUtils";
 
 function UserRecipes() {
   const { id } = useParams();
@@ -24,7 +25,7 @@ function UserRecipes() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
 
   const method = "get";
-  const url = `http://localhost:5001/recipe/api/user/${id}`;
+  const url = `${serverURL}/recipe/api/user/${id}`;
 
   // Redirect effect
   useEffect(() => {

@@ -5,44 +5,21 @@ import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Button from "../../components/button";
 import Navbar from "../../components/navbar";
+import { serverURL } from "../../utils/appUtils";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const method = "get";
-  const url = `http://localhost:5001/recipe/api/all`;
+  const url = `${serverURL}/recipe/api/all`;
 
-  // Redirect effect
+  // Redirect effects
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate("/login");
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
-
-  // //
-  // useEffect(() => {
-  //   if (!token) return;
-
-  //   const fetchData = async () => {
-  //     try {
-  //       const res = await axios.get("http://localhost:5001/recipe/api/all", {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-  //       // if (res?.data?.success) {
-  //       const newData = res.data;
-  //       setData(newData);
-  //       // }
-
-  //       // console.log("data res : ", newData);
-  //     } catch (err) {
-  //       console.log("Error received in home.jsx :", err);
-  //     }
-  //   };
-  //   fetchData();
-  // }, [token]);
 
   const { success, data, message, loading, error } = useFetch(
     token ? url : null,

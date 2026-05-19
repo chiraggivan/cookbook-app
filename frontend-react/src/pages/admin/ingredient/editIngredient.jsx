@@ -11,6 +11,7 @@ import submitButtonForEdit from "./utils/submitButtonForEdit";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbar";
 import EditIngPage from "./-editIngredientPage";
+import { serverURL } from "../../../utils/appUtils";
 
 function EditIngredient() {
   const role = JSON.parse(localStorage.getItem("user")).role;
@@ -59,7 +60,7 @@ function EditIngredient() {
 
   // ------ get data from backend for ing to be edited with the help of useFetch Hook ----
   const method = "get";
-  const url = `http://localhost:5001/ingredient/api/${id}`;
+  const url = `${serverURL}/ingredient/api/${id}`;
   const { success, data, message, loading, error } = useFetch(
     token ? url : null,
     token,
@@ -106,7 +107,7 @@ function EditIngredient() {
       const checkIng = async () => {
         try {
           const res = await axios.get(
-            `http://localhost:5001/ingredient/api/search/ingredients?q=${ingName}`,
+            `${serverURL}/ingredient/api/search/ingredients?q=${ingName}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
@@ -182,7 +183,7 @@ function EditIngredient() {
     // return;
 
     const method = "put";
-    const url = `http://localhost:5001/ingredient/api/edit/${id}`;
+    const url = `${serverURL}/ingredient/api/edit/${id}`;
     try {
       const res = await axios[method](url, body, {
         headers: {

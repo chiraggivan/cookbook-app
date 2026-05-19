@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ax from "axios";
+import { serverURL } from "../../utils/appUtils";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -21,7 +22,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await ax.post("http://localhost:5001/auth/api/login", {
+      const res = await ax.post(`${serverURL}/auth/api/login`, {
         username: username,
         password: password,
       });

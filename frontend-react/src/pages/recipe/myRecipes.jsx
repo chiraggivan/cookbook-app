@@ -5,6 +5,7 @@ import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Navbar from "../../components/navbar";
 import { MyRecipeContext } from "../../context/myRecipeContext";
+import { serverURL } from "../../utils/appUtils";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -15,14 +16,20 @@ function MyRecipes() {
 
   //-------------------------------- Redirect to home if token not found -----------------------------------
   useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated)) {
+    if (!token) {
       navigate("/login");
     }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
+  }, []);
+  //-------------------------------- Redirect to home if token not found -----------------------------------
+  // useEffect(() => {
+  //   if (!authHookLoading && (!token || !isAuthenticated)) {
+  //     navigate("/login");
+  //   }
+  // }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // --------- fetch the data by giving url, method and body(if required) with the help of useFetch HOOK ---
+  // ------------------- fetch the data by giving url, method and body(if required) -------------------------
   const method = "get";
-  const url = `http://localhost:5001/recipe/api/my`;
+  const url = `${serverURL}/recipe/api/my`;
   // const { success, data, message, loading, error } = useFetch(
   //   token ? url : null,
   //   token,
