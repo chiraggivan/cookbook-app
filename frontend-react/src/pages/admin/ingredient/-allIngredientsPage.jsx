@@ -16,8 +16,9 @@ function AllIngsSection({ navigate, data, ...pros }) {
           <tr>
             <th>Ing. Id</th>
             <th>name</th>
+            <th>Quantity</th>
+            <th>Unit</th>
             <th>Price</th>
-            <th>Base Unit</th>
             <th>Note</th>
             <th>submitted by</th>
             <th>Approved by</th>
@@ -31,8 +32,9 @@ function AllIngsSection({ navigate, data, ...pros }) {
               <td onClick={() => navigate(`/admin/ingredient-details/${i.ingredient_id}`)}>
                 {i.name}
               </td>
-              <td>{i.default_price}</td>
-              <td>{i.base_unit}</td>
+              <td>{Number(i.display_quantity)}</td>
+              <td>{i.display_unit}</td>
+              <td>{Number(i.display_price)}</td>
               <td>{i.notes}</td>
               <td>{i.submitted_by}</td>
               <td>{i.approved_by}</td>

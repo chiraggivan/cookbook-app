@@ -284,13 +284,13 @@ function normalize_unit(price, quantity, unit) {
 
   //  conversion factors to a standard unit
   const conversions = {
-    g: (1000, "kg"),
-    oz: (35.274, "kg"),
-    lbs: (2.205, "kg"),
+    g: [1000, "kg"],
+    oz: [35.274, "kg"],
+    lbs: [2.205, "kg"],
 
-    ml: (1000, "l"),
-    "fl.oz": (35.1951, "l"),
-    pint: (1.75975, "l"),
+    ml: [1000, "l"],
+    "fl.oz": [35.1951, "l"],
+    pint: [1.75975, "l"],
   };
 
   const [factor, newUnit] = conversions[unit] || [1, unit];

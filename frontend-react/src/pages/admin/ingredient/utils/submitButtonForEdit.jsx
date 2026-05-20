@@ -1,4 +1,4 @@
-function SubmitButton(ingData, refQ, mainUnits, cupUnits, ingName) {
+function SubmitButton(ingData, mainUnits, cupUnits, ingName) {
   const checkData = { ...ingData };
   const sendData = {};
   checkData.errors = {};
@@ -9,7 +9,7 @@ function SubmitButton(ingData, refQ, mainUnits, cupUnits, ingName) {
     isValid = false;
     checkData.errors.name = "Name required";
   }
-  if (!refQ || refQ <= 0) {
+  if (!checkData.display_quantity || checkData.display_quantity <= 0) {
     isValid = false;
     checkData.errors.reference_quantity = "Quantity can't be empty. Should be positive number";
   }
@@ -44,7 +44,7 @@ function SubmitButton(ingData, refQ, mainUnits, cupUnits, ingName) {
   }
 
   sendData.name = ingName ? ingName : ingData.name;
-  sendData.reference_quantity = Number(refQ);
+  sendData.reference_quantity = Number(checkData.display_quantity);
   sendData.reference_unit = ingData.base_unit;
   sendData.default_price = Number(ingData.default_price);
   sendData.cup_equivalent_weight = Number(ingData.cup_weight);

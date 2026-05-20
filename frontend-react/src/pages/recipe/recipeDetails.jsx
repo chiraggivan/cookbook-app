@@ -63,6 +63,7 @@ function RecipeDetails() {
   // ------------------------------------- create DISH button function  ----------------------------------------
   const handleCreateDish = async (e) => {
     e.preventDefault();
+    // console.log("details4Dish :", details4Dish);
     // adding current date and time in recipe to create dish date and time
     const now = new Date();
     const currentData = now.toISOString().split("T")[0];
@@ -195,12 +196,12 @@ function RecipeDetails() {
         .filter((i) => i.component_display_order === u)
         .sort((a, b) => a.ingredient_display_order - b.ingredient_display_order);
       const comp_text = compIngs[0].component_text;
-      //----------------------------------------------------------
+      //-----------------Below for create dish-----------------------------------------
       const comps = {};
       comps.component_text = comp_text;
       comps.display_order = u;
       comps.ingredients = [];
-      //----------------------------------------------------------
+      //-----------------Above for create dish-----------------------------------------
 
       if (u === 0 && comp_text === "") {
         // console.log("first component text is empty");
@@ -224,14 +225,14 @@ function RecipeDetails() {
             <td>{i.name}</td>
             <td>{i.quantity}</td>
             <td>{i.unit_name}</td>
-            <td>{i.price}</td>
+            <td>{Number(i.price.toFixed(3))}</td>
             <td>{i.base_quantity}</td>
             <td>{i.unit}</td>
             <td>{i.cost}</td>
             <td>{i.ingredient_source}</td>
           </tr>,
         );
-        // -----------------------------------------
+        // --------------Below for create dish---------------------------
         const ings = {};
         ings.base_price = i.cost;
         ings.ingredient_id = i.ingredient_id;
@@ -244,7 +245,7 @@ function RecipeDetails() {
         ings.display_order = i.ingredient_display_order;
         ings.ingredient_source = i.ingredient_source;
         comps.ingredients.push(ings);
-        // -----------------------------------------
+        // --------------Above for create dish---------------------------
       }
       details4Dish.components.push(comps);
     }
@@ -252,7 +253,7 @@ function RecipeDetails() {
 
   // console.log("table rows :", tableRows);
   // console.log("data is :", foundRecipeDetails);
-  console.log("details4Dish is :", details4Dish);
+  // console.log("details4Dish is :", details4Dish);
 
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (

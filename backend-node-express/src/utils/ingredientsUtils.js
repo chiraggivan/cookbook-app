@@ -11,6 +11,9 @@ function normaliseIngredientData(data) {
     "cup_equivalent_weight",
     "cup_equivalent_unit",
     "notes",
+    "display_quantity",
+    "display_unit",
+    "display_price",
   ];
   // ingredient_dict = data[0]
 
@@ -44,9 +47,19 @@ function validateIngredient(data) {
   if (
     !reference_quantity ||
     typeof reference_quantity !== "number" ||
-    !(0 < reference_quantity && reference_quantity < 100000)
+    !(0 < reference_quantity && reference_quantity < 10000000)
   ) {
-    return `Invalid reference_quantity: (${reference_quantity}) must be a number > 0 and less than 100000 `;
+    return `Invalid reference_quantity: (${reference_quantity}) must be a number > 0 and less than 10000000 `;
+  }
+
+  // --- display_quantity ---
+  const display_quantity = data.display_quantity;
+  if (
+    !display_quantity ||
+    typeof display_quantity !== "number" ||
+    !(0 < display_quantity && display_quantity < 10000000)
+  ) {
+    return `Invalid display_quantity: (${display_quantity}) must be a number > 0 and less than 10000000 `;
   }
 
   // --- reference_unit ---
@@ -59,14 +72,34 @@ function validateIngredient(data) {
     return `Invalid reference_unit: (${reference_unit}) must be a non-empty string and within ('kg','g','oz','lbs','l','ml','fl.oz','pint','pc','bunch') `;
   }
 
+  // --- display_unit ---
+  const display_unit = data.display_unit;
+  if (
+    !display_unit ||
+    typeof display_unit !== "string" ||
+    !["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"].includes(display_unit)
+  ) {
+    return `Invalid display_unit: (${display_unit}) must be a non-empty string and within ('kg','g','oz','lbs','l','ml','fl.oz','pint','pc','bunch') `;
+  }
+
   // --- default_price ---
   const default_price = data.default_price;
   if (
     !default_price ||
     typeof default_price !== "number" ||
-    !(0 < default_price && default_price < 100000)
+    !(0 < default_price && default_price < 100000000)
   ) {
-    return `Invalid default_price: (${default_price}) must be a number > 0 and less than 100000 `;
+    return `Invalid default_price: (${default_price}) must be a number > 0 and less than 100000000 `;
+  }
+
+  // --- display_price ---
+  const display_price = data.display_price;
+  if (
+    !display_price ||
+    typeof display_price !== "number" ||
+    !(0 < display_price && display_price < 100000000)
+  ) {
+    return `Invalid display_price: (${display_price}) must be a number > 0 and less than 100000000 `;
   }
 
   // --- cup_equivalent_weight  and cup_equivalent_unit---

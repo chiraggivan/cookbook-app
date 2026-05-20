@@ -73,6 +73,8 @@ exports.update_ingredient = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const role = user.role;
+    const ingId = Number(req.params.ingId);
+
     //  check is user has admin privilege
     if (role !== "admin") {
       return res.status(403).json({
@@ -81,7 +83,6 @@ exports.update_ingredient = async (req, res) => {
       });
     }
 
-    const ingId = Number(req.params.ingId);
     //  check if ingId is +ve whole number
     if (!ingId || ingId < 1 || !Number.isInteger(ingId)) {
       return res.status(400).json({
@@ -90,6 +91,7 @@ exports.update_ingredient = async (req, res) => {
       });
     }
 
+    // check data is available
     if (!req.body) {
       return res.status(400).json({
         success: false,
@@ -138,7 +140,7 @@ exports.update_ingredient = async (req, res) => {
 
     // check if ingredient id exists and get all the data of ingredients
     const [ingRow] = await db.query(
-      `SELECT name, base_unit, default_price, cup_weight, cup_unit, notes 
+      `SELECT name, base_unit, default_price, cup_weight, cup_unit, notes, display_quantity, display_unit, display_price
       FROM ingredients 
       WHERE ingredient_id = ? `,
       [ingId],
@@ -157,52 +159,56 @@ exports.update_ingredient = async (req, res) => {
     previous_data.default_price = Number(previous_ingredient?.default_price);
     previous_data.cup_weight = Number(previous_ingredient?.cup_weight);
     previous_data.cup_unit = previous_ingredient?.cup_unit;
+    previous_data.display_quantity = Number(previous_ingredient?.display_quantity);
+    previous_data.display_unit = previous_ingredient?.display_unit;
+    previous_data.display_price = Number(previous_ingredient?.display_price);
     previous_data.notes = previous_ingredient?.notes;
 
     // normalise new reference unit for comparison
     let new_ref_unit;
     let new_def_price;
 
+    // convert ref unit to basic (kg, l, pc, or bunch) units depending on submitted ref unit
     switch (data?.reference_unit) {
       case "l":
         new_ref_unit = "l";
-        new_def_price = data?.default_price / data?.reference_quantity;
+        new_def_price = data?.display_price / data?.display_quantity;
         break;
       case "ml":
         new_ref_unit = "l";
-        new_def_price = (data?.default_price / data?.reference_quantity) * 1000;
+        new_def_price = (data?.display_price / data?.display_quantity) * 1000;
         break;
       case "fl.oz":
         new_ref_unit = "l";
-        new_def_price = (data?.default_price / data?.reference_quantity) * 35.1951;
+        new_def_price = (data?.display_price / data?.display_quantity) * 35.1951;
         break;
       case "pint":
         new_ref_unit = "l";
-        new_def_price = (data?.default_price / data?.reference_quantity) * 1.75975;
+        new_def_price = (data?.display_price / data?.display_quantity) * 1.75975;
         break;
       case "kg":
         new_ref_unit = "kg";
-        new_def_price = data?.default_price / data?.reference_quantity;
+        new_def_price = data?.display_price / data?.display_quantity;
         break;
       case "g":
         new_ref_unit = "kg";
-        new_def_price = (data?.default_price / data?.reference_quantity) * 1000;
+        new_def_price = (data?.display_price / data?.display_quantity) * 1000;
         break;
       case "oz":
         new_ref_unit = "kg";
-        new_def_price = (data?.default_price / data?.reference_quantity) * 35.274;
+        new_def_price = (data?.display_price / data?.display_quantity) * 35.274;
         break;
       case "lbs":
         new_ref_unit = "kg";
-        new_def_price = (data?.default_price / data?.reference_quantity) * 2.20462;
+        new_def_price = (data?.display_price / data?.display_quantity) * 2.20462;
         break;
       case "pc":
         new_ref_unit = "pc";
-        new_def_price = data?.default_price / data?.reference_quantity;
+        new_def_price = data?.display_price / data?.display_quantity;
         break;
       case "bunch":
         new_ref_unit = "bunch";
-        new_def_price = data?.default_price / data?.reference_quantity;
+        new_def_price = data?.display_price / data?.display_quantity;
         break;
       default:
         throw new Error(`Unsupported reference unit: ${data?.reference_unit}`);
@@ -223,26 +229,40 @@ exports.update_ingredient = async (req, res) => {
     const oldPrice = Number(previous_data?.default_price);
     const newPrice = Number(new_def_price.toFixed(4));
 
+    const oldDisplayQuantity = Number(previous_data?.display_quantity);
+    const newDisplayQuantity = Number(data?.display_quantity);
+
+    const oldDisplayUnit = previous_data?.display_unit;
+    const newDisplayUnit = data?.display_unit;
+
+    const oldDisplayPrice = Number(previous_data?.display_price);
+    const newDisplayPrice = Number(data?.display_price);
+
     // helper function
     const isDifferent = (a, b) => a !== b;
     const numDifferent = (a, b) => Number(a) !== Number(b);
 
+    // console.log("previous data :", previous_data);
+    // console.log("data :", data);
     const shouldUpdate =
       isDifferent(previous_data?.name, data?.name) ||
       isDifferent(previous_data?.reference_unit, new_ref_unit) ||
       numDifferent(oldPrice, newPrice) ||
       isDifferent(oldNotes, newNotes) ||
       numDifferent(oldCupWeight, newCupWeight) ||
-      isDifferent(oldCupUnit, newCupUnit);
+      isDifferent(oldCupUnit, newCupUnit) ||
+      numDifferent(oldDisplayQuantity, newDisplayQuantity) ||
+      isDifferent(oldDisplayUnit, newDisplayUnit) ||
+      numDifferent(oldDisplayPrice, newDisplayPrice);
 
     // if both - new and old - data are mismatch then call procedure
     if (shouldUpdate) {
-      console.log("data is NOT same. so we need to update ingredients table.");
+      // console.log("data is NOT same. so we need to update ingredients table.");
       const conn = await db.getConnection();
       try {
         await conn.beginTransaction();
         const [result] = await conn.query(
-          `CALL update_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?)`,
+          `CALL update_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [
             ingId,
             data?.name,
@@ -254,6 +274,9 @@ exports.update_ingredient = async (req, res) => {
             data?.notes,
             user.id,
             role,
+            data?.display_quantity,
+            data?.display_unit,
+            data?.display_price,
           ],
         );
         await conn.commit();

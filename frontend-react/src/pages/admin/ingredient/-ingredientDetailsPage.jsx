@@ -5,8 +5,9 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
     <>
       <p>Ingredient Details</p>
       <h1>{ingDetail?.name}</h1>
-      <h3>Unit: {ingDetail?.base_unit}</h3>
-      <h3>Cost : £ {ingDetail?.default_price}</h3>
+      <h3>Quantity: {Number(ingDetail?.display_quantity)}</h3>
+      <h3>Unit: {ingDetail?.display_unit}</h3>
+      <h3>Cost : £ {Number(ingDetail?.display_price)}</h3>
       <h3>Submitted by: {ingDetail?.submitted_by}</h3>
       <h3>Approved by: {ingDetail?.approved_by}</h3>
       <h3>Approval date:{ingDetail?.approval_date} </h3>

@@ -95,6 +95,7 @@ exports.get_ingredient_units = async (req, res) => {
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
 
+  // check if data is available
   if (!req.body) {
     return res.status(500).json({
       success: false,
@@ -271,13 +272,16 @@ exports.create_recipe = async (req, res) => {
               ingredient.base_unit,
             );
 
-            await db.query("CALL update_insert_user_price(?,?,?,?,?,?)", [
+            await db.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?)", [
               user.id,
               ingredient.ingredient_id,
               base_price,
               base_quantity,
               base_unit,
               ingredient.location,
+              ingredient.base_price,
+              ingredient.base_quantity,
+              ingredient.base_unit,
             ]);
           }
         }

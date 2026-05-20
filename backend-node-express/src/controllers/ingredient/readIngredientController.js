@@ -24,7 +24,8 @@ exports.get_all_ingredients = async (req, res) => {
     // Get all ingredients details
     const [result] = await db.query(
       `SELECT ingredient_id, name, base_unit, default_price, is_active, submitted_by, 
-            approved_by, approval_status, approval_date, end_date, created_at, notes
+            approved_by, approval_status, approval_date, end_date, created_at, notes,
+            display_quantity, display_unit, display_price
         FROM ingredients LIMIT ? OFFSET ?`,
       [per_page, offset],
     );
@@ -68,7 +69,8 @@ exports.get_ingredient_details = async (req, res) => {
     // get ingredient details
     const [result] = await db.query(
       `SELECT ingredient_id, name, base_unit, default_price, is_active, submitted_by, 
-            approved_by, approval_status, approval_date, end_date, created_at, notes, cup_weight, cup_unit
+            approved_by, approval_status, approval_date, end_date, created_at, notes, cup_weight, cup_unit,
+            display_quantity, display_unit, display_price
         FROM ingredients 
         WHERE ingredient_id = ?`,
       [ingredientId],
@@ -83,6 +85,8 @@ exports.get_ingredient_details = async (req, res) => {
     }
     result[0].cup_weight = parseFloat(result[0].cup_weight);
     result[0].default_price = parseFloat(result[0].default_price);
+    result[0].display_price = parseFloat(result[0].display_price);
+    result[0].display_quantity = parseFloat(result[0].display_quantity);
     // FINAL response
     res.json({
       success: true,

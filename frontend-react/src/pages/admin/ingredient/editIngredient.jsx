@@ -57,7 +57,7 @@ function EditIngredient() {
       [field]: value,
     }));
   };
-
+  // console.log("ingData :", ingData);
   // ------ get data from backend for ing to be edited with the help of useFetch Hook ----
   const method = "get";
   const url = `${serverURL}/ingredient/api/${id}`;
@@ -68,7 +68,7 @@ function EditIngredient() {
     null,
   );
 
-  // hook to initialise data
+  //------------------------------------ initialise data -------------------------------------
   useEffect(() => {
     if (data) {
       const d = data[0];
@@ -76,14 +76,14 @@ function EditIngredient() {
       setIngData(d);
       setSelectedMainUnit(d?.base_unit);
       setSelectedCupUnit(d?.cup_unit);
-      setOrgData((pre) => ({
-        ...pre,
-        ref_quantity: 1,
-      }));
-      setIngData((pre) => ({
-        ...pre,
-        ref_quantity: 1,
-      }));
+      // setOrgData((pre) => ({
+      //   ...pre,
+      //   // ref_quantity: 1,
+      // }));
+      // setIngData((pre) => ({
+      //   ...pre,
+      //   // ref_quantity: 1,
+      // }));
     }
   }, [data]);
 
@@ -140,15 +140,15 @@ function EditIngredient() {
       isValid = false;
       checkData.errors.name = "Name required";
     }
-    if (!refQ || refQ <= 0) {
+    if (!checkData.display_quantity || checkData.display_quantity <= 0) {
       isValid = false;
       checkData.errors.reference_quantity = "Quantity can't be empty. Should be positive number";
     }
-    if (!checkData.default_price || checkData.default_price <= 0) {
+    if (!checkData.display_price || checkData.display_price <= 0) {
       isValid = false;
       checkData.errors.default_price = "Price can't be empty. Should be positive number";
     }
-    if (!checkData.base_unit || !mainUnits.includes(checkData.base_unit)) {
+    if (!checkData.display_unit || !mainUnits.includes(checkData.display_unit)) {
       isValid = false;
       checkData.errors.base_unit = `Unit required and should be one of these : ${mainUnits}`;
     }
@@ -170,16 +170,19 @@ function EditIngredient() {
     }
 
     sendData.name = ingName ? ingName : ingData.name;
-    sendData.reference_quantity = Number(refQ);
+    sendData.reference_quantity = Number(checkData.display_quantity);
     sendData.reference_unit = ingData.base_unit;
     sendData.default_price = Number(ingData.default_price);
     sendData.cup_equivalent_weight = Number(ingData.cup_weight);
     sendData.cup_equivalent_unit = ingData.cup_unit;
+    sendData.display_quantity = ingData.display_quantity;
+    sendData.display_unit = ingData.display_unit;
+    sendData.display_price = Number(ingData.display_price);
     sendData.notes = ingData.notes;
 
     const body = sendData;
 
-    console.log("data about to be sent :", body);
+    // console.log("data about to be sent :", body);
     // return;
 
     const method = "put";
@@ -192,8 +195,8 @@ function EditIngredient() {
         },
       });
 
-      console.log("response is :", res);
-      alert(res.data.message);
+      // console.log("response is :", res);
+      alert("Ingredient updated successfully");
       navigate("/admin/ingredients/all");
     } catch (err) {
       console.log("Error found in createIngredient while creating :", err.response?.data);
@@ -201,9 +204,9 @@ function EditIngredient() {
     }
   };
 
-  //----------------- submit button function (currently not used) -------------------------
+  //-------------XXXXXX----- submit button function (currently not used) -----XXXXXXX-------------------------
   const handlesubmit1 = () =>
-    submitButtonForEdit(ingData, refQ, mainUnits, cupUnits, ingName).then((result) => {
+    submitButtonForEdit(ingData, mainUnits, cupUnits, ingName).then((result) => {
       setFSuccess(result.success);
       setFMessage(result.message);
       setFData(result.data);
@@ -229,8 +232,6 @@ function EditIngredient() {
         ingData={ingData}
         handleChange={handleChange}
         setIngName={setIngName}
-        refQ={refQ}
-        setRefQ={setRefQ}
         selectedMainUnit={selectedMainUnit}
         setSelectedMainUnit={setSelectedMainUnit}
         selectedCupUnit={selectedCupUnit}

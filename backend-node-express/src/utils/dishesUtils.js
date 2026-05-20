@@ -183,10 +183,9 @@ function validateIngredient(data) {
     const display_order = component.display_order;
     if (
       !Number.isInteger(display_order) ||
-      display_order < 0 ||
-      display_order >= components.length
+      display_order < 0 // || display_order >= components.length
     ) {
-      return `Invalid display_order: must be a integer >= 0 and  less than ${components.length}`;
+      return `Invalid display_order: must be a integer >= 0`;
     }
 
     // --- ingredients ---
@@ -250,10 +249,9 @@ function validateIngredient(data) {
       const ing_display_order = ing.display_order;
       if (
         !Number.isInteger(ing_display_order) ||
-        ing_display_order < 0 ||
-        ing_display_order > total_ingredients
+        ing_display_order < 0 //|| ing_display_order > total_ingredients
       ) {
-        return `Invalid display_order for ingredients: must be a int > 0 and less than ${total_ingredients + 1}`;
+        return `Invalid display_order for ingredients: must be a int > 0 `;
       }
     }
   }

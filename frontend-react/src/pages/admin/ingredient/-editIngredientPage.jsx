@@ -8,8 +8,6 @@ function EditIngPage({
   ingData,
   handleChange,
   setIngName,
-  refQ,
-  setRefQ,
   selectedMainUnit,
   setSelectedMainUnit,
   selectedCupUnit,
@@ -36,10 +34,10 @@ function EditIngPage({
       <Input
         label={"Quantity :"}
         type={"number"}
-        value={refQ}
+        value={ingData?.display_quantity ? Number(ingData?.display_quantity) : ""}
         onChange={(e) => {
-          setRefQ(e.target.value);
-          handleChange("ref_quantity", Number(e.target.value));
+          // setRefQ(e.target.value);
+          handleChange("display_quantity", Number(e.target.value));
         }}
         error={ingData?.errors?.reference_quantity}
       />
@@ -56,9 +54,9 @@ function EditIngPage({
       <Input
         label={"Price :"}
         type={"number"}
-        value={ingData?.default_price ? ingData?.default_price : 0}
+        value={ingData?.display_price ? ingData?.display_price : 0}
         placeholder={"0.00"}
-        onChange={(e) => handleChange("default_price", Number(e.target.value))}
+        onChange={(e) => handleChange("display_price", Number(e.target.value))}
         error={ingData?.errors?.default_price}
       />
       <Input

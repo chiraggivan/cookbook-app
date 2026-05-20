@@ -1,4 +1,5 @@
 const db = require("../../config/database");
+const { readRecipeDetailsQ } = require("./utils/mysqlQueries");
 
 // get all the recipes
 exports.get_recipes = async (req, res) => {
@@ -164,37 +165,7 @@ exports.get_recipe_details = async (req, res) => {
     }
 
     // get ingredients for  recipe if found
-    const [ingredientResult] = await db.query(
-      `SELECT 
-            rc.recipe_component_id,
-            rc.display_order as component_display_order,
-            rc.component_text,
-            ri.display_order as ingredient_display_order,
-            COALESCE(i.ingredient_id, ui.user_ingredient_id) as ingredient_id,
-            COALESCE(i.name, ui.name) as name,
-            ri.recipe_ingredient_id,
-            ri.quantity,
-            ri.ingredient_source,
-            ui.submitted_by as ingredient_by,
-            u.unit_id,
-            u.unit_name,
-            ri.quantity * COALESCE(ui.base_price, COALESCE(up.custom_price, i.default_price))  * u.conversion_factor AS price,
-            COALESCE(ui.display_quantity, 1) as base_quantity,
-            COALESCE(ui.display_price, COALESCE(up.custom_price, i.default_price)) AS cost,
-            COALESCE(ui.display_unit, COALESCE(up.base_unit, i.base_unit)) AS unit
-        FROM recipe_ingredients ri 
-        LEFT JOIN recipe_components rc ON rc.recipe_component_id = ri.component_id
-        LEFT JOIN ingredients i ON ri.ingredient_id = i.ingredient_id AND ri.ingredient_source = 'main'
-        LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = ri.ingredient_id AND ri.ingredient_source = 'user'
-        JOIN units u ON ri.unit_id = u.unit_id
-        LEFT JOIN user_prices up ON up.user_id = ? 
-            AND up.ingredient_id = i.ingredient_id 
-            AND up.is_active = TRUE
-        WHERE ri.recipe_id = ?
-        AND ri.is_active = TRUE
-        ORDER BY rc.display_order, ri.display_order`,
-      [user.id, recipeId],
-    );
+    const [ingredientResult] = await db.query(readRecipeDetailsQ, [user.id, recipeId]);
 
     // convert decimal columns - which are auto converted to string - to Number type
     for (const ing of ingredientResult) {
@@ -214,7 +185,7 @@ exports.get_recipe_details = async (req, res) => {
 
     // Get steps for the recipe
     const [stepResult] = await db.query(
-      `SELECT step_order, step_text, estimated_time
+      `SELECT procedure_id, step_order, step_text, estimated_time
         FROM recipe_procedures
         WHERE recipe_id = ?
         AND is_active = 1
