@@ -24,7 +24,7 @@ exports.search_ingredients = async (req, res) => {
     }
 
     const [rows] = await db.query(
-      ` SELECT user_ingredient_id as id, name, display_price as price, display_unit as base_unit, display_quantity, 'user' as ingredient_source
+      ` SELECT user_ingredient_id as id, name, display_price, display_unit, display_quantity, 'user' as ingredient_source
         FROM user_ingredients
         WHERE submitted_by = ? AND LOWER(name) LIKE ? AND  is_active = 1
         UNION ALL
@@ -36,7 +36,12 @@ exports.search_ingredients = async (req, res) => {
         LIMIT 20`,
       [id, i, id, i, id],
     );
-
+    if (rows.length > 0) {
+      for (const row of rows) {
+        row.display_quantity = Number(row.display_quantity);
+        row.display_price = Number(row.display_price);
+      }
+    }
     // FINAL response
     res.json({
       success: true,

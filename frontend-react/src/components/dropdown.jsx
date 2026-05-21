@@ -5,8 +5,8 @@ const Dropdown = ({ title, options, value, onChange, placeholder = "Select", err
       <select value={value} onChange={onChange} {...props}>
         <option value="">{placeholder}</option>
         {options.map((option, index) => (
-          <option key={index} value={option}>
-            {option}
+          <option key={index} value={option.unit_id}>
+            {option.unit_name}
           </option>
         ))}
       </select>

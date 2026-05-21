@@ -6,6 +6,7 @@ import useFetch from "../../hooks/useFetch";
 import Navbar from "../../components/navbar";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
+import Button from "../../components/button";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -73,6 +74,7 @@ function MyRecipes() {
     <>
       <Navbar />
       <h1>Welcome to My Recipes</h1>
+      <Button children={"Add New Recipe"} onClick={() => navigate("/recipe/new")} />
 
       {myRecipes?.map((i) => (
         <div key={i.recipe_id}>

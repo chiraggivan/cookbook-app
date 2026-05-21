@@ -68,7 +68,7 @@ function MyIngredients() {
           <h1>{i.name}</h1>
           <h3>Price: £{i.display_price}</h3>
           <h3>
-            For: {i.display_quantity}/{i.display_unit}
+            For: {i.display_quantity} {i.display_unit}
           </h3>
           <h3>
             Cup Weight: {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
