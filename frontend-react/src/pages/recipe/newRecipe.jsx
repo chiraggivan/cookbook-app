@@ -12,6 +12,8 @@ import Dropdown from "../../components/dropdown";
 import Navbar from "../../components/navbar";
 import Button from "../../components/button";
 import { serverURL } from "../../utils/appUtils";
+import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
+import DropdownArray from "../../components/dropdownArray";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -22,25 +24,30 @@ function NewRecipe() {
   const [checkFinalData, setCheckFinalData] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [suggestedIng, setSuggestedIng] = useState([]);
-  const [activeInputId, setActiveInputId] = useState(null);
-  const [inputText, setInputText] = useState({});
-  const [rowData, setRowData] = useState([]);
   // const [measuringUnits, setMeasuringUnits] = useState([]);
   const emptyRowData = {
     rowNo: 1,
     ingredientId: "",
+    ingredientSource: "",
     name: "",
     quantity: "",
+    unit: "",
     measuringUnits: [],
+    baseUnits: [],
     cost: "",
     displayQuantity: "",
     displayUnit: "",
     displayPrice: "",
   };
   const [ingRows, setIngRows] = useState([emptyRowData]);
+  const [rowData, setRowData] = useState([]);
+  const [inputText, setInputText] = useState({});
+  const [activeInputId, setActiveInputId] = useState(null);
+
+  //
   let blurTimeout;
 
-  // Ref to keep track of timeout ID
+  // Ref to keep track of timeout for ID //clicking outside suggested box of ingredient
   const timeoutRef = useRef(null);
 
   // config -
@@ -93,6 +100,32 @@ function NewRecipe() {
     }
   };
 
+  // -------------------------------------change in ingredient name ----------------------------------------
+  const checkAnyChangeInIngredientName = (index) => {
+    if (ingRows[index].name === "") {
+      return;
+    }
+    setIngRows((prev) =>
+      prev.map((item) =>
+        item.rowNo === index + 1
+          ? {
+              ...item,
+              ingredientId: "",
+              ingredientSource: "",
+              name: "",
+              quantity: "",
+              unit: "",
+              measuringUnits: [],
+              cost: "",
+              displayQuantity: "",
+              displayUnit: "",
+              displayPrice: "",
+            }
+          : item,
+      ),
+    );
+  };
+
   // ----------------------------- search ingredient when typed in box -----------------------------------------
   const searchIng = (val) => {
     //  if val.length < 1 then return
@@ -127,25 +160,41 @@ function NewRecipe() {
       checkIng();
     }, 500);
 
-    // clear the timeout if the component unmounts or before the next effect
+    // clear the timeout if the component unmounts or re renders
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        // timeoutRef.current = null;
       }
     };
   };
 
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedIng = (rowNo, ing, index) => {
-    console.log("after selecting ingredient rowNo : ", rowNo, " ing :", ing, " and index :", index);
+    console.log(" ing:", ing);
+
+    //---------------------------- function for getting base units -----------------------------------------------
+    const getBaseUnits = (unit) => {
+      if (weightUnits.includes(unit)) {
+        return weightUnits;
+      } else if (volumeUnits.includes(unit)) {
+        return volumeUnits;
+      } else {
+        return [unit];
+      }
+    };
+
+    // console.log("after selecting ingredient rowNo : ", rowNo, " ing :", ing, " and index :", index);
     // --------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
         const res = await axios.get(`${serverURL}/recipe/api/search/units/${id}/${source}`, config);
         const units = res.data.rows;
         setIngRows((prev) => {
-          const x = prev.map((row, i) =>
-            i === Number(rowNo) - 1 ? { ...row, measuringUnits: units } : row,
+          const x = prev.map((row, index) =>
+            index === Number(rowNo) - 1
+              ? { ...row, measuringUnits: units, baseUnits: getBaseUnits(ing.display_unit) }
+              : row,
           );
           return x;
         });
@@ -157,6 +206,7 @@ function NewRecipe() {
     };
     const measureunits = fetchMeasuringUnits(ing.id, ing.ingredient_source);
 
+    // -------- fetch data of ingredient selected and store in rowData ------
     setIngRows((prev) => {
       const x = prev.map((row, i) =>
         i === Number(rowNo) - 1
@@ -172,19 +222,21 @@ function NewRecipe() {
             }
           : row,
       );
-
       return x;
     });
 
     setActiveInputId(null);
     setInputText((prev) => ({ ...prev, [rowNo - 1]: ing.name }));
+    setSuggestedIng([]);
+
+    //  save the ing data in rowData --> NOT SURE why its needed --------
     const findRow = rowData.find((i) => i.rowNo === rowNo);
     if (findRow) {
       setRowData((prev) => {
         const x = prev.map((i) =>
           i.rowNo === rowNo
             ? {
-                // rowNo: rowNo,
+                ...i,
                 ingName: ing.name,
                 displayQuantity: ing.display_quantity,
                 displayPrice: ing.display_price,
@@ -209,26 +261,109 @@ function NewRecipe() {
     }
   };
 
-  // --------------------------- hide suggestions onBlur if ingredient not selected ---------------------------------------
-  const hideSuggestions = (index) => {
-    setInputText((prev) => ({ ...prev, [rowNo - 1]: null }));
-  };
-  //
-  // console.log("ingRows :", ingRows);
-  // console.log("inputText :", inputText);
-
-  useEffect(() => {
-    console.log(
-      "ActiveInputId : ",
-      activeInputId,
-      " inputText :",
-      inputText,
-      " ingRows :",
-      ingRows,
-      " rowData :",
-      rowData,
+  // ------------------- update rowData and ingRows when base Quantity, price and unit changes -------------------
+  const updateBaseQuantity = (val, index) => {
+    setRowData((prev) =>
+      prev.map((item) =>
+        item.rowNo === index + 1 ? { ...item, displayQuantity: Number(val) } : item,
+      ),
     );
-  }, [activeInputId, inputText, ingRows]);
+    setIngRows((prev) =>
+      prev.map((item) =>
+        item.rowNo === index + 1 ? { ...item, displayQuantity: Number(val) } : item,
+      ),
+    );
+  };
+
+  const updateBasePrice = (val, index) => {
+    setRowData((prev) =>
+      prev.map((item) =>
+        item.rowNo === index + 1 ? { ...item, displayPrice: Number(val) } : item,
+      ),
+    );
+    setIngRows((prev) =>
+      prev.map((item) =>
+        item.rowNo === index + 1 ? { ...item, displayPrice: Number(val) } : item,
+      ),
+    );
+  };
+
+  const updateBaseUnit = (val, index) => {
+    setRowData((prev) =>
+      prev.map((item) => (item.rowNo === index + 1 ? { ...item, displayUnit: val } : item)),
+    );
+    setIngRows((prev) =>
+      prev.map((item) => (item.rowNo === index + 1 ? { ...item, displayUnit: val } : item)),
+    );
+  };
+
+  const updateQuantity = (val, index) => {
+    setRowData((prev) =>
+      prev.map((item) => (item.rowNo === index + 1 ? { ...item, quantity: Number(val) } : item)),
+    );
+    setIngRows((prev) =>
+      prev.map((item) => (item.rowNo === index + 1 ? { ...item, quantity: Number(val) } : item)),
+    );
+  };
+
+  const updateUnit = (val, index) => {
+    setRowData((prev) =>
+      prev.map((item) => (item.rowNo === index + 1 ? { ...item, unit: Number(val) } : item)),
+    );
+    setIngRows((prev) =>
+      prev.map((item) => (item.rowNo === index + 1 ? { ...item, unit: Number(val) } : item)),
+    );
+  };
+
+  const cost = (index) => {
+    const dq = ingRows[index].displayQuantity;
+    const du = ingRows[index].displayUnit;
+    const dp = ingRows[index].displayPrice;
+    const q = ingRows[index].quantity;
+    const u = ingRows[index].unit;
+    const mu = ingRows[index].measuringUnits;
+
+    if (dq && du && dp && q && u && mu) {
+      // const measUnit =
+      const baseConversion = ingRows[index].measuringUnits.find(
+        (i) => i.unit_name === du,
+      ).conversion_factor;
+      console.log("baseunit conversion value is :", baseConversion);
+      const unitConversion = ingRows[index].measuringUnits.find(
+        (i) => i.unit_id === u,
+      ).conversion_factor;
+      console.log("unit conversion value is :", unitConversion);
+      const ingCost = (dp / dq / baseConversion) * q * unitConversion;
+      if (ingCost) {
+        return ingCost;
+      } else {
+        return "";
+      }
+    } else {
+      return "";
+    }
+  };
+  // --------------------------- hide suggestions onBlur if ingredient not selected ------------------------------
+  const hideSuggestions = (index) => {
+    setSuggestedIng([]);
+    console.log("inside hid suggestions");
+    setInputText((prev) => ({ ...prev, [index]: " " }));
+    setRowData((prev) =>
+      prev?.map((item) =>
+        item?.rowNo === index + 1
+          ? {
+              ...item,
+              ingName: "",
+            }
+          : item,
+      ),
+    );
+  };
+
+  // console.log("inputText :", inputText);
+  console.log("rowData :", rowData);
+  console.log("ingRows :", ingRows);
+
   return (
     <>
       <Navbar />
@@ -301,7 +436,7 @@ function NewRecipe() {
                   <div style={{ position: "relative" }}>
                     <Input
                       type={"text"}
-                      value={rowData[index]?.ingName || inputText?.index}
+                      value={rowData[index]?.ingName ?? inputText?.index}
                       onFocus={() => setActiveInputId(i.rowNo)}
                       // onBlur={() => setActiveInputId(null)}
                       onChange={(e) => {
@@ -309,8 +444,19 @@ function NewRecipe() {
                         searchIng(e.target.value);
                         setInputText((prev) => ({ ...prev, [index]: e.target.value }));
                         setRowData((prev) =>
-                          prev.map((j) => (j.rowNo === i.rowNo ? (j.ingName = e.target.value) : j)),
+                          prev.map((j) =>
+                            j.rowNo === i.rowNo
+                              ? {
+                                  ...j,
+                                  ingName: e.target.value,
+                                  displayQuantity: "",
+                                  displayPrice: "",
+                                  displayUnit: "",
+                                }
+                              : j,
+                          ),
                         );
+                        checkAnyChangeInIngredientName(index);
                       }}
                       placeholder={"milk, blue cheese, etc.."}
                       onBlur={() => {
@@ -333,15 +479,15 @@ function NewRecipe() {
                           overflow: "auto",
                         }}
                       >
-                        {suggestedIng.map((item, index) => (
+                        {suggestedIng.map((ing, index) => (
                           <div
-                            key={item.ingredient_id + "-" + index}
+                            key={ing.ingredient_id + "-" + index}
                             onClick={() => {
-                              handleSelectedIng(i.rowNo, item, index);
                               clearTimeout(blurTimeout);
+                              handleSelectedIng(i.rowNo, ing, index);
                             }}
                           >
-                            {item.name}
+                            {ing.name}
                           </div>
                         ))}
                       </div>
@@ -349,29 +495,47 @@ function NewRecipe() {
                   </div>
                 </td>
                 <td>
-                  <Input type={"number"} />
+                  <Input
+                    type={"number"}
+                    value={rowData[index]?.quantity ?? ""}
+                    onChange={(e) => updateQuantity(e.target.value, index)}
+                  />
                 </td>
                 <td>
                   <Dropdown
                     options={i?.measuringUnits}
-                    value={selectUnit}
-                    onChange={(e) => setSelectUnit(e.target.value)}
+                    value={rowData[index]?.unit}
+                    onChange={(e) => {
+                      setSelectUnit(e.target.value);
+                      updateUnit(e.target.value, index);
+                    }}
                     style={{ maxHeight: "30px", overflow: "auto" }}
                   />
                 </td>
-                <td></td>
+                <td>{cost(index)}</td>
                 <td>
-                  <Input type={"number"} />
-                </td>
-                <td>
-                  <Dropdown
-                    options={["a", "b", "c"]}
-                    value={selectBaseUnit}
-                    onChange={(e) => setSelectBaseUnit(e.target.value)}
+                  <Input
+                    type={"number"}
+                    value={rowData[index]?.displayQuantity ?? ""}
+                    onChange={(e) => updateBaseQuantity(e.target.value, index)}
                   />
                 </td>
                 <td>
-                  <Input type={"number"} />
+                  <DropdownArray
+                    options={i?.baseUnits}
+                    value={rowData[index]?.displayUnit ?? ""}
+                    onChange={(e) => {
+                      setSelectBaseUnit(e.target.value);
+                      updateBaseUnit(e.target.value, index);
+                    }}
+                  />
+                </td>
+                <td>
+                  <Input
+                    type={"number"}
+                    value={rowData[index]?.displayPrice ?? ""}
+                    onChange={(e) => updateBasePrice(e.target.value, index)}
+                  />
                 </td>
               </tr>
             ))}
