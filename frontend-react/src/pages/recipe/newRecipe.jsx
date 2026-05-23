@@ -174,11 +174,26 @@ function NewRecipe() {
     console.log(" ing:", ing);
 
     //---------------------------- function for getting base units -----------------------------------------------
-    const getBaseUnits = (unit) => {
+    const getBaseUnits = (unit, measuringUnits) => {
+      const baseUnitsToShow = [];
       if (weightUnits.includes(unit)) {
-        return weightUnits;
+        // const baseUnitsToShow = [];
+        weightUnits.forEach((i) => {
+          const f = measuringUnits?.find((j) => j.unit_name === i);
+          if (f) {
+            baseUnitsToShow.push(f.unit_name);
+          }
+        });
+        return baseUnitsToShow;
       } else if (volumeUnits.includes(unit)) {
-        return volumeUnits;
+        // const baseUnitsToShow = [];
+        volumeUnits.forEach((i) => {
+          const f = measuringUnits?.find((j) => j.unit_name === i);
+          if (f) {
+            baseUnitsToShow.push(f.unit_name);
+          }
+        });
+        return baseUnitsToShow;
       } else {
         return [unit];
       }
@@ -193,7 +208,11 @@ function NewRecipe() {
         setIngRows((prev) => {
           const x = prev.map((row, index) =>
             index === Number(rowNo) - 1
-              ? { ...row, measuringUnits: units, baseUnits: getBaseUnits(ing.display_unit) }
+              ? {
+                  ...row,
+                  measuringUnits: units,
+                  baseUnits: getBaseUnits(ing.display_unit, units),
+                }
               : row,
           );
           return x;
