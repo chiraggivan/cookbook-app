@@ -29,6 +29,7 @@ function NewRecipe() {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   // const [measuringUnits, setMeasuringUnits] = useState([]);
   const emptyRowData = {
+    uid: "ing-" + (Date.now() + 1),
     rowNo: 1,
     ingredientId: "",
     ingredientSource: "",
@@ -46,6 +47,15 @@ function NewRecipe() {
   const [rowData, setRowData] = useState([]);
   const [inputText, setInputText] = useState({});
   const [activeInputId, setActiveInputId] = useState(null);
+  const itemRefs = useRef([]); // -------------> for auto scroll be visible while arrow down or up in suggested ingredients div
+  const [sections, setSections] = useState([
+    {
+      uid: "comp-" + Date.now(),
+      component_display_order: 0,
+      component_text: "sample",
+      ingredients: [emptyRowData],
+    },
+  ]);
 
   //
   let blurTimeout;
@@ -190,6 +200,60 @@ function NewRecipe() {
       }
     };
   };
+
+  // -----------------------in Suggested ingredient, set the first item highlighted -------------------------------
+  useEffect(() => {
+    if (suggestedIng.length > 0) {
+      setHighlightedIndex(0);
+    } else {
+      setHighlightedIndex(-1);
+    }
+  }, [suggestedIng]);
+
+  // ------------------------------Handle key down within suggested ingredient -----------------------------------------
+  const handleKeyDown = (e) => {
+    if (!suggestedIng.length) return;
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev < suggestedIng.length - 1 ? prev + 1 : prev));
+        break;
+
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
+
+      case "Enter":
+        if (highlightedIndex >= 0) {
+          e.preventDefault();
+          e.stopPropagation();
+          // setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+          handleSelectedIng(activeInputId, suggestedIng[highlightedIndex], highlightedIndex); // Select the item
+        }
+        break;
+
+      case "Tab":
+        // e.preventDefault();
+        e.stopPropagation();
+        handleSelectedIng(activeInputId, suggestedIng[highlightedIndex], highlightedIndex); // Select the item
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  // -----------------------handling the ScrollIntoView of suggeted ing list to show highlighted ing in view and not hide ----------
+  useEffect(() => {
+    if (highlightedIndex >= 0 && itemRefs.current[highlightedIndex]) {
+      itemRefs.current[highlightedIndex].scrollIntoView({
+        block: "nearest", // Keeps it in view without jumping
+        behavior: "smooth", // Optional: smooth scroll
+      });
+    }
+  }, [highlightedIndex]);
 
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedIng = (rowNo, ing, index) => {
@@ -450,8 +514,9 @@ function NewRecipe() {
   };
 
   // console.log("inputText :", inputText);
-  // console.log("rowData :", rowData);
-  // console.log("ingRows :", ingRows);
+  console.log("rowData :", rowData);
+  console.log("ingRows :", ingRows);
+  console.log("sections :", sections);
 
   return (
     <>
@@ -524,7 +589,7 @@ function NewRecipe() {
           </thead>
           <tbody>
             {ingRows.map((i, index) => (
-              <tr key={i.rowNo}>
+              <tr key={i.uid}>
                 <td>
                   <div style={{ position: "relative" }}>
                     <Input
@@ -560,6 +625,7 @@ function NewRecipe() {
                         checkAnyChangeInIngredientName(index);
                         // }, 200);
                       }}
+                      onKeyDown={handleKeyDown}
                       placeholder={"milk, blue cheese, etc.."}
                       onBlur={() => {
                         blurTimeout = setTimeout(() => {
@@ -584,6 +650,12 @@ function NewRecipe() {
                         {suggestedIng.map((ing, index) => (
                           <div
                             key={ing.ingredient_id + "-" + index}
+                            ref={(el) => (itemRefs.current[index] = el)}
+                            style={{
+                              backgroundColor: index === highlightedIndex ? "#f0f0f0" : "white",
+                              // padding: "10px",
+                              cursor: "pointer",
+                            }}
                             onClick={() => {
                               clearTimeout(blurTimeout);
                               handleSelectedIng(i.rowNo, ing, index);
@@ -641,6 +713,168 @@ function NewRecipe() {
                 </td>
               </tr>
             ))}
+          </tbody>
+        </Table>
+        <h1>-------------------------------------------------------------------------</h1>
+        <Table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Cost</th>
+              <th>Base quantity</th>
+              <th>Base Unit</th>
+              <th>Base price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sections.map((j, indexj) => {
+              console.log("found sections and rendgering");
+              <tr key={j.uid}>
+                <td colSpan={7}>
+                  <Input
+                    type={"text"}
+                    value={j.component_text}
+                    onFocus={(e) => {}}
+                    onChange={(e) => {}}
+                    onKeyDown={handleKeyDown}
+                    placeholder={"milk, blue cheese, etc.."}
+                    onBlur={() => {}}
+                  />
+                </td>
+              </tr>;
+              {
+                j.ingredients.map((i, index) => (
+                  <tr key={i.uid}>
+                    <td>
+                      <div style={{ position: "relative" }}>
+                        <Input
+                          type={"text"}
+                          value={rowData[index]?.ingName ?? inputText?.[index]}
+                          onFocus={(e) => {
+                            setActiveInputId(i.rowNo);
+                            searchIng(e.target.value);
+                            setInputText((prev) => ({ ...prev, [index]: e.target.value }));
+                            // console.log("setInputText :", inputText[index]);
+                          }}
+                          onChange={(e) => {
+                            addNewIngRow(i.rowNo);
+                            searchIng(e.target.value);
+                            setInputText((prev) => ({ ...prev, [index]: e.target.value }));
+                            setRowData((prev) =>
+                              prev.map((j) =>
+                                j.rowNo === i.rowNo
+                                  ? {
+                                      ...j,
+                                      ingName: e.target.value,
+                                      displayQuantity: "",
+                                      displayPrice: "",
+                                      displayUnit: "",
+                                      quantity: "",
+                                      unit: "",
+                                      cost: "",
+                                    }
+                                  : j,
+                              ),
+                            );
+                            // blurInputTextTimeout = setTimeout(() => {
+                            checkAnyChangeInIngredientName(index);
+                            // }, 200);
+                          }}
+                          onKeyDown={handleKeyDown}
+                          placeholder={"milk, blue cheese, etc.."}
+                          onBlur={() => {
+                            blurTimeout = setTimeout(() => {
+                              hideSuggestions(index);
+                            }, 100);
+                          }}
+                        />
+                        {activeInputId === i.rowNo &&
+                          suggestedIng.length > 0 &&
+                          inputText[index] && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "100%",
+                                left: 0,
+                                width: "100%",
+                                background: "white",
+                                border: "1px solid #ccc",
+                                zIndex: 10,
+                                maxHeight: "70px",
+                                overflow: "auto",
+                              }}
+                            >
+                              {suggestedIng.map((ing, index) => (
+                                <div
+                                  key={ing.ingredient_id + "-" + index}
+                                  ref={(el) => (itemRefs.current[index] = el)}
+                                  style={{
+                                    backgroundColor:
+                                      index === highlightedIndex ? "#f0f0f0" : "white",
+                                    // padding: "10px",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => {
+                                    clearTimeout(blurTimeout);
+                                    handleSelectedIng(i.rowNo, ing, index);
+                                  }}
+                                >
+                                  {ing.name}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                      </div>
+                    </td>
+                    <td>
+                      <Input
+                        type={"number"}
+                        value={rowData[index]?.quantity ?? ""}
+                        onChange={(e) => updateQuantity(e.target.value, index)}
+                      />
+                    </td>
+                    <td>
+                      <Dropdown
+                        options={i?.measuringUnits}
+                        value={rowData[index]?.unit}
+                        onChange={(e) => {
+                          setSelectUnit(e.target.value);
+                          updateUnit(e.target.value, index);
+                        }}
+                        style={{ maxHeight: "30px", overflow: "auto" }}
+                      />
+                    </td>
+                    <td>{rowData[index]?.cost ? rowData[index]?.cost : ""}</td>
+                    <td>
+                      <Input
+                        type={"number"}
+                        value={rowData[index]?.displayQuantity ?? ""}
+                        onChange={(e) => updateBaseQuantity(e.target.value, index)}
+                      />
+                    </td>
+                    <td>
+                      <DropdownArray
+                        options={i?.baseUnits}
+                        value={rowData[index]?.displayUnit ?? ""}
+                        onChange={(e) => {
+                          setSelectBaseUnit(e.target.value);
+                          updateBaseUnit(e.target.value, index);
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <Input
+                        type={"number"}
+                        value={rowData[index]?.displayPrice ?? ""}
+                        onChange={(e) => updateBasePrice(e.target.value, index)}
+                      />
+                    </td>
+                  </tr>
+                ));
+              }
+            })}
 
             {/* <tr>
               <td>
