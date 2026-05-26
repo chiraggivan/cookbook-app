@@ -2,7 +2,7 @@ import { Route } from "react-router-dom";
 import RecipeDetails from "../pages/recipe/recipeDetails";
 import MyRecipes from "../pages/recipe/myRecipes";
 import UserRecipes from "../pages/recipe/userRecipes";
-import NewRecipe from "../pages/recipe/newRecipe";
+import NewRecipe from "../pages/recipe/newRecipe2";
 
 export const RecipeRoutes = (
   <>
