@@ -53,7 +53,7 @@ function NewRecipe() {
   });
 
   const [sections, setSections] = useState([emptySectionData()]);
-  const [finalRecipe, setFinalRecipe] = useState({
+  const [recipeInfo, setRecipeInfo] = useState({
     name: "",
     portion_size: "",
     description: "",
@@ -88,10 +88,10 @@ function NewRecipe() {
 
   // ---------------------------- TEMP console to show recipe for every input ----------------------------------
   const handlesubmit = () => {
-    finalMainRecipe.name = finalRecipe?.name ?? "";
-    finalMainRecipe.portion_size = finalRecipe?.portion_size ?? "";
-    finalMainRecipe.description = finalRecipe?.description ?? "";
-    finalMainRecipe.privacy = finalRecipe?.privacy == "" ? false : finalRecipe?.privacy;
+    finalMainRecipe.name = recipeInfo?.name ?? "";
+    finalMainRecipe.portion_size = recipeInfo?.portion_size ?? "";
+    finalMainRecipe.description = recipeInfo?.description ?? "";
+    finalMainRecipe.privacy = recipeInfo?.privacy == "" ? false : recipeInfo?.privacy;
 
     const components = [];
     let ing_display_order = 0;
@@ -135,9 +135,7 @@ function NewRecipe() {
     const steps = [];
     let step_display_order = 0;
 
-    console.log("finalMainRecipe", finalMainRecipe);
-    // return;
-    // ----------------------------------------------------
+    // console.log("finalMainRecipe", finalMainRecipe);
     const checkData = { ...finalMainRecipe };
     checkData.errors = {};
     let isValid = true;
@@ -152,7 +150,7 @@ function NewRecipe() {
       checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
     }
     if (!checkData.privacy) {
-      finalRecipe.privacy = false;
+      recipeInfo.privacy = false;
     }
 
     checkData.components.forEach((comp, index) => {
@@ -218,7 +216,7 @@ function NewRecipe() {
     });
 
     setCheckFinalData(checkData);
-    console.log("finalRecipe after checking  :", finalRecipe);
+    // console.log("recipeInfo after checking  :", recipeInfo);
     console.log("checkFinalData", checkFinalData);
     if (!isValid) {
       return;
@@ -399,7 +397,7 @@ function NewRecipe() {
               : section,
           ),
         );
-        setFinalRecipe((prev) => ({
+        setRecipeInfo((prev) => ({
           ...prev,
           components: prev.components.map((comp) =>
             comp.uid === cid
@@ -431,6 +429,121 @@ function NewRecipe() {
     setActiveInputId(null);
     setSuggestedIng([]);
     setHighlightedIndex(-1);
+  };
+
+  // ------------------------------ to delete / hide component(section) header ---------------------------------
+  const deleteComponentHeader = (cid, index) => {
+    if (index === 0) {
+      if (checkFinalData?.errors?.components[cid]?.text) {
+        checkFinalData.errors.components[cid].text = "";
+      }
+      setShowTopRow(false);
+      setSections((prev) =>
+        prev.map((section) =>
+          section.uid === cid
+            ? {
+                ...section,
+                component_text: "",
+              }
+            : section,
+        ),
+      );
+    }
+    if (index !== 0) {
+      const toUpdtSections = sections.map((section) => ({
+        ...section,
+        ingredients: [...section.ingredients],
+      }));
+      // const toUpdtSections = [...sections];
+      const ingFrom = toUpdtSections[index].ingredients;
+      const ingTo = [...toUpdtSections[index - 1].ingredients];
+      ingTo.pop();
+      const combinedIng = [...ingTo, ...ingFrom];
+      const id = toUpdtSections[index - 1].uid;
+      const newSections = toUpdtSections.map((section) =>
+        section.uid === id
+          ? {
+              ...section,
+              ingredients: combinedIng,
+            }
+          : section,
+      );
+
+      const updated = newSections.filter((section) => section.uid !== cid);
+      console.log("updated to be setSection :", updated);
+      setSections(updated);
+    }
+  };
+
+  // ------------------------------------------- to delete ingredients  ---------------------------------
+  const deleteIngredient = (cid, iid) => {
+    const selectedSection = sections.find((s) => s.uid === cid);
+    const selectedIng = selectedSection.ingredients;
+    const newIngList = [...selectedIng.filter((i) => i.uid !== iid)];
+    setSections((prev) =>
+      prev.map((section) =>
+        section.uid === cid
+          ? {
+              ...section,
+              ingredients: newIngList,
+            }
+          : section,
+      ),
+    );
+  };
+
+  // ------------------------------------------- to move ingredients up or down  ---------------------------------
+  const move = (cid, iid, indexi, indexc, val) => {
+    console.log("cid :", cid, " iid :", iid, " indexi :", indexi, "indexc :", indexc, " val:", val);
+    const section = sections.find((s) => s.uid === cid);
+    const ings = [...section.ingredients];
+    const iLength = ings.length;
+    const ing = { ...ings.find((i) => i.uid === iid) };
+    const newIngsList = [...ings.filter((i) => i.uid !== iid)];
+    if ((indexi === 0 && val === -1) || (indexi === iLength - 2 && val === 1)) {
+      // console.log("section [")
+      const newSection = sections[indexc + val];
+      const newCid = newSection.uid;
+      const newIngs = [...newSection.ingredients];
+      // -- create splice based on value
+      if (indexi === 0 && val === -1) {
+        newIngs.splice(newIngs.length + val, 0, ing);
+      } else {
+        newIngs.splice(0, 0, ing);
+      }
+      setSections((prev) =>
+        prev.map((section) =>
+          section.uid === newCid
+            ? {
+                ...section,
+                ingredients: newIngs,
+              }
+            : section,
+        ),
+      );
+      setSections((prev) =>
+        prev.map((section) =>
+          section.uid === cid
+            ? {
+                ...section,
+                ingredients: newIngsList,
+              }
+            : section,
+        ),
+      );
+      return;
+    }
+    newIngsList.splice(indexi + val, 0, ing);
+    setSections((prev) =>
+      prev.map((section) =>
+        section.uid === cid
+          ? {
+              ...section,
+              ingredients: newIngsList,
+            }
+          : section,
+      ),
+    );
   };
 
   // ---------------------------------- To calculate the individual ing cost / total cost of recipe ----------------------------------------------
@@ -590,7 +703,7 @@ function NewRecipe() {
   console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
-  // console.log("finalRecipe :", finalRecipe);
+  // console.log("recipeInfo :", recipeInfo);
   return (
     <>
       <Navbar />
@@ -598,9 +711,9 @@ function NewRecipe() {
       <Input
         label={"Recipe name: "}
         type="text"
-        value={finalRecipe.name ?? ""}
+        value={recipeInfo.name ?? ""}
         onChange={(e) => {
-          setFinalRecipe({ ...finalRecipe, name: e.target.value });
+          setRecipeInfo({ ...recipeInfo, name: e.target.value });
           if (checkFinalData?.errors?.name) {
             checkFinalData.errors.name = "";
           }
@@ -612,7 +725,7 @@ function NewRecipe() {
         label={"Portion of: "}
         type="text"
         onChange={(e) => {
-          setFinalRecipe({ ...finalRecipe, portion_size: e.target.value });
+          setRecipeInfo({ ...recipeInfo, portion_size: e.target.value });
           if (checkFinalData?.errors?.portion_size) {
             checkFinalData.errors.portion_size = "";
           }
@@ -623,7 +736,7 @@ function NewRecipe() {
       <Textarea
         label={"Description"}
         onChange={(e) => {
-          setFinalRecipe({ ...finalRecipe, description: e.target.value });
+          setRecipeInfo({ ...recipeInfo, description: e.target.value });
         }}
         placeholder="description of your recipe..."
         error={checkFinalData?.errors?.description}
@@ -636,7 +749,7 @@ function NewRecipe() {
         offText="Public"
         onChange={(e) => {
           setIsPrivate(e.target.checked);
-          setFinalRecipe({ ...finalRecipe, privacy: e.target.checked });
+          setRecipeInfo({ ...recipeInfo, privacy: e.target.checked });
         }}
       />
       <div>
@@ -672,6 +785,7 @@ function NewRecipe() {
               <th>Base Unit</th>
               <th>Base price</th>
               <th>Delete</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -692,6 +806,9 @@ function NewRecipe() {
                                 : section,
                             ),
                           );
+                          if (checkFinalData?.errors?.components[comp.uid]?.text) {
+                            checkFinalData.errors.components[comp.uid].text = "";
+                          }
                         }}
                         error={checkFinalData?.errors?.components[comp.uid]?.text}
                       />
@@ -705,6 +822,7 @@ function NewRecipe() {
                         onClick={() => deleteComponentHeader(comp.uid, indexc)}
                       />
                     </td>
+                    <td></td>
                   </tr>
                 )}
 
@@ -914,8 +1032,33 @@ function NewRecipe() {
                           children={"Delete"}
                           type="button"
                           disabled={false}
-                          // onClick={() => deleteComponentHeader(comp.uid, indexc)}
+                          onClick={() => deleteIngredient(comp.uid, ing.uid)}
                         />
+                      )}
+                    </td>
+                    <td>
+                      {index !== sections[indexc].ingredients.length - 1 && (
+                        <>
+                          {(indexc !== 0 || index !== 0) && (
+                            <Button
+                              // id={"delete"}
+                              children={"↑"}
+                              type="button"
+                              disabled={false}
+                              onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                            />
+                          )}
+                          {(indexc !== sections.length - 1 ||
+                            index !== sections[indexc].ingredients.length - 2) && (
+                            <Button
+                              // id={"delete"}
+                              children={"↓"}
+                              type="button"
+                              disabled={false}
+                              onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
+                            />
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>
