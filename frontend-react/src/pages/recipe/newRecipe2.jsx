@@ -52,14 +52,20 @@ function NewRecipe() {
     ingredients: [emptyIngRowData()],
   });
 
+  const emptyStepRow = () => ({
+    uid: "ing-" + (Date.now() + Math.floor(Math.random() * 1000)),
+    step_text: "",
+  });
+
   const [sections, setSections] = useState([emptySectionData()]);
+
   const [recipeInfo, setRecipeInfo] = useState({
     name: "",
     portion_size: "",
     description: "",
     privacy: "",
     components: sections,
-    steps: [],
+    steps: [emptyStepRow()],
   });
   const finalMainRecipe = {};
   const [checkFinalData, setCheckFinalData] = useState({});
@@ -235,6 +241,16 @@ function NewRecipe() {
           : section,
       ),
     );
+  };
+
+  // ----------------------------- ADD new empty step row function ---------------------------------------
+  const addNewStepRow = (index) => {
+    if (index === recipeInfo.steps.length - 1) {
+      setRecipeInfo((prev) => ({
+        ...prev,
+        steps: [...prev.steps, emptyStepRow()],
+      }));
+    }
   };
 
   // ----------------------------- search ingredient when typed in box -----------------------------------------
@@ -492,6 +508,14 @@ function NewRecipe() {
     );
   };
 
+  // ------------------------------------------- to delete ingredients  ---------------------------------
+  const deleteStep = (sid) => {
+    const newStepList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
+    console.log("newStepList :", newStepList);
+    // return;
+    setRecipeInfo((prev) => ({ ...prev, steps: newStepList }));
+  };
+
   // ------------------------------------------- to move ingredients up or down  ---------------------------------
   const move = (cid, iid, indexi, indexc, val) => {
     console.log("cid :", cid, " iid :", iid, " indexi :", indexi, "indexc :", indexc, " val:", val);
@@ -544,6 +568,53 @@ function NewRecipe() {
           : section,
       ),
     );
+  };
+
+  // ------------------------------------------- to move steps up or down  ---------------------------------
+  const moveStep = (sid, index, val) => {
+    // const section = sections.find((s) => s.uid === cid);
+    // const ings = [...section.ingredients];
+    const sLength = recipeInfo.steps.length;
+    const step = { ...recipeInfo.steps.find((s) => s.uid === sid) };
+    const newStepsList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
+    // if ((index === 0 && val === -1) || (indexi === iLength - 2 && val === 1)) {
+    //   // console.log("section [")
+    //   const newSection = sections[indexc + val];
+    //   const newCid = newSection.uid;
+    //   const newIngs = [...newSection.ingredients];
+    //   // -- create splice based on value
+    //   if (indexi === 0 && val === -1) {
+    //     newIngs.splice(newIngs.length + val, 0, ing);
+    //   } else {
+    //     newIngs.splice(0, 0, ing);
+    //   }
+    //   setSections((prev) =>
+    //     prev.map((section) =>
+    //       section.uid === newCid
+    //         ? {
+    //             ...section,
+    //             ingredients: newIngs,
+    //           }
+    //         : section,
+    //     ),
+    //   );
+    //   setSections((prev) =>
+    //     prev.map((section) =>
+    //       section.uid === cid
+    //         ? {
+    //             ...section,
+    //             ingredients: newIngsList,
+    //           }
+    //         : section,
+    //     ),
+    //   );
+    //   return;
+    // }
+    newStepsList.splice(index + val, 0, step);
+    setRecipeInfo((prev) => ({
+      ...prev,
+      steps: newStepsList,
+    }));
   };
 
   // ---------------------------------- To calculate the individual ing cost / total cost of recipe ----------------------------------------------
@@ -1068,7 +1139,6 @@ function NewRecipe() {
           </tbody>
         </Table>
 
-        {/* {!showTopRow && ( */}
         <Button
           id={"add_header"}
           children={"Add New Section"}
@@ -1076,10 +1146,92 @@ function NewRecipe() {
           disabled={false}
           onClick={() => {
             setSections((prev) => [...prev, emptySectionData()]);
-            // setShowTopRow(true);
           }}
         />
-        {/* )} */}
+      </Card>
+
+      {/* -------------------------- Steps section ----------------------- */}
+
+      <Card>
+        <h2>Steps</h2>
+
+        <Table>
+          <thead>
+            <tr>
+              <th>Sr. No.</th>
+              <th>Step Text</th>
+              <th>Delete</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recipeInfo.steps.map((step, index) => (
+              <>
+                <tr key={step.uid}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <Textarea
+                      label={""}
+                      value={recipeInfo?.steps[index]?.step_text ?? ""}
+                      onChange={(e) => {
+                        setRecipeInfo({
+                          ...recipeInfo,
+                          steps: recipeInfo.steps.map((s, index) =>
+                            s.uid === step.uid
+                              ? {
+                                  ...s,
+                                  step_text: e.target.value,
+                                }
+                              : s,
+                          ),
+                        });
+                        addNewStepRow(index);
+                      }}
+                      placeholder="text....."
+                      error={checkFinalData?.errors?.description}
+                      rows={2}
+                    />
+                  </td>
+                  <td>
+                    {index !== recipeInfo.steps.length - 1 && (
+                      <Button
+                        // id={"delete"}
+                        children={"Delete"}
+                        type="button"
+                        disabled={false}
+                        onClick={() => deleteStep(step.uid)}
+                      />
+                    )}
+                  </td>
+                  <td>
+                    {index !== recipeInfo.steps.length - 1 && (
+                      <>
+                        {index !== 0 && (
+                          <Button
+                            // id={"delete"}
+                            children={"↑"}
+                            type="button"
+                            disabled={false}
+                            onClick={() => moveStep(step.uid, index, -1)}
+                          />
+                        )}
+                        {index !== recipeInfo.steps.length - 2 && (
+                          <Button
+                            // id={"delete"}
+                            children={"↓"}
+                            type="button"
+                            disabled={false}
+                            onClick={() => moveStep(step.uid, index, 1)}
+                          />
+                        )}
+                      </>
+                    )}
+                  </td>
+                </tr>
+              </>
+            ))}
+          </tbody>
+        </Table>
       </Card>
     </>
   );
