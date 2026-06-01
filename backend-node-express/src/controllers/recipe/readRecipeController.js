@@ -167,13 +167,36 @@ exports.get_recipe_details = async (req, res) => {
     // get ingredients for  recipe if found
     const [ingredientResult] = await db.query(readRecipeDetailsQ, [user.id, recipeId]);
 
+    // add measuringUnits  and base units in data
+    const updtdIngredientResult = await Promise.all(
+      ingredientResult.map(async (ing) => {
+        const [rows] = await db.query(
+          `SELECT unit_id, unit_name, conversion_factor
+          FROM units 
+          WHERE ingredient_id = ? AND ingredient_source = ? AND is_active = 1
+          `,
+          [ing.ingredient_id, ing.ingredient_source],
+        );
+        // convert decimal columns - which are auto converted to string - to Number type
+        for (const row of rows) {
+          const toNumberFields = ["conversion_factor"];
+          for (const field of toNumberFields) {
+            row[field] = Number(row[field]);
+          }
+        }
+
+        return { ...ing, measuring_units: rows };
+      }),
+    );
+
     // convert decimal columns - which are auto converted to string - to Number type
-    for (const ing of ingredientResult) {
+    for (const ing of updtdIngredientResult) {
       const toNumberFields = ["base_quantity", "cost", "price", "quantity"];
       for (const field of toNumberFields) {
         ing[field] = Number(ing[field]);
       }
     }
+    console.log("ingredient result :", updtdIngredientResult);
 
     // check if any ingredients found
     // if (ingredientResult.length === 0) {
@@ -197,7 +220,7 @@ exports.get_recipe_details = async (req, res) => {
     res.json({
       success: true,
       message: `Recipe details found`,
-      data: { recipe: recipeResult[0], ingredients: ingredientResult, steps: stepResult },
+      data: { recipe: recipeResult[0], ingredients: updtdIngredientResult, steps: stepResult },
     });
   } catch (err) {
     console.error("Error in readRecipeController - get_recipe_details:", err);

@@ -53,7 +53,7 @@ function NewRecipe() {
   });
 
   const emptyStepRow = () => ({
-    uid: "ing-" + (Date.now() + Math.floor(Math.random() * 1000)),
+    uid: "step-" + (Date.now() + Math.floor(Math.random() * 1000)),
     step_text: "",
   });
 
@@ -352,38 +352,38 @@ function NewRecipe() {
     }
   }, [highlightedIndex]);
 
+  // ------------------------------------------------------- function for getting base units ----------------------------------------
+  const getBaseUnits = (unit, measuringUnits) => {
+    const baseUnitsToShow = [];
+    const lookup = {};
+    measuringUnits.forEach((i) => (lookup[i.unit_name] = i.unit_name));
+
+    // // --------------------------------------------------- for weight units ----------------------------------
+    if (weightUnits.includes(unit)) {
+      // const baseUnitsToShow = [];
+      weightUnits.forEach((i) => {
+        if (lookup[i]) {
+          baseUnitsToShow.push(lookup[i]);
+        }
+      });
+      return baseUnitsToShow;
+    }
+    // // ----------------------------------------- for volume units ----------------------------------
+    else if (volumeUnits.includes(unit)) {
+      // const baseUnitsToShow = [];
+      volumeUnits.forEach((i) => {
+        if (lookup[i]) {
+          baseUnitsToShow.push(lookup[i]);
+        }
+      });
+      return baseUnitsToShow;
+    } else {
+      return [unit];
+    }
+  };
+
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedIng = (cid, iid, ing) => {
-    // //---------------------------- function for getting base units ----------------------------------------
-    const getBaseUnits = (unit, measuringUnits) => {
-      const baseUnitsToShow = [];
-      const lookup = {};
-      measuringUnits.forEach((i) => (lookup[i.unit_name] = i.unit_name));
-
-      // // // ------------------------- for weight units ----------------------------------
-      if (weightUnits.includes(unit)) {
-        // const baseUnitsToShow = [];
-        weightUnits.forEach((i) => {
-          if (lookup[i]) {
-            baseUnitsToShow.push(lookup[i]);
-          }
-        });
-        return baseUnitsToShow;
-      }
-      // // // ------------------------- for volume units ----------------------------------
-      else if (volumeUnits.includes(unit)) {
-        // const baseUnitsToShow = [];
-        volumeUnits.forEach((i) => {
-          if (lookup[i]) {
-            baseUnitsToShow.push(lookup[i]);
-          }
-        });
-        return baseUnitsToShow;
-      } else {
-        return [unit];
-      }
-    };
-
     // //--------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
@@ -508,7 +508,7 @@ function NewRecipe() {
     );
   };
 
-  // ------------------------------------------- to delete ingredients  ---------------------------------
+  // ------------------------------------------- to delete steps  ---------------------------------
   const deleteStep = (sid) => {
     const newStepList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
     console.log("newStepList :", newStepList);
@@ -577,39 +577,6 @@ function NewRecipe() {
     const sLength = recipeInfo.steps.length;
     const step = { ...recipeInfo.steps.find((s) => s.uid === sid) };
     const newStepsList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
-    // if ((index === 0 && val === -1) || (indexi === iLength - 2 && val === 1)) {
-    //   // console.log("section [")
-    //   const newSection = sections[indexc + val];
-    //   const newCid = newSection.uid;
-    //   const newIngs = [...newSection.ingredients];
-    //   // -- create splice based on value
-    //   if (indexi === 0 && val === -1) {
-    //     newIngs.splice(newIngs.length + val, 0, ing);
-    //   } else {
-    //     newIngs.splice(0, 0, ing);
-    //   }
-    //   setSections((prev) =>
-    //     prev.map((section) =>
-    //       section.uid === newCid
-    //         ? {
-    //             ...section,
-    //             ingredients: newIngs,
-    //           }
-    //         : section,
-    //     ),
-    //   );
-    //   setSections((prev) =>
-    //     prev.map((section) =>
-    //       section.uid === cid
-    //         ? {
-    //             ...section,
-    //             ingredients: newIngsList,
-    //           }
-    //         : section,
-    //     ),
-    //   );
-    //   return;
-    // }
     newStepsList.splice(index + val, 0, step);
     setRecipeInfo((prev) => ({
       ...prev,

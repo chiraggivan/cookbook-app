@@ -3,6 +3,7 @@ import RecipeDetails from "../pages/recipe/recipeDetails";
 import MyRecipes from "../pages/recipe/myRecipes";
 import UserRecipes from "../pages/recipe/userRecipes";
 import NewRecipe from "../pages/recipe/newRecipe2";
+import EditRecipe from "../pages/recipe/editRecipe";
 
 export const RecipeRoutes = (
   <>
@@ -10,5 +11,6 @@ export const RecipeRoutes = (
     <Route path="/MyRecipes" element={<MyRecipes />} />
     <Route path="/recipesBy/:id" element={<UserRecipes />} />
     <Route path="/recipe/new" element={<NewRecipe />} />
+    <Route path="/recipe/edit/:id" element={<EditRecipe />} />
   </>
 );

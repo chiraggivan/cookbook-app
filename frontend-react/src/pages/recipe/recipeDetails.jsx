@@ -6,6 +6,7 @@ import useFetch from "../../hooks/useFetch";
 import Navbar from "../../components/navbar";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
+import Button from "../../components/button";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -270,7 +271,7 @@ function RecipeDetails() {
         Last Prepared on : {foundRecipeDetails?.recipe.date_prepared} @{" "}
         {foundRecipeDetails?.recipe.time_prepared}
       </h4>
-      <button>Edit</button>
+      <Button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</Button>
       <button onClick={handleDelete}>Delete</button>
       <table>
         <thead>
