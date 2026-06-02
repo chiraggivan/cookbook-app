@@ -25,13 +25,14 @@ function EditRecipe() {
   const [fetchLoading, setFetchLoading] = useState(false);
   const [suggestedIng, setSuggestedIng] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [rowData, setRowData] = useState([]);
+  // const [rowData, setRowData] = useState([]);
   const [activeInputId, setActiveInputId] = useState(null);
   const itemRefs = useRef([]); // -------------> for auto scroll be visible while arrow down or up in suggested ingredients div
   const emptyIngRowData = () => ({
     uid: "ing-" + (Date.now() + Math.floor(Math.random() * 1000)),
     ingredientId: "",
     ingredientSource: "",
+    ingredientBy: "",
     name: "",
     quantity: "",
     unit: "",
@@ -42,17 +43,17 @@ function EditRecipe() {
     displayUnit: "",
     displayPrice: "",
   });
-  const emptySectionData = () => ({
+  const emptyComponentData = () => ({
     uid: "comp-" + (Date.now() + Math.floor(Math.random() * 1000)),
     //   component_display_order: 0,
-    component_text: "",
+    componentText: "",
     ingredients: [emptyIngRowData()],
   });
   const emptyStepRow = () => ({
     uid: "step-" + (Date.now() + Math.floor(Math.random() * 1000)),
     step_text: "",
   });
-  const [sections, setSections] = useState([emptySectionData()]);
+  // const [sections, setSections] = useState([emptySectionData()]);
   const [recipeInfo, setRecipeInfo] = useState({});
   // const [recipeInfo, setRecipeInfo] = useState({
   //   name: "",
@@ -66,11 +67,7 @@ function EditRecipe() {
   const [checkFinalData, setCheckFinalData] = useState({});
   const [showTopRow, setShowTopRow] = useState(false);
   const navigate = useNavigate();
-  // const tableRows = [];
-  // const [ingRows, setIngRows] = useState([emptyIngRowData]);
-
   let blurTimeout;
-  // config -
   const config = {
     headers: { Authorization: `Bearer ${token}` },
   };
@@ -115,7 +112,9 @@ function EditRecipe() {
         }
       });
       return baseUnitsToShow;
-    } else {
+    }
+    // // -------------------------------- for other units ----------------------------------
+    else {
       return [unit];
     }
   };
@@ -202,653 +201,615 @@ function EditRecipe() {
   }, []);
 
   // ---------------------------- TEMP console to show recipe for every input ----------------------------------
-  // const handlesubmit = () => {
-  //   finalMainRecipe.name = recipeInfo?.name ?? "";
-  //   finalMainRecipe.portion_size = recipeInfo?.portion_size ?? "";
-  //   finalMainRecipe.description = recipeInfo?.description ?? "";
-  //   finalMainRecipe.privacy = recipeInfo?.privacy == "" ? false : recipeInfo?.privacy;
+  const handlesubmit = () => {
+    finalMainRecipe.name = recipeInfo?.recipe?.name ?? "";
+    finalMainRecipe.portion_size = recipeInfo?.recipe?.portion_size ?? "";
+    finalMainRecipe.description = recipeInfo?.recipe?.description ?? "";
+    finalMainRecipe.privacy = recipeInfo?.recipe?.privacy == "" ? false : recipeInfo?.privacy;
 
-  //   const components = [];
-  //   let ing_display_order = 0;
+    const components = [];
+    let ing_display_order = 0;
 
-  //   sections.forEach((section, indexc) => {
-  //     const comp = {};
-  //     comp.component_text = section.component_text ?? "";
-  //     comp.component_display_order = indexc;
-  //     comp.uid = section.uid;
-  //     const ingredients = [];
+    sections.forEach((section, indexc) => {
+      const comp = {};
+      comp.component_text = section.component_text ?? "";
+      comp.component_display_order = indexc;
+      comp.uid = section.uid;
+      const ingredients = [];
 
-  //     section.ingredients.forEach((i) => {
-  //       if (
-  //         i.ingredientId ||
-  //         i.ingredientSource ||
-  //         i.quantity ||
-  //         i.unit ||
-  //         i.displayQuantity ||
-  //         i.displayUnit ||
-  //         i.displayPrice
-  //       ) {
-  //         ing_display_order++;
-  //         const ing = {};
-  //         ing.uid = i.uid;
-  //         ing.ingredient_display_order = ing_display_order;
-  //         ing.ingredient_id = i.ingredientId ?? 0;
-  //         ing.ingredient_source = i.ingredientSource ?? "";
-  //         ing.quantity = i.quantity ?? "";
-  //         ing.unit = i.unit ?? "";
-  //         ing.display_price = i.displayPrice;
-  //         ing.display_quantity = i.displayQuantity;
-  //         ing.display_unit = i.displayUnit;
-  //         ingredients.push(ing);
-  //       }
-  //     });
-  //     comp.ingredients = ingredients;
-  //     components.push(comp);
-  //   });
-  //   finalMainRecipe.components = components;
+      section.ingredients.forEach((i) => {
+        if (
+          i.ingredientId ||
+          i.ingredientSource ||
+          i.quantity ||
+          i.unit ||
+          i.displayQuantity ||
+          i.displayUnit ||
+          i.displayPrice
+        ) {
+          ing_display_order++;
+          const ing = {};
+          ing.uid = i.uid;
+          ing.ingredient_display_order = ing_display_order;
+          ing.ingredient_id = i.ingredientId ?? 0;
+          ing.ingredient_source = i.ingredientSource ?? "";
+          ing.quantity = i.quantity ?? "";
+          ing.unit = i.unit ?? "";
+          ing.display_price = i.displayPrice;
+          ing.display_quantity = i.displayQuantity;
+          ing.display_unit = i.displayUnit;
+          ingredients.push(ing);
+        }
+      });
+      comp.ingredients = ingredients;
+      components.push(comp);
+    });
+    finalMainRecipe.components = components;
 
-  //   const steps = [];
-  //   let step_display_order = 0;
+    const steps = [];
+    let step_display_order = 0;
 
-  //   // console.log("finalMainRecipe", finalMainRecipe);
-  //   const checkData = { ...finalMainRecipe };
-  //   checkData.errors = {};
-  //   let isValid = true;
-  //   setErrorMessage("");
+    // console.log("finalMainRecipe", finalMainRecipe);
+    const checkData = { ...finalMainRecipe };
+    checkData.errors = {};
+    let isValid = true;
+    setErrorMessage("");
 
-  //   if (!checkData.name || checkData.name.trim() === "") {
-  //     isValid = false;
-  //     checkData.errors.name = "Name required";
-  //   }
-  //   if (!checkData.portion_size || checkData.portion_size.trim() === "") {
-  //     isValid = false;
-  //     checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
-  //   }
-  //   if (!checkData.privacy) {
-  //     recipeInfo.privacy = false;
-  //   }
+    if (!checkData.name || checkData.name.trim() === "") {
+      isValid = false;
+      checkData.errors.name = "Name required";
+    }
+    if (!checkData.portion_size || checkData.portion_size.trim() === "") {
+      isValid = false;
+      checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+    }
+    if (!checkData.privacy) {
+      recipeInfo.privacy = false;
+    }
 
-  //   checkData.components.forEach((comp, index) => {
-  //     if (!checkData.errors.components) {
-  //       checkData.errors.components = {};
-  //     }
-  //     if (!checkData.errors.components[comp.uid]) {
-  //       checkData.errors.components[comp.uid] = {};
-  //     }
+    checkData.components.forEach((comp, index) => {
+      if (!checkData.errors.components) {
+        checkData.errors.components = {};
+      }
+      if (!checkData.errors.components[comp.uid]) {
+        checkData.errors.components[comp.uid] = {};
+      }
 
-  //     if (index === 0 && showTopRow && comp.component_text === "") {
-  //       isValid = false;
-  //       checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
-  //     }
-  //     if (index !== 0 && comp.component_text === "") {
-  //       isValid = false;
-  //       checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
-  //     }
+      if (index === 0 && showTopRow && comp.component_text === "") {
+        isValid = false;
+        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+      }
+      if (index !== 0 && comp.component_text === "") {
+        isValid = false;
+        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+      }
 
-  //     comp.ingredients.forEach((ing) => {
-  //       if (!checkData?.errors?.components[comp.uid]?.ingredients) {
-  //         checkData.errors.components[comp.uid].ingredients = {};
-  //       }
-  //       if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
-  //         checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
-  //       }
+      comp.ingredients.forEach((ing) => {
+        if (!checkData?.errors?.components[comp.uid]?.ingredients) {
+          checkData.errors.components[comp.uid].ingredients = {};
+        }
+        if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
+          checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
+        }
 
-  //       if (
-  //         ing.ingredient_id ||
-  //         ing.quantity ||
-  //         ing.unit ||
-  //         ing.display_quantity ||
-  //         ing.display_unit ||
-  //         ing.display_price
-  //       ) {
-  //         if (!ing.display_quantity) {
-  //           isValid = false;
-  //           checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
-  //             "Reqiure!!";
-  //         }
-  //         if (!ing.display_unit) {
-  //           isValid = false;
-  //           checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
-  //         }
-  //         if (!ing.display_price) {
-  //           isValid = false;
-  //           checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
-  //         }
-  //         if (!ing.unit) {
-  //           isValid = false;
-  //           checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
-  //         }
-  //         if (!ing.quantity) {
-  //           isValid = false;
-  //           checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
-  //         }
-  //         if (!ing.ingredient_id) {
-  //           isValid = false;
-  //           checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
-  //         }
-  //       }
-  //     });
-  //   });
+        if (
+          ing.ingredient_id ||
+          ing.quantity ||
+          ing.unit ||
+          ing.display_quantity ||
+          ing.display_unit ||
+          ing.display_price
+        ) {
+          if (!ing.display_quantity) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
+              "Reqiure!!";
+          }
+          if (!ing.display_unit) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
+          }
+          if (!ing.display_price) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
+          }
+          if (!ing.unit) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
+          }
+          if (!ing.quantity) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
+          }
+          if (!ing.ingredient_id) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
+          }
+        }
+      });
+    });
 
-  //   setCheckFinalData(checkData);
-  //   // console.log("recipeInfo after checking  :", recipeInfo);
-  //   console.log("checkFinalData", checkFinalData);
-  //   if (!isValid) {
-  //     return;
-  //   }
-  // };
+    setCheckFinalData(checkData);
+    // console.log("recipeInfo after checking  :", recipeInfo);
+    console.log("checkFinalData", checkFinalData);
+    if (!isValid) {
+      return;
+    }
+  };
 
-  // // ----------------------------- ADD new empty ingredient row function ---------------------------------------
-  // const addNewIngRow = (cid, index) => {
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid && section.ingredients.length === index + 1
-  //         ? {
-  //             ...section,
-  //             ingredients: [...section.ingredients, emptyIngRowData()],
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  // ----------------------------- ADD new empty ingredient row function ---------------------------------------
+  const addNewIngRow = (cid, index) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((comp) =>
+        comp.uid === cid && comp.ingredients.length === index + 1
+          ? {
+              ...comp,
+              ingredients: [...comp.ingredients, emptyIngRowData()],
+            }
+          : comp,
+      ),
+    }));
+  };
 
-  // // ----------------------------- ADD new empty step row function ---------------------------------------
-  // const addNewStepRow = (index) => {
-  //   if (index === recipeInfo.steps.length - 1) {
-  //     setRecipeInfo((prev) => ({
-  //       ...prev,
-  //       steps: [...prev.steps, emptyStepRow()],
-  //     }));
-  //   }
-  // };
+  // ----------------------------- ADD new empty step row function ---------------------------------------
+  const addNewStepRow = (index) => {
+    if (index === recipeInfo.steps.length - 1) {
+      setRecipeInfo((prev) => ({
+        ...prev,
+        steps: [...prev.steps, emptyStepRow()],
+      }));
+    }
+  };
 
-  // // ----------------------------- search ingredient when typed in box -----------------------------------------
-  // const searchIng = (val) => {
-  //   //  if val.length < 1 then return
-  //   if (val.trim().length === 0) {
-  //     return;
-  //   }
-  //   // check if token available for api
-  //   if (!token) {
-  //     return;
-  //   }
-  //   // check if previous timeout reference is active
-  //   if (timeoutRef.current) {
-  //     clearTimeout(timeoutRef.current);
-  //   }
-  //   // up date any error if generated
-  //   setErrorMessage("");
+  // ----------------------------- search ingredient when typed in box -----------------------------------------
+  const searchIng = (val) => {
+    //  if val.length < 1 then return
+    if (val.trim().length === 0 || val === "") {
+      clearTimeout(timeoutRef.current);
+      setSuggestedIng([]);
+      return;
+    }
+    // check if token available for api
+    if (!token) {
+      return;
+    }
+    // check if previous timeout reference is active
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    // up date any error if generated
+    setErrorMessage("");
 
-  //   // set new timeout for the delay
+    // set new timeout for the delay
 
-  //   timeoutRef.current = setTimeout(() => {
-  //     const checkIng = async () => {
-  //       try {
-  //         const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
-  //         // console.log("ingredients found are : ", res.data);
-  //         setSuggestedIng(res.data.rows);
-  //       } catch (err) {
-  //         // setExistIngs("");
-  //         console.log("error in newRecipe.jsx while ing search :", err.response);
-  //       }
-  //     };
+    timeoutRef.current = setTimeout(() => {
+      const checkIng = async () => {
+        try {
+          const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
+          // console.log("ingredients found are : ", res.data);
+          setSuggestedIng(res.data.rows);
+        } catch (err) {
+          // setExistIngs("");
+          console.log("error in newRecipe.jsx while ing search :", err.response);
+        }
+      };
 
-  //     checkIng();
-  //   }, 500);
+      checkIng();
+    }, 500);
 
-  //   // clear the timeout if the component unmounts or re renders
-  //   return () => {
-  //     if (timeoutRef.current) {
-  //       clearTimeout(timeoutRef.current);
-  //       // timeoutRef.current = null;
-  //     }
-  //   };
-  // };
+    // clear the timeout if the component unmounts or re renders
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        // timeoutRef.current = null;
+      }
+    };
+  };
 
-  // // -----------------------in Suggested ingredient, set the first item highlighted -------------------------------
-  // useEffect(() => {
-  //   if (suggestedIng.length > 0) {
-  //     setHighlightedIndex(0);
-  //   } else {
-  //     setHighlightedIndex(-1);
-  //   }
-  // }, [suggestedIng]);
+  // -----------------------in Suggested ingredient, set the first item highlighted -------------------------------
+  useEffect(() => {
+    if (suggestedIng.length > 0) {
+      setHighlightedIndex(0);
+    } else {
+      setHighlightedIndex(-1);
+    }
+  }, [suggestedIng]);
 
-  // // ------------------------------Handle key down within suggested ingredient -----------------------------------------
-  // const handleKeyDown = (e, cid, iid) => {
-  //   if (!suggestedIng.length) return;
+  // ------------------------------Handle key down within suggested ingredient -----------------------------------------
+  const handleKeyDown = (e, cid, iid) => {
+    if (!suggestedIng.length) return;
 
-  //   switch (e.key) {
-  //     case "ArrowDown":
-  //       e.preventDefault();
-  //       setHighlightedIndex((prev) => (prev < suggestedIng.length - 1 ? prev + 1 : prev));
-  //       break;
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev < suggestedIng.length - 1 ? prev + 1 : prev));
+        break;
 
-  //     case "ArrowUp":
-  //       e.preventDefault();
-  //       setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-  //       break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        break;
 
-  //     case "Enter":
-  //       if (highlightedIndex >= 0) {
-  //         e.preventDefault();
-  //         e.stopPropagation();
-  //         // setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-  //         handleSelectedIng(cid, iid, suggestedIng[highlightedIndex]); // Select the item
-  //       }
-  //       break;
+      case "Enter":
+        if (highlightedIndex >= 0) {
+          e.preventDefault();
+          e.stopPropagation();
+          // setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+          handleSelectedIng(cid, iid, suggestedIng[highlightedIndex]); // Select the item
+        }
+        break;
 
-  //     case "Tab":
-  //       if (highlightedIndex >= 0) {
-  //         // e.preventDefault();
-  //         e.stopPropagation();
-  //         handleSelectedIng(cid, iid, suggestedIng[highlightedIndex]); // Select the item
-  //       }
-  //       break;
+      case "Tab":
+        if (highlightedIndex >= 0) {
+          // e.preventDefault();
+          e.stopPropagation();
+          handleSelectedIng(cid, iid, suggestedIng[highlightedIndex]); // Select the item
+        }
+        break;
 
-  //     default:
-  //       break;
-  //   }
-  // };
+      default:
+        break;
+    }
+  };
 
-  // // -----------------------handling the ScrollIntoView of suggeted ing list to show highlighted ing in view and not hide ----------
-  // useEffect(() => {
-  //   if (highlightedIndex >= 0 && itemRefs.current[highlightedIndex]) {
-  //     itemRefs.current[highlightedIndex].scrollIntoView({
-  //       block: "nearest", // Keeps it in view without jumping
-  //       behavior: "smooth", // Optional: smooth scroll
-  //     });
-  //   }
-  // }, [highlightedIndex]);
+  // -----------------------handling the ScrollIntoView of suggeted ing list to show highlighted ing in view and not hide ----------
+  useEffect(() => {
+    if (highlightedIndex >= 0 && itemRefs.current[highlightedIndex]) {
+      itemRefs.current[highlightedIndex].scrollIntoView({
+        block: "nearest", // Keeps it in view without jumping
+        behavior: "smooth", // Optional: smooth scroll
+      });
+    }
+  }, [highlightedIndex]);
 
-  // // ------------------------------ add the selected ingredient in ingRow data --------------------------------
-  // const handleSelectedIng = (cid, iid, ing) => {
+  // ------------------------------ add the selected ingredient in ingRow data --------------------------------
+  const handleSelectedIng = (cid, iid, ing) => {
+    // //--------- fetch the active units for the ingredient selected --------
+    const fetchMeasuringUnits = async (id, source) => {
+      try {
+        const res = await axios.get(`${serverURL}/recipe/api/search/units/${id}/${source}`, config);
+        const units = res.data.rows;
+        setRecipeInfo((prev) => ({
+          ...prev,
+          components: prev.components.map((comp) =>
+            comp.uid === cid
+              ? {
+                  ...comp,
+                  ingredients: comp.ingredients.map((ingredient) =>
+                    ingredient.uid === iid
+                      ? {
+                          ...ingredient,
+                          name: ing.name,
+                          displayQuantity: ing.display_quantity,
+                          displayUnit: ing.display_unit,
+                          displayPrice: ing.display_price,
+                          ingredientSource: ing.ingredient_source,
+                          ingredientId: ing.id,
+                          measuringUnits: units,
+                          baseUnits: getBaseUnits(ing.display_unit, units),
+                        }
+                      : ingredient,
+                  ),
+                }
+              : comp,
+          ),
+        }));
+      } catch (err) {
+        console.log("error in createMyIng.jsx while fetching measuring units :", err.response);
+      }
+    };
+    fetchMeasuringUnits(ing.id, ing.ingredient_source);
 
-  //   // //--------- fetch the active units for the ingredient selected --------
-  //   const fetchMeasuringUnits = async (id, source) => {
-  //     try {
-  //       const res = await axios.get(`${serverURL}/recipe/api/search/units/${id}/${source}`, config);
-  //       const units = res.data.rows;
-  //       setSections((prev) =>
-  //         prev.map((section) =>
-  //           section.uid === cid
-  //             ? {
-  //                 ...section,
-  //                 ingredients: section.ingredients.map((ingredient) =>
-  //                   ingredient.uid === iid
-  //                     ? {
-  //                         ...ingredient,
-  //                         name: ing.name,
-  //                         displayQuantity: ing.display_quantity,
-  //                         displayUnit: ing.display_unit,
-  //                         displayPrice: ing.display_price,
-  //                         ingredientSource: ing.ingredient_source,
-  //                         ingredientId: ing.id,
-  //                         measuringUnits: units,
-  //                         baseUnits: getBaseUnits(ing.display_unit, units),
-  //                       }
-  //                     : ingredient,
-  //                 ),
-  //               }
-  //             : section,
-  //         ),
-  //       );
-  //       setRecipeInfo((prev) => ({
-  //         ...prev,
-  //         components: prev.components.map((comp) =>
-  //           comp.uid === cid
-  //             ? {
-  //                 ...comp,
-  //                 ingredients: comp.ingredients.map((ingredient) =>
-  //                   ingredient.uid === iid
-  //                     ? {
-  //                         ...ingredient,
-  //                         name: ing.name,
-  //                         displayQuantity: ing.display_quantity,
-  //                         displayUnit: ing.display_unit,
-  //                         displayPrice: ing.display_price,
-  //                         ingredientSource: ing.ingredient_source,
-  //                         ingredientId: ing.id,
-  //                       }
-  //                     : ingredient,
-  //                 ),
-  //               }
-  //             : comp,
-  //         ),
-  //       }));
-  //     } catch (err) {
-  //       console.log("error in createMyIng.jsx while fetching measuring units :", err.response);
-  //     }
-  //   };
-  //   fetchMeasuringUnits(ing.id, ing.ingredient_source);
+    setActiveInputId(null);
+    setSuggestedIng([]);
+    setHighlightedIndex(-1);
+  };
 
-  //   setActiveInputId(null);
-  //   setSuggestedIng([]);
-  //   setHighlightedIndex(-1);
-  // };
+  // ------------------------------ to delete / hide component(section) header ---------------------------------
+  const deleteComponentHeader = (cid, index) => {
+    if (index === 0) {
+      if (checkFinalData?.errors?.components[cid]?.text) {
+        checkFinalData.errors.components[cid].text = "";
+      }
+      setShowTopRow(false);
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: prev.components.map((comp) =>
+          comp.uid === cid
+            ? {
+                ...comp,
+                componentText: "",
+              }
+            : comp,
+        ),
+      }));
+    }
+    if (index !== 0) {
+      const toUpdtComponents = recipeInfo.components.map((comp) => ({
+        ...comp,
+        ingredients: [...comp.ingredients],
+      }));
+      const ingFrom = toUpdtComponents[index].ingredients;
+      const ingTo = [...toUpdtComponents[index - 1].ingredients];
+      ingTo.pop();
+      const combinedIng = [...ingTo, ...ingFrom];
+      const id = toUpdtComponents[index - 1].uid;
+      const newComponents = toUpdtComponents.map((comp) =>
+        comp.uid === id
+          ? {
+              ...comp,
+              ingredients: combinedIng,
+            }
+          : comp,
+      );
 
-  // // ------------------------------ to delete / hide component(section) header ---------------------------------
-  // const deleteComponentHeader = (cid, index) => {
-  //   if (index === 0) {
-  //     if (checkFinalData?.errors?.components[cid]?.text) {
-  //       checkFinalData.errors.components[cid].text = "";
-  //     }
-  //     setShowTopRow(false);
-  //     setSections((prev) =>
-  //       prev.map((section) =>
-  //         section.uid === cid
-  //           ? {
-  //               ...section,
-  //               component_text: "",
-  //             }
-  //           : section,
-  //       ),
-  //     );
-  //   }
-  //   if (index !== 0) {
-  //     const toUpdtSections = sections.map((section) => ({
-  //       ...section,
-  //       ingredients: [...section.ingredients],
-  //     }));
-  //     // const toUpdtSections = [...sections];
-  //     const ingFrom = toUpdtSections[index].ingredients;
-  //     const ingTo = [...toUpdtSections[index - 1].ingredients];
-  //     ingTo.pop();
-  //     const combinedIng = [...ingTo, ...ingFrom];
-  //     const id = toUpdtSections[index - 1].uid;
-  //     const newSections = toUpdtSections.map((section) =>
-  //       section.uid === id
-  //         ? {
-  //             ...section,
-  //             ingredients: combinedIng,
-  //           }
-  //         : section,
-  //     );
+      const updated = newComponents.filter((section) => section.uid !== cid);
+      // console.log("updated to be setSection :", updated);
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: updated,
+      }));
+    }
+  };
 
-  //     const updated = newSections.filter((section) => section.uid !== cid);
-  //     console.log("updated to be setSection :", updated);
-  //     setSections(updated);
-  //   }
-  // };
+  // ------------------------------------------- to delete ingredients  ---------------------------------
+  const deleteIngredient = (cid, iid) => {
+    const selectedComponent = recipeInfo.components.find((c) => c.uid === cid);
+    const selectedIng = selectedComponent.ingredients;
+    const newIngList = [...selectedIng.filter((i) => i.uid !== iid)];
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((comp) =>
+        comp.uid === cid
+          ? {
+              ...comp,
+              ingredients: [...newIngList],
+            }
+          : comp,
+      ),
+    }));
+  };
 
-  // // ------------------------------------------- to delete ingredients  ---------------------------------
-  // const deleteIngredient = (cid, iid) => {
-  //   const selectedSection = sections.find((s) => s.uid === cid);
-  //   const selectedIng = selectedSection.ingredients;
-  //   const newIngList = [...selectedIng.filter((i) => i.uid !== iid)];
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: newIngList,
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  // ------------------------------------------- to delete ingredients  ---------------------------------
+  const deleteStep = (sid) => {
+    const newStepList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
+    setRecipeInfo((prev) => ({ ...prev, steps: newStepList }));
+  };
 
-  // // ------------------------------------------- to delete ingredients  ---------------------------------
-  // const deleteStep = (sid) => {
-  //   const newStepList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
-  //   console.log("newStepList :", newStepList);
-  //   // return;
-  //   setRecipeInfo((prev) => ({ ...prev, steps: newStepList }));
-  // };
+  // ------------------------------------------- to move ingredients up or down  ---------------------------------
+  const move = (cid, iid, indexi, indexc, val) => {
+    // console.log("cid :", cid, " iid :", iid, " indexi :", indexi, "indexc :", indexc, " val:", val);
+    const component = recipeInfo.components.find((c) => c.uid === cid);
+    const ings = [...component.ingredients];
+    const iLength = ings.length;
+    const ing = { ...ings.find((i) => i.uid === iid) };
+    const oldCompNewIngsList = [...ings.filter((i) => i.uid !== iid)];
+    // // ----------------- transfering ingredients in above/below component ---------------------
+    if ((indexi === 0 && val === -1) || (indexi === iLength - 2 && val === 1)) {
+      const newComponent = recipeInfo.components[indexc + val];
+      const newCid = newComponent.uid;
+      const newIngs = [...newComponent.ingredients];
+      // -- create splice based on value
+      if (indexi === 0 && val === -1) {
+        newIngs.splice(newIngs.length + val, 0, ing);
+      } else {
+        newIngs.splice(0, 0, ing);
+      }
+      // // --------------------- updating new ingredient list for new component ---------------
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: prev.components.map((comp) =>
+          comp.uid === newCid
+            ? {
+                ...comp,
+                ingredients: newIngs,
+              }
+            : comp,
+        ),
+      }));
+      // // --------------------- updating new ingredient list for old component ---------------
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: prev.components.map((comp) =>
+          comp.uid === cid
+            ? {
+                ...comp,
+                ingredients: oldCompNewIngsList,
+              }
+            : comp,
+        ),
+      }));
+      return;
+    }
+    oldCompNewIngsList.splice(indexi + val, 0, ing);
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((comp) =>
+        comp.uid === cid
+          ? {
+              ...comp,
+              ingredients: oldCompNewIngsList,
+            }
+          : comp,
+      ),
+    }));
+  };
 
-  // // ------------------------------------------- to move ingredients up or down  ---------------------------------
-  // const move = (cid, iid, indexi, indexc, val) => {
-  //   console.log("cid :", cid, " iid :", iid, " indexi :", indexi, "indexc :", indexc, " val:", val);
-  //   const section = sections.find((s) => s.uid === cid);
-  //   const ings = [...section.ingredients];
-  //   const iLength = ings.length;
-  //   const ing = { ...ings.find((i) => i.uid === iid) };
-  //   const newIngsList = [...ings.filter((i) => i.uid !== iid)];
-  //   if ((indexi === 0 && val === -1) || (indexi === iLength - 2 && val === 1)) {
-  //     // console.log("section [")
-  //     const newSection = sections[indexc + val];
-  //     const newCid = newSection.uid;
-  //     const newIngs = [...newSection.ingredients];
-  //     // -- create splice based on value
-  //     if (indexi === 0 && val === -1) {
-  //       newIngs.splice(newIngs.length + val, 0, ing);
-  //     } else {
-  //       newIngs.splice(0, 0, ing);
-  //     }
-  //     setSections((prev) =>
-  //       prev.map((section) =>
-  //         section.uid === newCid
-  //           ? {
-  //               ...section,
-  //               ingredients: newIngs,
-  //             }
-  //           : section,
-  //       ),
-  //     );
-  //     setSections((prev) =>
-  //       prev.map((section) =>
-  //         section.uid === cid
-  //           ? {
-  //               ...section,
-  //               ingredients: newIngsList,
-  //             }
-  //           : section,
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //   newIngsList.splice(indexi + val, 0, ing);
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: newIngsList,
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  // ------------------------------------------- to move steps up or down  ---------------------------------
+  const moveStep = (sid, index, val) => {
+    const sLength = recipeInfo.steps.length;
+    const step = { ...recipeInfo.steps.find((s) => s.uid === sid) };
+    const newStepsList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
 
-  // // ------------------------------------------- to move steps up or down  ---------------------------------
-  // const moveStep = (sid, index, val) => {
-  //   // const section = sections.find((s) => s.uid === cid);
-  //   // const ings = [...section.ingredients];
-  //   const sLength = recipeInfo.steps.length;
-  //   const step = { ...recipeInfo.steps.find((s) => s.uid === sid) };
-  //   const newStepsList = [...recipeInfo.steps.filter((s) => s.uid !== sid)];
-  //   // if ((index === 0 && val === -1) || (indexi === iLength - 2 && val === 1)) {
-  //   //   // console.log("section [")
-  //   //   const newSection = sections[indexc + val];
-  //   //   const newCid = newSection.uid;
-  //   //   const newIngs = [...newSection.ingredients];
-  //   //   // -- create splice based on value
-  //   //   if (indexi === 0 && val === -1) {
-  //   //     newIngs.splice(newIngs.length + val, 0, ing);
-  //   //   } else {
-  //   //     newIngs.splice(0, 0, ing);
-  //   //   }
-  //   //   setSections((prev) =>
-  //   //     prev.map((section) =>
-  //   //       section.uid === newCid
-  //   //         ? {
-  //   //             ...section,
-  //   //             ingredients: newIngs,
-  //   //           }
-  //   //         : section,
-  //   //     ),
-  //   //   );
-  //   //   setSections((prev) =>
-  //   //     prev.map((section) =>
-  //   //       section.uid === cid
-  //   //         ? {
-  //   //             ...section,
-  //   //             ingredients: newIngsList,
-  //   //           }
-  //   //         : section,
-  //   //     ),
-  //   //   );
-  //   //   return;
-  //   // }
-  //   newStepsList.splice(index + val, 0, step);
-  //   setRecipeInfo((prev) => ({
-  //     ...prev,
-  //     steps: newStepsList,
-  //   }));
-  // };
+    newStepsList.splice(index + val, 0, step);
+    setRecipeInfo((prev) => ({
+      ...prev,
+      steps: newStepsList,
+    }));
+  };
 
-  // // ---------------------------------- To calculate the individual ing cost / total cost of recipe ----------------------------------------------
-  // let totalCost = 0;
-  // sections.forEach((section) => {
-  //   section.ingredients.forEach((ingredient) => {
-  //     const dq = ingredient.displayQuantity;
-  //     const du = ingredient.displayUnit;
-  //     const dp = ingredient.displayPrice;
-  //     const q = ingredient.quantity;
-  //     const u = ingredient.unit;
-  //     const mu = ingredient.measuringUnits;
+  // ---------------------------------- To calculate the individual ing cost / total cost of recipe ----------------------------------------------
+  let totalCost = 0;
+  recipeInfo?.components?.forEach((component) => {
+    component.ingredients.forEach((ingredient) => {
+      const dq = ingredient.displayQuantity;
+      const du = ingredient.displayUnit;
+      const dp = ingredient.displayPrice;
+      const q = ingredient.quantity;
+      const u = ingredient.unitId;
+      const mu = ingredient.measuringUnits;
 
-  //     if (dq && du && dp && q && u && mu) {
-  //       const baseConversion = mu.find((i) => i.unit_name === du).conversion_factor || 0;
-  //       const unitConversion = mu.find((i) => i.unit_id === u).conversion_factor || 0;
-  //       const ingCost = (dp / dq / Number(baseConversion)) * q * Number(unitConversion);
+      if (dq && du && dp && q && u && mu) {
+        const baseConversion = mu.find((i) => i.unit_name === du).conversion_factor || 0;
+        const unitConversion = mu.find((i) => i.unit_id === u).conversion_factor || 0;
+        const ingCost = (dp / dq / Number(baseConversion)) * q * Number(unitConversion);
 
-  //       if (ingCost) {
-  //         totalCost += ingCost;
-  //         ingredient.cost = ingCost;
-  //       } else {
-  //         ingredient.cost = "";
-  //       }
-  //     } else {
-  //       ingredient.cost = "";
-  //     }
-  //   });
-  //   recipeCosting.current = totalCost;
-  // });
+        if (ingCost) {
+          totalCost += ingCost;
+          ingredient.cost = ingCost.toFixed(4);
+        } else {
+          ingredient.cost = "";
+        }
+      } else {
+        ingredient.cost = "";
+      }
+    });
+    recipeCosting.current = totalCost;
+  });
 
-  // const updateBaseQuantity = (cid, iid, val) => {
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: section.ingredients.map((ingredient) =>
-  //               ingredient.uid === iid
-  //                 ? {
-  //                     ...ingredient,
-  //                     displayQuantity: Number(val),
-  //                   }
-  //                 : ingredient,
-  //             ),
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  const updateBaseQuantity = (cid, iid, val) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((component) =>
+        component.uid === cid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((ingredient) =>
+                ingredient.uid === iid
+                  ? {
+                      ...ingredient,
+                      displayQuantity: Number(val),
+                    }
+                  : ingredient,
+              ),
+            }
+          : component,
+      ),
+    }));
+  };
 
-  // const updateBasePrice = (cid, iid, val) => {
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: section.ingredients.map((ingredient) =>
-  //               ingredient.uid === iid
-  //                 ? {
-  //                     ...ingredient,
-  //                     displayPrice: Number(val),
-  //                   }
-  //                 : ingredient,
-  //             ),
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  const updateBasePrice = (cid, iid, val) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((component) =>
+        component.uid === cid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((ingredient) =>
+                ingredient.uid === iid
+                  ? {
+                      ...ingredient,
+                      displayPrice: Number(val),
+                    }
+                  : ingredient,
+              ),
+            }
+          : component,
+      ),
+    }));
+  };
 
-  // const updateBaseUnit = (cid, iid, val) => {
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: section.ingredients.map((ingredient) =>
-  //               ingredient.uid === iid
-  //                 ? {
-  //                     ...ingredient,
-  //                     displayUnit: val,
-  //                   }
-  //                 : ingredient,
-  //             ),
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  const updateBaseUnit = (cid, iid, val) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((component) =>
+        component.uid === cid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((ingredient) =>
+                ingredient.uid === iid
+                  ? {
+                      ...ingredient,
+                      displayUnit: val,
+                    }
+                  : ingredient,
+              ),
+            }
+          : component,
+      ),
+    }));
+  };
 
-  // const updateQuantity = (cid, iid, val) => {
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: section.ingredients.map((ingredient) =>
-  //               ingredient.uid === iid
-  //                 ? {
-  //                     ...ingredient,
-  //                     quantity: Number(val),
-  //                   }
-  //                 : ingredient,
-  //             ),
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  const updateQuantity = (cid, iid, val) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((component) =>
+        component.uid === cid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((ingredient) =>
+                ingredient.uid === iid
+                  ? {
+                      ...ingredient,
+                      quantity: Number(val),
+                    }
+                  : ingredient,
+              ),
+            }
+          : component,
+      ),
+    }));
+  };
 
-  // const updateUnit = (cid, iid, val) => {
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: section.ingredients.map((ingredient) =>
-  //               ingredient.uid === iid
-  //                 ? {
-  //                     ...ingredient,
-  //                     unit: Number(val),
-  //                   }
-  //                 : ingredient,
-  //             ),
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  const updateUnit = (cid, iid, val) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((component) =>
+        component.uid === cid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((ingredient) =>
+                ingredient.uid === iid
+                  ? {
+                      ...ingredient,
+                      unitId: Number(val),
+                      unitName: ingredient.measuringUnits.find((mu) => mu.unit_id === Number(val))
+                        .unit_name,
+                    }
+                  : ingredient,
+              ),
+            }
+          : component,
+      ),
+    }));
+  };
 
-  // // --------------------------- hide suggestions onBlur if ingredient not selected ------------------------------
-  // const hideSuggestions = (cid, iid) => {
-  //   setSuggestedIng([]);
-  //   setSections((prev) =>
-  //     prev.map((section) =>
-  //       section.uid === cid
-  //         ? {
-  //             ...section,
-  //             ingredients: section.ingredients.map((ingredient) =>
-  //               ingredient.uid === iid && ingredient.ingredientId === ""
-  //                 ? {
-  //                     ...ingredient,
-  //                     name: "",
-  //                     quantity: "",
-  //                     unit: "",
-  //                   }
-  //                 : ingredient,
-  //             ),
-  //           }
-  //         : section,
-  //     ),
-  //   );
-  // };
+  // --------------------------- hide suggestions onBlur if ingredient not selected ------------------------------
+  const hideSuggestions = (cid, iid) => {
+    setSuggestedIng([]);
+    // setSections((prev) =>
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((comp) =>
+        comp.uid === cid
+          ? {
+              ...comp,
+              ingredients: comp.ingredients.map((ingredient) =>
+                ingredient.uid === iid && ingredient.ingredientId === ""
+                  ? {
+                      ...ingredient,
+                      name: "",
+                      quantity: "",
+                      unit: "",
+                    }
+                  : ingredient,
+              ),
+            }
+          : comp,
+      ),
+    }));
+  };
 
   // console.log("inputText :", inputText);
   // console.log("sections :", sections);
@@ -926,7 +887,10 @@ function EditRecipe() {
       />
       <div>
         {" "}
-        <h3>Total cost: {recipeCosting.current === 0 ? "0.00" : recipeCosting.current}</h3>
+        <h3>
+          Total cost:{" "}
+          {recipeCosting.current === 0 ? "0.00" : Math.ceil(recipeCosting.current * 100) / 100}
+        </h3>
       </div>
       <Button
         children={"Save Recipe"}
@@ -963,40 +927,40 @@ function EditRecipe() {
           <tbody>
             {recipeInfo?.components?.map((comp, indexc) => (
               <>
-                {/* {(showTopRow || indexc !== 0) && ( */}
-                <tr key={comp.uid} style={{ backgroundColor: "#f0f0f0" }}>
-                  <td colSpan={7}>
-                    <Input
-                      type={"text"}
-                      value={comp?.componentText ?? ""}
-                      placeholder={"Base, Dough, etc..."}
-                      onChange={(e) => {
-                        setRecipeInfo((prev) => ({
-                          ...prev,
-                          components: prev.components.map((component) =>
-                            component.uid === comp.uid
-                              ? { ...component, componentText: e.target.value }
-                              : component,
-                          ),
-                        }));
-                        if (checkFinalData?.errors?.components[comp.uid]?.text) {
-                          checkFinalData.errors.components[comp.uid].text = "";
-                        }
-                      }}
-                      error={checkFinalData?.errors?.components[comp.uid]?.text}
-                    />
-                  </td>
-                  <td>
-                    <Button
-                      children={"Delete"}
-                      type="button"
-                      disabled={false}
-                      // onClick={() => deleteComponentHeader(comp.uid, indexc)}
-                    />
-                  </td>
-                  <td></td>
-                </tr>
-                {/* )} */}
+                {(showTopRow || indexc !== 0) && (
+                  <tr key={comp.uid} style={{ backgroundColor: "#f0f0f0" }}>
+                    <td colSpan={7}>
+                      <Input
+                        type={"text"}
+                        value={comp?.componentText ?? ""}
+                        placeholder={"Base, Dough, etc..."}
+                        onChange={(e) => {
+                          setRecipeInfo((prev) => ({
+                            ...prev,
+                            components: prev.components.map((component) =>
+                              component.uid === comp.uid
+                                ? { ...component, componentText: e.target.value }
+                                : component,
+                            ),
+                          }));
+                          if (checkFinalData?.errors?.components[comp.uid]?.text) {
+                            checkFinalData.errors.components[comp.uid].text = "";
+                          }
+                        }}
+                        error={checkFinalData?.errors?.components[comp.uid]?.text}
+                      />
+                    </td>
+                    <td>
+                      <Button
+                        children={"Delete"}
+                        type="button"
+                        disabled={false}
+                        onClick={() => deleteComponentHeader(comp.uid, indexc)}
+                      />
+                    </td>
+                    <td></td>
+                  </tr>
+                )}
 
                 {comp.ingredients?.map((ing, index) => (
                   <tr key={ing.uid}>
@@ -1005,60 +969,61 @@ function EditRecipe() {
                         <Input
                           type={"text"}
                           value={ing.name ?? ""}
-                          // onFocus={(e) => {
-                          //   setActiveInputId(ing.uid);
-                          //   // searchIng(e.target.value);
-                          //   // setInputText((prev) => ({ ...prev, [index]: e.target.value }));
-                          //   // console.log("setInputText :", inputText[index]);
-                          // }}
-                          // onChange={(e) => {
-                          //   // setSections((prev) =>
-                          //   //   prev.map((section) =>
-                          //   //     section.uid === comp.uid
-                          //   //       ? {
-                          //   //           ...section,
-                          //   //           ingredients: section.ingredients.map((i) =>
-                          //   //             i.uid === ing.uid
-                          //   //               ? {
-                          //   //                   ...i,
-                          //   //                   name: e.target.value,
-                          //   //                   displayQuantity: "",
-                          //   //                   displayUnit: "",
-                          //   //                   displayPrice: "",
-                          //   //                   ingredientSource: "",
-                          //   //                   ingredientId: "",
-                          //   //                   measuringUnits: [],
-                          //   //                   baseUnits: [],
-                          //   //                 }
-                          //   //               : i,
-                          //   //           ),
-                          //   //         }
-                          //   //       : section,
-                          //   //   ),
-                          //   // );
-                          //   searchIng(e.target.value);
-                          //   // addNewIngRow(comp.uid, index);
-                          //   // if (
-                          //   //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                          //   //     ?.name
-                          //   // ) {
-                          //   //   const x = checkFinalData.errors.components[comp.uid];
-                          //   //   x.ingredients[ing.uid].name = "";
-                          //   // }
-                          // }}
-                          // onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
+                          onFocus={(e) => {
+                            setActiveInputId(ing.uid);
+                            searchIng(e.target.value);
+                          }}
+                          onChange={(e) => {
+                            setRecipeInfo((prev) => ({
+                              ...prev,
+                              components: prev.components.map((component) =>
+                                component.uid === comp.uid
+                                  ? {
+                                      ...component,
+                                      ingredients: component.ingredients.map((i) =>
+                                        i.uid === ing.uid
+                                          ? {
+                                              ...i,
+                                              name: e.target.value,
+                                              displayQuantity: "",
+                                              displayUnit: "",
+                                              displayPrice: "",
+                                              ingredientSource: "",
+                                              ingredientId: "",
+                                              measuringUnits: [],
+                                              baseUnits: [],
+                                              unitId: "",
+                                              unitName: "",
+                                            }
+                                          : i,
+                                      ),
+                                    }
+                                  : section,
+                              ),
+                            }));
+                            searchIng(e.target.value);
+                            addNewIngRow(comp.uid, index);
+                            if (
+                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
+                                ?.name
+                            ) {
+                              const x = checkFinalData.errors.components[comp.uid];
+                              x.ingredients[ing.uid].name = "";
+                            }
+                          }}
+                          onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
                           placeholder={"milk, blue cheese, etc.."}
                           error={
                             checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                               ?.name ?? ""
                           }
-                          // onBlur={() => {
-                          //   blurTimeout = setTimeout(() => {
-                          //     hideSuggestions(comp.uid, ing.uid);
-                          //   }, 100);
-                          // }}
+                          onBlur={() => {
+                            blurTimeout = setTimeout(() => {
+                              hideSuggestions(comp.uid, ing.uid);
+                            }, 100);
+                          }}
                         />
-                        {/* {activeInputId === ing.uid &&
+                        {activeInputId === ing.uid &&
                           suggestedIng.length > 0 && ( // inputText[index] &&
                             <div
                               style={{
@@ -1092,7 +1057,7 @@ function EditRecipe() {
                                 </div>
                               ))}
                             </div>
-                          )} */}
+                          )}
                       </div>
                     </td>
                     <td>
@@ -1100,7 +1065,7 @@ function EditRecipe() {
                         type={"number"}
                         value={ing?.quantity ?? ""}
                         onChange={(e) => {
-                          // updateQuantity(comp.uid, ing.uid, e.target.value);
+                          updateQuantity(comp.uid, ing.uid, e.target.value);
                           if (
                             checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                               ?.quantity
@@ -1120,7 +1085,7 @@ function EditRecipe() {
                         options={ing?.measuringUnits}
                         value={ing?.unitId}
                         onChange={(e) => {
-                          // updateUnit(comp.uid, ing.uid, e.target.value);
+                          updateUnit(comp.uid, ing.uid, e.target.value);
                           if (
                             checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                               ?.unit
@@ -1142,7 +1107,7 @@ function EditRecipe() {
                         type={"number"}
                         value={ing?.displayQuantity ?? ""}
                         onChange={(e) => {
-                          // updateBaseQuantity(comp.uid, ing.uid, e.target.value);
+                          updateBaseQuantity(comp.uid, ing.uid, e.target.value);
                           if (
                             checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                               ?.display_quantity
@@ -1162,7 +1127,7 @@ function EditRecipe() {
                         options={ing?.baseUnits}
                         value={ing?.displayUnit ?? ""}
                         onChange={(e) => {
-                          // updateBaseUnit(comp.uid, ing.uid, e.target.value);
+                          updateBaseUnit(comp.uid, ing.uid, e.target.value);
                           if (
                             checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                               ?.display_unit
@@ -1182,7 +1147,7 @@ function EditRecipe() {
                         type={"number"}
                         value={ing?.displayPrice ?? ""}
                         onChange={(e) => {
-                          // updateBasePrice(comp.uid, ing.uid, e.target.value);
+                          updateBasePrice(comp.uid, ing.uid, e.target.value);
                           if (
                             checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                               ?.display_price
@@ -1216,7 +1181,7 @@ function EditRecipe() {
                               children={"↑"}
                               type="button"
                               disabled={false}
-                              // onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                              onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
                             />
                           )}
                           {(indexc !== recipeInfo?.components.length - 1 ||
@@ -1225,7 +1190,7 @@ function EditRecipe() {
                               children={"↓"}
                               type="button"
                               disabled={false}
-                              // onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
+                              onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
                             />
                           )}
                         </>
@@ -1237,6 +1202,19 @@ function EditRecipe() {
             ))}
           </tbody>
         </Table>
+
+        <Button
+          id={"add_header"}
+          children={"Add New Section"}
+          type="button"
+          disabled={false}
+          onClick={() => {
+            setRecipeInfo((prev) => ({
+              ...prev,
+              components: [...prev.components, emptyComponentData()],
+            }));
+          }}
+        />
       </Card>
 
       {/* -------------------------- Steps section ----------------------- */}
@@ -1262,23 +1240,23 @@ function EditRecipe() {
                     <Textarea
                       label={""}
                       value={recipeInfo?.steps[index]?.step_text ?? ""}
-                      // onChange={(e) => {
-                      //   setRecipeInfo({
-                      //     ...recipeInfo,
-                      //     steps: recipeInfo.steps.map((s, index) =>
-                      //       s.uid === step.uid
-                      //         ? {
-                      //             ...s,
-                      //             step_text: e.target.value,
-                      //           }
-                      //         : s,
-                      //     ),
-                      //   });
-                      //   addNewStepRow(index);
-                      // }}
+                      onChange={(e) => {
+                        setRecipeInfo((prev) => ({
+                          ...prev,
+                          steps: prev.steps.map((s, index) =>
+                            s.uid === step.uid
+                              ? {
+                                  ...s,
+                                  step_text: e.target.value,
+                                }
+                              : s,
+                          ),
+                        }));
+                        addNewStepRow(index);
+                      }}
                       placeholder="text....."
                       error={checkFinalData?.errors?.description}
-                      rows={2}
+                      rows={3}
                     />
                   </td>
                   <td>
@@ -1301,7 +1279,7 @@ function EditRecipe() {
                             children={"↑"}
                             type="button"
                             disabled={false}
-                            // onClick={() => moveStep(step.uid, index, -1)}
+                            onClick={() => moveStep(step.uid, index, -1)}
                           />
                         )}
                         {index !== recipeInfo.steps.length - 2 && (
@@ -1310,7 +1288,7 @@ function EditRecipe() {
                             children={"↓"}
                             type="button"
                             disabled={false}
-                            // onClick={() => moveStep(step.uid, index, 1)}
+                            onClick={() => moveStep(step.uid, index, 1)}
                           />
                         )}
                       </>

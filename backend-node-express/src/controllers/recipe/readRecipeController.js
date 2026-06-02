@@ -196,7 +196,7 @@ exports.get_recipe_details = async (req, res) => {
         ing[field] = Number(ing[field]);
       }
     }
-    console.log("ingredient result :", updtdIngredientResult);
+    // console.log("ingredient result :", updtdIngredientResult);
 
     // check if any ingredients found
     // if (ingredientResult.length === 0) {
