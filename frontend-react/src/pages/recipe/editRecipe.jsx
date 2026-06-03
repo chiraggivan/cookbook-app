@@ -35,7 +35,8 @@ function EditRecipe() {
     ingredientBy: "",
     name: "",
     quantity: "",
-    unit: "",
+    unitId: "",
+    unitName: "",
     measuringUnits: [],
     baseUnits: [],
     cost: "",
@@ -131,7 +132,7 @@ function EditRecipe() {
         // if (token) {
         const res = await axios[method](url, config);
         const tempRecipe = res?.data?.data;
-        console.log("tempRecipe :", tempRecipe);
+        // console.log("tempRecipe :", tempRecipe);
         tempRecipe?.recipe?.privacy === "private" ? setIsPrivate(true) : setIsPrivate(false);
         const recipeData = { ...tempRecipe.recipe };
         setRecipeInfo((prev) => ({ ...prev, recipe: { ...tempRecipe.recipe } }));
@@ -201,141 +202,219 @@ function EditRecipe() {
   }, []);
 
   // ---------------------------- TEMP console to show recipe for every input ----------------------------------
-  const handlesubmit = () => {
-    finalMainRecipe.name = recipeInfo?.recipe?.name ?? "";
-    finalMainRecipe.portion_size = recipeInfo?.recipe?.portion_size ?? "";
-    finalMainRecipe.description = recipeInfo?.recipe?.description ?? "";
-    finalMainRecipe.privacy = recipeInfo?.recipe?.privacy == "" ? false : recipeInfo?.privacy;
-
-    const components = [];
-    let ing_display_order = 0;
-
-    sections.forEach((section, indexc) => {
-      const comp = {};
-      comp.component_text = section.component_text ?? "";
-      comp.component_display_order = indexc;
-      comp.uid = section.uid;
-      const ingredients = [];
-
-      section.ingredients.forEach((i) => {
-        if (
-          i.ingredientId ||
-          i.ingredientSource ||
-          i.quantity ||
-          i.unit ||
-          i.displayQuantity ||
-          i.displayUnit ||
-          i.displayPrice
-        ) {
-          ing_display_order++;
-          const ing = {};
-          ing.uid = i.uid;
-          ing.ingredient_display_order = ing_display_order;
-          ing.ingredient_id = i.ingredientId ?? 0;
-          ing.ingredient_source = i.ingredientSource ?? "";
-          ing.quantity = i.quantity ?? "";
-          ing.unit = i.unit ?? "";
-          ing.display_price = i.displayPrice;
-          ing.display_quantity = i.displayQuantity;
-          ing.display_unit = i.displayUnit;
-          ingredients.push(ing);
-        }
-      });
-      comp.ingredients = ingredients;
-      components.push(comp);
-    });
-    finalMainRecipe.components = components;
-
-    const steps = [];
-    let step_display_order = 0;
-
-    // console.log("finalMainRecipe", finalMainRecipe);
-    const checkData = { ...finalMainRecipe };
-    checkData.errors = {};
+  const handleSubmit = () => {
+    const checkDataErrors = { recipe: {}, components: [], steps: [] };
+    // checkData.errors = {};
     let isValid = true;
     setErrorMessage("");
-
-    if (!checkData.name || checkData.name.trim() === "") {
+    // // ---------------------------------- check recipe data ----------------------------------
+    if (!recipeInfo.recipe.name || recipeInfo.recipe.name.trim() === "") {
       isValid = false;
-      checkData.errors.name = "Name required";
+      checkDataErrors.recipe.name = "Name required";
     }
-    if (!checkData.portion_size || checkData.portion_size.trim() === "") {
+    if (!recipeInfo.recipe.portion_size || recipeInfo.recipe.portion_size.trim() === "") {
       isValid = false;
-      checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+      checkDataErrors.recipe.portion_size =
+        "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
     }
-    if (!checkData.privacy) {
+    if (!recipeInfo.recipe.privacy) {
       recipeInfo.privacy = false;
     }
 
-    checkData.components.forEach((comp, index) => {
-      if (!checkData.errors.components) {
-        checkData.errors.components = {};
+    // // ---------------------------- check components + ingredients data ---------------------------
+    recipeInfo.components.forEach((comp, indexc) => {
+      if (!checkDataErrors.components) {
+        checkDataErrors.components = [];
       }
-      if (!checkData.errors.components[comp.uid]) {
-        checkData.errors.components[comp.uid] = {};
-      }
-
-      if (index === 0 && showTopRow && comp.component_text === "") {
-        isValid = false;
-        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
-      }
-      if (index !== 0 && comp.component_text === "") {
-        isValid = false;
-        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+      if (!checkDataErrors.components[indexc]) {
+        checkDataErrors.components[indexc] = {};
       }
 
-      comp.ingredients.forEach((ing) => {
-        if (!checkData?.errors?.components[comp.uid]?.ingredients) {
-          checkData.errors.components[comp.uid].ingredients = {};
+      if (indexc === 0 && showTopRow && comp.componentText === "") {
+        isValid = false;
+        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
+      }
+      if (indexc !== 0 && comp.componentText === "") {
+        isValid = false;
+        checkData.errors.components[indexc].text = "Text Required. Or delete this header";
+      }
+
+      comp.ingredients.forEach((ing, indexi) => {
+        if (!checkDataErrors?.components[indexc]?.ingredients) {
+          checkDataErrors.components[indexc].ingredients = {};
         }
-        if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
-          checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
+        if (!checkDataErrors.components[indexc].ingredients[indexi]) {
+          checkDataErrors.components[indexc].ingredients[indexi] = {};
         }
 
         if (
-          ing.ingredient_id ||
+          ing.ingredientId ||
           ing.quantity ||
-          ing.unit ||
-          ing.display_quantity ||
-          ing.display_unit ||
-          ing.display_price
+          ing.unitId ||
+          ing.displayQuantity ||
+          ing.displayUnit ||
+          ing.displayPrice
         ) {
-          if (!ing.display_quantity) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
-              "Reqiure!!";
-          }
-          if (!ing.display_unit) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
-          }
-          if (!ing.display_price) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
-          }
-          if (!ing.unit) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
-          }
-          if (!ing.quantity) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
-          }
-          if (!ing.ingredient_id) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
-          }
+          [
+            { value: ing.ingredientId, name: "name" },
+            { value: ing.quantity, name: "quantity" },
+            { value: ing.unitId, name: "unitId" },
+            { value: ing.displayQuantity, name: "displayQuantity" },
+            { value: ing.displayUnit, name: "displayQnit" },
+            { value: ing.displayPrice, name: "displayPrice" },
+          ].forEach((i) => {
+            if (!i.value) {
+              isValid = false;
+              checkDataErrors.components[indexc].ingredients[indexi][i.name] = "Reqiure!!";
+            }
+          });
         }
       });
     });
-
-    setCheckFinalData(checkData);
-    // console.log("recipeInfo after checking  :", recipeInfo);
-    console.log("checkFinalData", checkFinalData);
+    // console.log("errors are :", checkDataErrors);
+    setCheckFinalData(checkDataErrors);
     if (!isValid) {
       return;
     }
+
+    console.log("Checked everything and found no error");
   };
+
+  // const handlesubmit1 = () => {
+  //   finalMainRecipe.name = recipeInfo?.recipe?.name ?? "";
+  //   finalMainRecipe.portion_size = recipeInfo?.recipe?.portion_size ?? "";
+  //   finalMainRecipe.description = recipeInfo?.recipe?.description ?? "";
+  //   finalMainRecipe.privacy = recipeInfo?.recipe?.privacy == "" ? false : recipeInfo?.privacy;
+
+  //   const components = [];
+  //   let ing_display_order = 0;
+
+  //   sections.forEach((section, indexc) => {
+  //     const comp = {};
+  //     comp.component_text = section.component_text ?? "";
+  //     comp.component_display_order = indexc;
+  //     comp.uid = section.uid;
+  //     const ingredients = [];
+
+  //     section.ingredients.forEach((i) => {
+  //       if (
+  //         i.ingredientId ||
+  //         i.ingredientSource ||
+  //         i.quantity ||
+  //         i.unit ||
+  //         i.displayQuantity ||
+  //         i.displayUnit ||
+  //         i.displayPrice
+  //       ) {
+  //         ing_display_order++;
+  //         const ing = {};
+  //         ing.uid = i.uid;
+  //         ing.ingredient_display_order = ing_display_order;
+  //         ing.ingredient_id = i.ingredientId ?? 0;
+  //         ing.ingredient_source = i.ingredientSource ?? "";
+  //         ing.quantity = i.quantity ?? "";
+  //         ing.unit = i.unit ?? "";
+  //         ing.display_price = i.displayPrice;
+  //         ing.display_quantity = i.displayQuantity;
+  //         ing.display_unit = i.displayUnit;
+  //         ingredients.push(ing);
+  //       }
+  //     });
+  //     comp.ingredients = ingredients;
+  //     components.push(comp);
+  //   });
+  //   finalMainRecipe.components = components;
+
+  //   const steps = [];
+  //   let step_display_order = 0;
+
+  //   // console.log("finalMainRecipe", finalMainRecipe);
+  //   const checkData = { ...finalMainRecipe };
+  //   checkData.errors = {};
+  //   let isValid = true;
+  //   setErrorMessage("");
+
+  //   if (!checkData.name || checkData.name.trim() === "") {
+  //     isValid = false;
+  //     checkData.errors.name = "Name required";
+  //   }
+  //   if (!checkData.portion_size || checkData.portion_size.trim() === "") {
+  //     isValid = false;
+  //     checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+  //   }
+  //   if (!checkData.privacy) {
+  //     recipeInfo.privacy = false;
+  //   }
+
+  //   checkData.components.forEach((comp, index) => {
+  //     if (!checkData.errors.components) {
+  //       checkData.errors.components = {};
+  //     }
+  //     if (!checkData.errors.components[comp.uid]) {
+  //       checkData.errors.components[comp.uid] = {};
+  //     }
+
+  //     if (index === 0 && showTopRow && comp.component_text === "") {
+  //       isValid = false;
+  //       checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+  //     }
+  //     if (index !== 0 && comp.component_text === "") {
+  //       isValid = false;
+  //       checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+  //     }
+
+  //     comp.ingredients.forEach((ing) => {
+  //       if (!checkData?.errors?.components[comp.uid]?.ingredients) {
+  //         checkData.errors.components[comp.uid].ingredients = {};
+  //       }
+  //       if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
+  //         checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
+  //       }
+
+  //       if (
+  //         ing.ingredient_id ||
+  //         ing.quantity ||
+  //         ing.unit ||
+  //         ing.display_quantity ||
+  //         ing.display_unit ||
+  //         ing.display_price
+  //       ) {
+  //         if (!ing.display_quantity) {
+  //           isValid = false;
+  //           checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
+  //             "Reqiure!!";
+  //         }
+  //         if (!ing.display_unit) {
+  //           isValid = false;
+  //           checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
+  //         }
+  //         if (!ing.display_price) {
+  //           isValid = false;
+  //           checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
+  //         }
+  //         if (!ing.unit) {
+  //           isValid = false;
+  //           checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
+  //         }
+  //         if (!ing.quantity) {
+  //           isValid = false;
+  //           checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
+  //         }
+  //         if (!ing.ingredient_id) {
+  //           isValid = false;
+  //           checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
+  //         }
+  //       }
+  //     });
+  //   });
+
+  //   setCheckFinalData(checkData);
+  //   // console.log("recipeInfo after checking  :", recipeInfo);
+  //   console.log("checkFinalData", checkFinalData);
+  //   if (!isValid) {
+  //     return;
+  //   }
+  // };
 
   // ----------------------------- ADD new empty ingredient row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
@@ -763,6 +842,8 @@ function EditRecipe() {
   };
 
   const updateUnit = (cid, iid, val) => {
+    // console.log("value is :", val);
+    // return;
     setRecipeInfo((prev) => ({
       ...prev,
       components: prev.components.map((component) =>
@@ -774,8 +855,11 @@ function EditRecipe() {
                   ? {
                       ...ingredient,
                       unitId: Number(val),
-                      unitName: ingredient.measuringUnits.find((mu) => mu.unit_id === Number(val))
-                        .unit_name,
+                      unitName:
+                        val === ""
+                          ? ""
+                          : ingredient.measuringUnits.find((mu) => mu.unit_id === Number(val))
+                              .unit_name,
                     }
                   : ingredient,
               ),
@@ -833,12 +917,12 @@ function EditRecipe() {
         value={recipeInfo?.recipe?.name ?? ""}
         onChange={(e) => {
           setRecipeInfo({ ...recipeInfo, recipe: { ...recipeInfo.recipe, name: e.target.value } });
-          if (checkFinalData?.errors?.name) {
-            checkFinalData.errors.name = "";
+          if (checkFinalData?.recipe?.name) {
+            checkFinalData.recipe.name = "";
           }
         }}
         placeholder={"Name of the recipe...."}
-        error={checkFinalData?.errors?.name}
+        error={checkFinalData?.recipe?.name}
       />
       <Input
         label={"Portion of: "}
@@ -849,12 +933,12 @@ function EditRecipe() {
             ...recipeInfo,
             recipe: { ...recipeInfo.recipe, portion_size: e.target.value },
           });
-          if (checkFinalData?.errors?.portion_size) {
-            checkFinalData.errors.portion_size = "";
+          if (checkFinalData?.recipe?.portion_size) {
+            checkFinalData.recipe.portion_size = "";
           }
         }}
         placeholder={"eg. 2 person, 1kg, 750ml, etc."}
-        error={checkFinalData?.errors?.portion_size}
+        error={checkFinalData?.recipe?.portion_size}
       />
       <Textarea
         label={"Description"}
@@ -864,9 +948,12 @@ function EditRecipe() {
             ...recipeInfo,
             recipe: { ...recipeInfo.recipe, description: e.target.value },
           });
+          if (checkFinalData?.recipe?.description) {
+            checkFinalData.recipe.description = "";
+          }
         }}
         placeholder="description of your recipe..."
-        error={checkFinalData?.errors?.description}
+        error={checkFinalData?.recipe?.description}
         rows={10}
       />
       <Toggle
@@ -896,7 +983,7 @@ function EditRecipe() {
         children={"Save Recipe"}
         type="button"
         disabled={false}
-        onClick={() => handlesubmit()}
+        onClick={() => handleSubmit()}
       />
       <Card>
         <h2>Ingredients</h2>
@@ -943,11 +1030,11 @@ function EditRecipe() {
                                 : component,
                             ),
                           }));
-                          if (checkFinalData?.errors?.components[comp.uid]?.text) {
-                            checkFinalData.errors.components[comp.uid].text = "";
+                          if (checkFinalData?.components?.[indexc]?.text) {
+                            checkFinalData.components[indexc].text = "";
                           }
                         }}
-                        error={checkFinalData?.errors?.components[comp.uid]?.text}
+                        error={checkFinalData?.components?.[indexc]?.text}
                       />
                     </td>
                     <td>
@@ -1014,8 +1101,7 @@ function EditRecipe() {
                           onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
                           placeholder={"milk, blue cheese, etc.."}
                           error={
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.name ?? ""
+                            checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name ?? ""
                           }
                           onBlur={() => {
                             blurTimeout = setTimeout(() => {
@@ -1067,16 +1153,14 @@ function EditRecipe() {
                         onChange={(e) => {
                           updateQuantity(comp.uid, ing.uid, e.target.value);
                           if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.quantity
+                            checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity
                           ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].quantity = "";
+                            const x = checkFinalData.components[indexc];
+                            x.ingredients[index].quantity = "";
                           }
                         }}
                         error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.quantity ?? ""
+                          checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity ?? ""
                         }
                       />
                     </td>
@@ -1086,17 +1170,13 @@ function EditRecipe() {
                         value={ing?.unitId}
                         onChange={(e) => {
                           updateUnit(comp.uid, ing.uid, e.target.value);
-                          if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.unit
-                          ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].unit = "";
+                          if (checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId) {
+                            const x = checkFinalData.components[indexc];
+                            x.ingredients[index].unitId = "";
                           }
                         }}
                         error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.unit ?? ""
+                          checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId ?? ""
                         }
                         style={{ maxHeight: "30px", overflow: "auto" }}
                       />
@@ -1109,16 +1189,16 @@ function EditRecipe() {
                         onChange={(e) => {
                           updateBaseQuantity(comp.uid, ing.uid, e.target.value);
                           if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.display_quantity
+                            checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                              ?.displayQuantity
                           ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].display_quantity = "";
+                            const x = checkFinalData.components[indexc];
+                            x.ingredients[index].displayQuantity = "";
                           }
                         }}
                         error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.display_quantity ?? ""
+                          checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                            ?.displayQuantity ?? ""
                         }
                       />
                     </td>
@@ -1129,16 +1209,15 @@ function EditRecipe() {
                         onChange={(e) => {
                           updateBaseUnit(comp.uid, ing.uid, e.target.value);
                           if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.display_unit
+                            checkFinalData?.components?.[indexc]?.ingredients?.[index]?.displayUnit
                           ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].display_unit = "";
+                            const x = checkFinalData.components[indexc];
+                            x.ingredients[index].displayUnit = "";
                           }
                         }}
                         error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.display_unit ?? ""
+                          checkFinalData?.components?.[indexc]?.ingredients?.[index]?.displayUnit ??
+                          ""
                         }
                       />
                     </td>
@@ -1149,16 +1228,15 @@ function EditRecipe() {
                         onChange={(e) => {
                           updateBasePrice(comp.uid, ing.uid, e.target.value);
                           if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.display_price
+                            checkFinalData?.components?.[indexc]?.ingredients?.[index]?.displayPrice
                           ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].display_price = "";
+                            const x = checkFinalData.components[indexc];
+                            x.ingredients[index].displayPrice = "";
                           }
                         }}
                         error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.display_price ?? ""
+                          checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                            ?.displayPrice ?? ""
                         }
                       />
                     </td>
