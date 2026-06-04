@@ -288,9 +288,8 @@ exports.update_recipe = async (req, res) => {
 
     const compValidationOperations = [
       { action: "remove", components: removeComponents },
-      // { action: "update", components: updateComponents },
+      // { action: "update", components: updateComponents }, ---> this is done later with add component below
     ];
-
     for (const { action, components } of compValidationOperations) {
       for (const component of components) {
         const value = component.recipe_component_id;
@@ -320,7 +319,6 @@ exports.update_recipe = async (req, res) => {
       WHERE recipe_id = ? AND is_active = 1
       LIMIT 1
     `;
-
     const [countResult] = await db.query(countQuery, [recipeId]);
     const dbComponentLength = countResult[0].total;
 
@@ -334,9 +332,10 @@ exports.update_recipe = async (req, res) => {
       SELECT recipe_component_id, component_text FROM recipe_components
       WHERE recipe_id = ? AND is_active = 1 AND component_text != ''
     `;
-    let dbComponentTextDict = {};
-
     const [dbResults] = await db.query(fetchDbComponentsQuery, [recipeId]);
+
+    // convert above result in dictionary (IMP : can be done for 2 columns data into key and value)
+    let dbComponentTextDict = {};
     dbComponentTextDict = dbResults.reduce((acc, row) => {
       acc[row.recipe_component_id] = row.component_text;
       return acc;
@@ -353,8 +352,8 @@ exports.update_recipe = async (req, res) => {
         WHERE recipe_id = ? AND is_active = 1 AND component_text != '' AND recipe_component_id IN (${placeholders})
       `;
       const removeParams = [recipeId, ...removeRCId];
+      const [removeResults] = await db.query(removeQuery, removeParams);
 
-      const removeResults = await db.query(removeQuery, removeParams);
       removeComponentTextDict = removeResults.reduce((acc, row) => {
         acc[row.recipe_component_id] = row.component_text;
         return acc;
@@ -389,26 +388,26 @@ exports.update_recipe = async (req, res) => {
     if (new Set(valuesAfterUpdate).size !== valuesAfterUpdate.length) {
       return res.status(409).json({
         success: false,
-        message: `Can't have duplicate sub heading.`,
+        message: `Can't have duplicate sub heading. Update component text having conflict.`,
       });
     }
 
     // Add new component texts and check final list for duplicates
-    const addCompTextList = addComponents
-      .map((c) => c.component_text)
-      .filter((text) => text != null);
+    const addCompTextList = addComponents.map((c) => c.component_text);
+    // .filter((text) => text != null);
 
+    // Again check if new component text data is having ducplicate with the old component text data
     const finalList = [...valuesAfterUpdate, ...addCompTextList];
     if (new Set(finalList).size !== finalList.length) {
       return res.status(409).json({
         success: false,
-        message: `Can't have duplicate sub heading.`,
+        message: `Can't have duplicate sub heading. New component text having conflict.`,
       });
     }
 
     //  --------------------------above to check component_text is duplicate or not --------------------------------
 
-    // Validate add_components and update_components with db
+    // Validate add_components and update_components with db values
     const compOperations = [
       { action: "add", components: data.add_components || [] },
       { action: "update", components: data.update_components || [] },
@@ -466,10 +465,10 @@ exports.update_recipe = async (req, res) => {
         }
       }
     }
-    // ------------------------------------------------------------------------------------------------------------------------
+
+    // ------------------------------------ below validating ingredients data -------------------------------------------------
     // Validate remove_ingredients against the database
     const removeIngredients = data.remove_ingredients || [];
-
     for (const ing of removeIngredients) {
       const value = ing.recipe_ingredient_id;
       // if (value === null || value === undefined) continue;
@@ -496,23 +495,19 @@ exports.update_recipe = async (req, res) => {
       WHERE recipe_id = ? AND is_active = 1
       LIMIT 1
     `;
-
     const [countIngs] = await db.query(countIngsQuery, [recipeId]);
-    const dbIngredientLength = countResult.total;
+    const dbIngredientLength = countIngs[0].total;
 
     // Calculate maxIngredientDisplayOrder
     const addIngredients = data.add_ingredients || [];
-
     const maxIngredientDisplayOrder =
       dbIngredientLength + addIngredients.length - removeIngredients.length;
 
-    // ------------------------------------------------------------------------------------------------------
     // Validate add_ingredients and update_ingredients
     const ingredientOperations = [
       { action: "add", ingredients: data.add_ingredients || [] },
       { action: "update", ingredients: data.update_ingredients || [] },
     ];
-
     for (const { action, ingredients } of ingredientOperations) {
       for (const ing of ingredients) {
         let oldIngId = null;
@@ -674,22 +669,41 @@ exports.update_recipe = async (req, res) => {
         if (ing.base_unit != null) {
           let checkBase = null;
 
-          // Fetch the expected base_unit from ingredients table
-          const baseUnitQuery = `
+          if (ing.ingredient_source === "main") {
+            // Fetch the expected base_unit from ingredients table
+            const baseUnitQuery = `
             SELECT base_unit FROM ingredients 
             WHERE ingredient_id = ?
             LIMIT 1
           `;
-          const baseUnitValues = [ing.ingredient_id];
+            const baseUnitValues = [ing.ingredient_id];
 
-          const [result] = await db.query(baseUnitQuery, baseUnitValues);
-          if (result.length === 0) {
-            return res.status(409).json({
-              success: false,
-              message: `Invalid ingredient_id ${ing.ingredient_id}: not found in ingredients table.`,
-            });
+            const [result] = await db.query(baseUnitQuery, baseUnitValues);
+            if (result.length === 0) {
+              return res.status(409).json({
+                success: false,
+                message: `Invalid ingredient_id ${ing.ingredient_id}: not found in ingredients table.`,
+              });
+            }
+            checkBase = result.base_unit;
+          } else if (ing.ingredient_source === "user") {
+            // Fetch the expected base_unit from user_ingredients table
+            const baseUnitQuery = `
+            SELECT base_unit FROM user_ingredients 
+            WHERE user_ingredient_id = ?
+            LIMIT 1
+          `;
+            const baseUnitValues = [ing.ingredient_id];
+
+            const [result] = await db.query(baseUnitQuery, baseUnitValues);
+            if (result.length === 0) {
+              return res.status(409).json({
+                success: false,
+                message: `Invalid ingredient_id ${ing.ingredient_id}: not found in user_ingredients table.`,
+              });
+            }
+            checkBase = result.base_unit;
           }
-          checkBase = result.base_unit;
 
           // Validate base_unit based on the expected type
           if (checkBase === "kg") {
@@ -727,6 +741,467 @@ exports.update_recipe = async (req, res) => {
 
     console.log("every ingredient check and data ready to to be inserted for update");
     return;
+    // ------------------------------------ below validating steps data -------------------------------------------------
+
+    // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
+
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // Update recipe table if any fields are provided
+      if (updateFields.length > 0) {
+        updateValues.push(recipeId);
+        updateValues.push(user.id);
+        const updateQuery = `
+        UPDATE recipes 
+        SET ${updateFields.join(", ")}
+        WHERE recipe_id = ? AND user_id = ? AND is_active = TRUE
+      `;
+        const [result] = await conn.query(updateQuery, updateValues);
+
+        // Check if any row was actually updated
+        if (result.affectedRows === 0) {
+          console.error(`No recipe found to update.`);
+          return res.status(400).json({
+            success: false,
+            message: "Problem encountered while updating recipe info.",
+          });
+        }
+      }
+
+      // Remove components if any are provided
+      for (const component of removeComponents) {
+        const removeQuery = `
+        UPDATE recipe_components 
+        SET is_active = 0, 
+        end_date = CURRENT_TIMESTAMP, 
+        display_order = NULL
+        WHERE recipe_id = ? AND recipe_component_id = ? AND is_active = TRUE
+      `;
+        const removeValues = [recipeId, component.recipe_component_id];
+        const [result] = await conn.query(removeQuery, removeValues);
+
+        // Check if any row was actually removed
+        if (result.affectedRows === 0) {
+          console.error(`No component found to remove with id ${component.recipe_component_id}`);
+          return res.status(400).json({
+            success: false,
+            message: "Problem encountered while removing recipe component.",
+          });
+        }
+      }
+
+      // Update/add components if any are provided
+      const componentOperations = [
+        { action: "update", components: data.update_components || [] },
+        { action: "add", components: data.add_components || [] },
+      ];
+      for (const { action, components } of componentOperations) {
+        for (const component of components) {
+          if (action === "update") {
+            // Handle orderChanged flag for display_order = 0
+            if (component.orderChanged && component.component_display_order === 0) {
+              const nullifyQuery = `
+              UPDATE recipe_components 
+              SET display_order = NULL, 
+              end_date = CURRENT_TIMESTAMP, 
+              is_active = FALSE
+              WHERE recipe_id = ? AND display_order = 0 AND is_active = TRUE
+            `;
+              const nullifyValues = [recipeId];
+
+              const result = await conn.query(nullifyQuery, nullifyValues);
+              if (result.affectedRows === 0) {
+                return res.status(400).json({
+                  error: "Problem encountered while updating recipe component.",
+                });
+              }
+            }
+
+            // Update component text and display order
+            const updateQuery = `
+            UPDATE recipe_components 
+            SET component_text = ?, display_order = ?
+            WHERE recipe_component_id = ?
+          `;
+            const updateValues = [
+              component.component_text,
+              component.component_display_order,
+              component.recipe_component_id,
+            ];
+            const [result] = await conn.query(updateQuery, updateValues);
+
+            // Check if any row was actually updated
+            if (result.affectedRows === 0) {
+              return res.status(400).json({
+                success: false,
+                message: "Problem encountered while updating recipe component.",
+              });
+            }
+          } else {
+            // action === 'add'
+            let recipeComponentId;
+
+            // Try to reuse an inactive component
+            const findInactiveQuery = `
+            SELECT recipe_component_id FROM recipe_components
+            WHERE recipe_id = ? AND is_active = 0 
+            ORDER BY recipe_component_id 
+            LIMIT 1
+          `;
+            const findInactiveValues = [recipeId];
+            const [inactiveResult] = await conn.query(findInactiveQuery, findInactiveValues);
+
+            if (inactiveResult.length > 0) {
+              recipeComponentId = inactiveResult[0].recipe_component_id;
+
+              // Update inactive component to active
+              const updateInactiveQuery = `
+                UPDATE recipe_components
+                SET component_text = ?, 
+                display_order = ?, 
+                is_active = 1, 
+                end_date = NULL
+                WHERE recipe_component_id = ?
+              `;
+              const updateInactiveValues = [
+                component.component_text,
+                component.component_display_order,
+                recipeComponentId,
+              ];
+              const updateResult = await conn.query(updateInactiveQuery, updateInactiveValues);
+
+              // Check if any row was actually updated
+              if (updateResult.affectedRows === 0) {
+                return res.status(400).json({
+                  success: false,
+                  message: "Problem encountered while adding new recipe component.",
+                });
+              }
+            } else {
+              // Insert new component
+              const insertQuery = `
+                INSERT INTO recipe_components (recipe_id, component_text, display_order)
+                VALUES (?, ?, ?)
+              `;
+              const insertValues = [
+                recipeId,
+                component.component_text,
+                component.component_display_order,
+              ];
+              const insertResult = await conn.query(insertQuery, insertValues);
+
+              // Check if any row was actually inserted
+              if (insertResult.affectedRows === 0) {
+                return res.status(400).json({
+                  success: false,
+                  message: "Problem encountered while adding new row of recipe component.",
+                });
+              }
+
+              // Get the newly inserted ID if needed
+              recipeComponentId = insertResult.insertId;
+            }
+          }
+        }
+      }
+
+      // Remove ingredients if any are provided
+      for (const ing of removeIngredients) {
+        const removeQuery = `
+        UPDATE recipe_ingredients 
+        SET is_active = FALSE, 
+        end_date = CURRENT_TIMESTAMP, 
+        display_order = -1
+        WHERE recipe_id = ? AND recipe_ingredient_id = ? AND is_active = TRUE
+      `;
+        const removeValues = [recipeId, ing.recipe_ingredient_id];
+        const [result] = await conn.query(removeQuery, removeValues);
+
+        // Check if any row was actually updated
+        if (result.affectedRows === 0) {
+          console.error(`No ingredient found to remove with id ${ing.recipe_ingredient_id}`);
+          return res.status(400).json({
+            success: false,
+            message: "Problem encountered while removing recipe ingredient.",
+          });
+        }
+      }
+
+      // Update/add ingredients if any are provided
+      const ingOperations = [
+        { action: "add", ingredients: data.add_ingredients || [] },
+        { action: "update", ingredients: data.update_ingredients || [] },
+      ];
+      for (const { action, ingredients } of ingOperations) {
+        for (const ing of ingredients) {
+          // Find recipe_component_id from component_display_order to
+          // store as component_id in new ingredient for new component
+          const componentQuery = `
+          SELECT recipe_component_id FROM recipe_components 
+          WHERE recipe_id = ? AND display_order = ? AND is_active = 1 
+          LIMIT 1
+        `;
+          const componentValues = [recipeId, ing.component_display_order];
+          const [result] = await conn.query(componentQuery, componentValues);
+
+          if (result.length > 0) {
+            ing.component_id = result[0].recipe_component_id;
+          } else {
+            // This should not happen - every ingredient must belong to a valid component
+            //  mostly wont get executed as new ingredient will have to be under one of the components
+            // this is done if new component is added and new/updated ingredient is under it then we need to
+            // find the recipe_component_id from recipe_components table that has been created and
+            // save it in component_id field of recipe_ingredients table.
+            console.error(
+              `Can't find recipe_component_id for ingredient with component_display_order ${ing.component_display_order}`,
+            );
+            return res.status(404).json({
+              success: false,
+              message: `Can't find recipe_component_id for new/updated ingredient thru component_display_order`,
+            });
+          }
+
+          if (action === "add") {
+            // Check if ingredient exists in recipe_ingredients and is inactive
+            const checkQuery = `
+            SELECT recipe_ingredient_id FROM recipe_ingredients 
+            WHERE recipe_id = ? AND ingredient_id = ? AND ingredient_source = ? AND is_active = 0
+            LIMIT 1
+          `;
+            const checkValues = [recipeId, ing.ingredient_id, ing.ingredient_source];
+            const [result] = await conn.query(checkQuery, checkValues);
+            if (result.length > 0) {
+              const riId = result[0].recipe_ingredient_id;
+
+              // Reuse inactive ingredient by activating it
+              const updateQuery = `
+                UPDATE recipe_ingredients 
+                SET quantity = ?, 
+                unit_id = ?, 
+                display_order = ?, 
+                component_id = ?, 
+                is_active = TRUE, 
+                end_date = NULL
+                WHERE recipe_ingredient_id = ?
+              `;
+              const updateValues = [
+                ing.quantity,
+                ing.unit_id,
+                ing.ingredient_display_order,
+                ing.component_id,
+                riId,
+              ];
+              const [updateResult] = await conn.query(updateQuery, updateValues);
+
+              // Check if any row was actually updated
+              if (updateResult.affectedRows === 0) {
+                return res.status(400).json({
+                  success: false,
+                  message:
+                    "Problem encountered while adding new recipe ingredient found as inactive in recipe ingredient table.",
+                });
+              }
+            } else {
+              // Insert new ingredient
+              const insertQuery = `
+                INSERT INTO recipe_ingredients 
+                (recipe_id, ingredient_id, ingredient_source, quantity, unit_id, component_id, display_order, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
+              `;
+              const insertValues = [
+                recipeId,
+                ing.ingredient_id,
+                ing.ingredient_source,
+                ing.quantity,
+                ing.unit_id,
+                ing.component_id,
+                ing.ingredient_display_order,
+              ];
+              const [insertResult] = await conn.query(insertQuery, insertValues);
+
+              // Check if any row was actually inserted
+              if (insertResult.affectedRows === 0) {
+                return res.status(400).json({
+                  error: "Problem encountered while adding new row of recipe ingredient.",
+                });
+              }
+            }
+          } else {
+            // action === 'update'
+            const updateQuery = `
+            UPDATE recipe_ingredients 
+            SET ingredient_id = ?, 
+            ingredient_source = ?, 
+            quantity = ?, 
+            unit_id = ?, 
+            display_order = ?, 
+            component_id = ?
+            WHERE recipe_ingredient_id = ? AND is_active = TRUE
+          `;
+            const updateValues = [
+              ing.ingredient_id,
+              ing.ingredient_source,
+              ing.quantity,
+              ing.unit_id,
+              ing.ingredient_display_order,
+              ing.component_id,
+              ing.recipe_ingredient_id,
+            ];
+
+            const result = await conn.query(updateQuery, updateValues);
+
+            // Optional : Check if any row was actually updated
+            if (result.affectedRows === 0) {
+              return res.status(400).json({
+                error: "Problem encountered while updating recipe ingredient.",
+                submitted_data: data,
+              });
+            }
+          }
+        }
+      }
+
+      // if base unit doesnt match with original base unit then convert custom price and unit. eg:  if main unit is kg and
+      // supplied base_unit in g, oz, or lbs then convert it into kg. similar for litre for ml, fl.oz and pint
+      // but leave pc and bunch as it is.
+
+      if (ing.base_price) {
+        let defaultPrice, actualBaseUnit;
+
+        if (ing.ingredient_source === "main") {
+          // Get ingredient's default price and base unit
+          const ingredientQuery = `
+          SELECT default_price, base_unit FROM ingredients 
+          WHERE ingredient_id = ? 
+          LIMIT 1
+        `;
+          const ingredientValues = [ing.ingredient_id];
+          const [ingredientResult] = await conn.query(ingredientQuery, ingredientValues);
+
+          if (ingredientResult.length === 0) {
+            return res.status(400).json({
+              error: `Ingredient ${ing.ingredient_id} not found or not approved`,
+              submitted_data: data,
+            });
+          }
+
+          defaultPrice = ingredientResult[0].default_price;
+          actualBaseUnit = ingredientResult[0].base_unit;
+        } else if (ing.ingredient_source === "user") {
+          // Get user_ingredient's default price and base unit
+          const ingredientQuery = `
+          SELECT base_price, base_unit FROM user_ingredients 
+          WHERE user_ingredient_id = ? AND  submitted_by = ?
+          LIMIT 1
+        `;
+          const ingredientValues = [ing.ingredient_id, user.id];
+          const [ingredientResult] = await conn.query(ingredientQuery, ingredientValues);
+
+          if (ingredientResult.length === 0) {
+            return res.status(400).json({
+              error: `Ingredient ${ing.ingredient_id} not found or not approved`,
+              submitted_data: data,
+            });
+          }
+          defaultPrice = ingredientResult[0].default_price;
+          actualBaseUnit = ingredientResult[0].base_unit;
+        }
+
+        // Check for user's custom price
+        const priceQuery = `
+          SELECT custom_price FROM user_prices 
+          WHERE ingredient_id = ? AND user_id = ? AND is_active = 1
+          LIMIT 1
+        `;
+        const priceValues = [ing.ingredient_id, sUserId];
+        const [priceResult] = await conn.query(priceQuery, priceValues);
+
+        if (priceResult.length > 0) {
+          defaultPrice = priceResult[0].custom_price;
+        }
+
+        // Only proceed with price update if values differ from defaults
+        if (
+          ing.base_quantity !== 1 ||
+          ing.base_unit !== actualBaseUnit ||
+          ing.base_price !== defaultPrice
+        ) {
+          let basePrice, baseQuantity, baseUnit;
+
+          // Normalize quantity to 1 if needed
+          if (ing.base_quantity !== 1) {
+            basePrice = ing.base_price / ing.base_quantity;
+            baseQuantity = 1;
+          } else {
+            basePrice = ing.base_price;
+            baseQuantity = ing.base_quantity;
+          }
+
+          // Convert to standard units (kg for weight, l for volume)
+          if (ing.base_unit === "kg") {
+            baseUnit = "kg";
+          } else if (ing.base_unit === "g") {
+            basePrice = basePrice * 1000;
+            baseUnit = "kg";
+          } else if (ing.base_unit === "oz") {
+            basePrice = basePrice * 35.274;
+            baseUnit = "kg";
+          } else if (ing.base_unit === "lbs") {
+            basePrice = basePrice * 2.205;
+            baseUnit = "kg";
+          } else if (ing.base_unit === "l") {
+            baseUnit = "l";
+          } else if (ing.base_unit === "ml") {
+            basePrice = basePrice * 1000;
+            baseUnit = "l";
+          } else if (ing.base_unit === "fl.oz") {
+            basePrice = basePrice * 35.1951;
+            baseUnit = "l";
+          } else if (ing.base_unit === "pint") {
+            basePrice = basePrice * 1.75975;
+            baseUnit = "l";
+          } else if (ing.base_unit === "pc") {
+            baseUnit = "pc";
+          } else if (ing.base_unit === "bunch") {
+            baseUnit = "bunch";
+          } else {
+            baseUnit = ing.base_unit; // fallback
+          }
+
+          // Handle optional place field
+          const place = ing.place || "";
+
+          // Call stored procedure to update/insert user price
+          const callQuery = `
+            CALL update_insert_user_price(?, ?, ?, ?, ?, ?)
+          `;
+          const callValues = [user.id, ing.ingredient_id, basePrice, baseQuantity, baseUnit, place];
+          const [result] = await conn.query(callQuery, callValues);
+
+          // optional : Check if any row was actually updated as during call procedure ti might not
+          // update as values might be same so no need to raise error
+          // if (result.affectedRows === 0) {
+          //   console.error(`No update happend in user_prices table.`);
+          //   return res.status(400).json({
+          //     success: false,
+          //     message: "Problem encountered while updating custom price in user_prices.",
+          //   });
+          // }
+        }
+      }
+    } catch (err) {
+      // Rollback EVERYTHING if anything fails
+      await conn.rollback();
+      console.error("Error in updateRecipeController- (update_recipe) while updating in DB :", err);
+      return res.status(500).json({
+        success: false,
+        message: "Error while updating recipe in db",
+      });
+    } finally {
+      conn.release();
+    }
 
     // response the data----------------------- X X X --------------------------------------------------
     res.json({

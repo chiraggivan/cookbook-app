@@ -321,6 +321,11 @@ function validateRecipeIngredientForUpdate(data) {
   const addIngredients = data.add_ingredients || [];
   const removeIngredients = data.remove_ingredients || [];
 
+  // Extract and default
+  const removeSteps = data.remove_steps || [];
+  const addSteps = data.add_steps || [];
+  const updateSteps = data.update_steps || [];
+
   // Validate remove_components
   if (removeComponents.length > 0) {
     for (const component of removeComponents) {
@@ -340,36 +345,31 @@ function validateRecipeIngredientForUpdate(data) {
   for (const [groupName, components] of Object.entries(componentGroups)) {
     if (components.length > 0) {
       for (const comp of components) {
-        const componentDisplayOrder = comp.component_display_order;
+        const componentDisplayOrder = Number(comp.component_display_order);
         const componentText = comp.component_text;
-        const recipeComponentId = comp.recipe_component_id;
+        const recipeComponentId = Number(comp.recipe_component_id);
 
         // Required fields for add
         if (groupName === "add_components") {
-          if (
-            componentDisplayOrder === null ||
-            componentDisplayOrder === undefined ||
-            componentText === null ||
-            componentText === undefined
-          ) {
-            return "Need component_display_order and component_text to add new component in recipe.";
+          if (!componentDisplayOrder || !componentText) {
+            return "Need component_display_order as int and component_text to add new component in recipe.";
           }
         }
 
         // Required fields for update
         if (groupName === "update_components") {
           if (
-            recipeComponentId === null ||
-            recipeComponentId === undefined ||
-            componentDisplayOrder === null ||
-            componentDisplayOrder === undefined
+            !Number.isInteger(recipeComponentId) ||
+            recipeComponentId < 1 ||
+            !Number.isInteger(componentDisplayOrder) ||
+            componentDisplayOrder < 0
           ) {
-            return "Need recipe_component_id and component_display_order to update component in recipe.";
+            return "Need recipe_component_id as int > 0 and component_display_order >= 0 to update component in recipe.";
           }
         }
 
         // Validate recipe_component_id (if present)
-        if (recipeComponentId !== null && recipeComponentId !== undefined) {
+        if (recipeComponentId) {
           if (!Number.isInteger(recipeComponentId) || recipeComponentId < 0) {
             return `Invalid recipe_component_id '${recipeComponentId}': must be int >= 0`;
           }
@@ -418,35 +418,31 @@ function validateRecipeIngredientForUpdate(data) {
     if (ingredients.length > 0) {
       for (const ing of ingredients) {
         if (groupName === "add_ingredients") {
-          const ingredientId = ing.ingredient_id;
+          const ingredientId = Number(ing.ingredient_id);
           const ingredientSource = ing.ingredient_source;
-          const quantity = ing.quantity;
-          const unitId = ing.unit_id;
+          const quantity = Number(ing.quantity);
+          const unitId = Number(ing.unit_id);
 
           if (!ingredientId || !quantity || !unitId) {
-            return {
-              error: "Need ingredient_id, quantity and unit id to add new ingredient in recipe.",
-            };
+            return "Need ingredient_id, quantity and unit id  as number to add new ingredient in recipe.";
           }
         }
 
         if (groupName === "update_ingredients") {
-          const recipeIngredientId = ing.recipe_ingredient_id;
+          const recipeIngredientId = Number(ing.recipe_ingredient_id);
           if (
-            recipeIngredientId === null ||
-            recipeIngredientId === undefined ||
-            !Number.isInteger(recipeIngredientId)
+            !recipeIngredientId ||
+            !Number.isInteger(recipeIngredientId) ||
+            recipeIngredientId <= 0
           ) {
-            return { error: "Invalid recipe ingredient id. Must be int > 0" };
+            return "Invalid recipe ingredient id. Must be int > 0";
           }
         }
 
         // ingredient_id
-        const ingredientId = ing.ingredient_id;
-        if (ingredientId !== null && ingredientId !== undefined) {
-          if (ingredientId === "" || !Number.isInteger(ingredientId) || ingredientId <= 0) {
-            return { error: `Invalid ingredient id '${ingredientId}': must be int > 0` };
-          }
+        const ingredientId = Number(ing.ingredient_id);
+        if (!ingredientId || !Number.isInteger(ingredientId) || ingredientId <= 0) {
+          return `Invalid ingredient id '${ingredientId}': must be int > 0`;
         }
 
         // ingredient_source
@@ -456,9 +452,7 @@ function validateRecipeIngredientForUpdate(data) {
             typeof ingredientSource !== "string" ||
             !["main", "user"].includes(ingredientSource)
           ) {
-            return {
-              error: `Invalid ingredient source '${ingredientSource}': must be string within [main, user]`,
-            };
+            return `Invalid ingredient source '${ingredientSource}': must be string within [main, user]`;
           }
         }
 
@@ -466,7 +460,7 @@ function validateRecipeIngredientForUpdate(data) {
         const quantity = ing.quantity;
         if (quantity !== null && quantity !== undefined) {
           if (typeof quantity !== "number" || quantity <= 0) {
-            return { error: "Invalid quantity: must be numeric > 0" };
+            return "Invalid quantity: must be numeric > 0";
           }
         }
 
@@ -474,7 +468,7 @@ function validateRecipeIngredientForUpdate(data) {
         const unitId = ing.unit_id;
         if (unitId !== null && unitId !== undefined) {
           if (!Number.isInteger(unitId) || unitId <= 0) {
-            return { error: "Invalid unit id: must be int > 0" };
+            return "Invalid unit id: must be int > 0";
           }
         }
 
@@ -482,7 +476,7 @@ function validateRecipeIngredientForUpdate(data) {
         const componentDisplayOrder = ing.component_display_order;
         if (componentDisplayOrder !== null && componentDisplayOrder !== undefined) {
           if (!Number.isInteger(componentDisplayOrder) || componentDisplayOrder < 0) {
-            return { error: "Invalid component_display_order: must be integer type >= 0" };
+            return "Invalid component_display_order: must be integer type >= 0";
           }
         }
 
@@ -490,7 +484,7 @@ function validateRecipeIngredientForUpdate(data) {
         const ingredientDisplayOrder = ing.ingredient_display_order;
         if (ingredientDisplayOrder !== null && ingredientDisplayOrder !== undefined) {
           if (!Number.isInteger(ingredientDisplayOrder) || ingredientDisplayOrder <= 0) {
-            return { error: "Invalid ingredient_display_order: must be int > 0" };
+            return "Invalid ingredient_display_order: must be int > 0";
           }
         }
 
@@ -501,15 +495,13 @@ function validateRecipeIngredientForUpdate(data) {
 
         if (hasBasePrice || hasBaseUnit || hasBaseQuantity) {
           if (!hasBasePrice || !hasBaseUnit || !hasBaseQuantity) {
-            return {
-              error: "'base price', 'base unit' and 'base quantity' must all be provided together",
-            };
+            return "'base price', 'base unit' and 'base quantity' must all be provided together";
           }
 
           const customPrice = ing.base_price;
           const baseUnit = ing.base_unit;
           const baseQuantity = ing.base_quantity;
-          const place = ing.place;
+          const place = ing.place ?? "";
 
           // Validate customPrice
           if (typeof customPrice !== "number" || customPrice <= 0) {
@@ -521,21 +513,19 @@ function validateRecipeIngredientForUpdate(data) {
             typeof baseUnit !== "string" ||
             !["kg", "g", "oz", "lbs", "l", "ml", "pint", "fl.oz", "pc", "bunch"].includes(baseUnit)
           ) {
-            return {
-              error:
-                "Invalid base_unit: must be one of these: ['kg', 'g', 'oz', 'lbs','l', 'ml', 'pint', 'fl.oz', 'pc', 'bunch']",
-            };
+            return;
+            ("Invalid base_unit: must be one of these: ['kg', 'g', 'oz', 'lbs','l', 'ml', 'pint', 'fl.oz', 'pc', 'bunch']");
           }
 
           // Validate baseQuantity
           if (typeof baseQuantity !== "number" || baseQuantity <= 0) {
-            return { error: "Invalid base_quantity: must be numeric > 0" };
+            return "Invalid base_quantity: must be numeric > 0";
           }
 
           // Validate place
           if (place) {
-            if (typeof place !== "string" || place.trim().length === 0 || place.length > 25) {
-              return { error: "Invalid place: must be a string ≤ 25 chars" };
+            if (typeof place !== "string" || place.length > 25) {
+              return "Invalid place: must be a string ≤ 25 chars";
             }
           }
         }
