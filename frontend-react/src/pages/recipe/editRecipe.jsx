@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
@@ -15,6 +15,8 @@ import { serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
 import { getFinalDataForBackend } from "./editRecipeUtils/getFinalDataForBackend";
+import OnDataChange from "../../utils/submitButtonActivation";
+import { MyRecipeContext } from "../../context/myRecipeContext";
 
 function EditRecipe() {
   const token = localStorage.getItem("token");
@@ -68,6 +70,8 @@ function EditRecipe() {
   const finalMainRecipe = {};
   const [checkFinalData, setCheckFinalData] = useState({});
   const [showTopRow, setShowTopRow] = useState(false);
+  const [updateBtn, setUpdateBtn] = useState(true);
+  const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const navigate = useNavigate();
   let blurTimeout;
   const config = {
@@ -133,7 +137,7 @@ function EditRecipe() {
         // if (token) {
         const res = await axios[method](url, config);
         const tempRecipe = res?.data?.data;
-        // console.log("tempRecipe :", tempRecipe);
+        console.log("tempRecipe :", tempRecipe);
         tempRecipe?.recipe?.privacy === "private" ? setIsPrivate(true) : setIsPrivate(false);
         const recipeData = { ...tempRecipe.recipe };
         setRecipeInfo((prev) => ({ ...prev, recipe: { ...tempRecipe.recipe } }));
@@ -148,8 +152,10 @@ function EditRecipe() {
           const compIngs = ingredientData
             .filter((i) => i.component_display_order === u)
             .sort((a, b) => a.ingredient_display_order - b.ingredient_display_order);
+
           const comp = {};
           comp.uid = "comp-" + (Date.now() + Math.floor(Math.random() * 1000));
+          // getting the values of comp_text, recipeCompId and displayOrder from the first element of array
           comp.recipeComponentId = compIngs[0]?.recipe_component_id ?? "";
           comp.componentText = compIngs[0]?.component_text ?? "";
           comp.componentDisplayOrder = compIngs[0]?.component_display_order;
@@ -158,6 +164,8 @@ function EditRecipe() {
           for (const i of compIngs) {
             const ing = {};
             ing.uid = "ing-" + (Date.now() + Math.floor(Math.random() * 1000));
+            ing.recipeComponentId = compIngs[0]?.recipe_component_id ?? "";
+            ing.componentDisplayOrder = compIngs[0]?.component_display_order;
             ing.recipeIngredientId = i.recipe_ingredient_id;
             ing.ingredientDisplayOrder = i.ingredient_display_order;
             ing.ingredientId = i.ingredient_id;
@@ -169,7 +177,7 @@ function EditRecipe() {
             ing.unitName = i.unit_name;
             ing.measuringUnits = i.measuring_units;
             ing.baseUnits = getBaseUnits(i.unit, i.measuring_units);
-            // ing.cost = i.cost;
+            // ing.cost = Number(i.price.toFixed(4));
             ing.displayQuantity = Number(i.base_quantity);
             ing.displayUnit = i.unit;
             ing.displayPrice = Number(i.cost);
@@ -193,6 +201,7 @@ function EditRecipe() {
         setOgData((prev) => ({ ...prev, steps: [...updtdStepsData] }));
         // }
       } catch (err) {
+        window.alert(`Error while fetching recipe data from database`);
         console.log("error while fetching reicpe details with axios is :", err.response);
       } finally {
         setFetchLoading(false);
@@ -272,13 +281,14 @@ function EditRecipe() {
         }
       });
     });
-    // console.log("errors are :", checkDataErrors);
+
+    // check if the data is valid and if NOT then return back to screen
     setCheckFinalData(checkDataErrors);
     if (!isValid) {
       return;
     }
 
-    // get the display order of components and ingredient updated in recipeInfo
+    // // ------------ get the display order of components and ingredient updated from recipeInfo --------------------
     let ing_display_order = 1;
     const newComponentsData = recipeInfo.components.map((comp, indexc) => ({
       ...comp,
@@ -292,21 +302,56 @@ function EditRecipe() {
           ingredientDisplayOrder: ing_display_order++,
         })),
     }));
+
+    // // ------------------------ get the display order of Steps updated from recipeInfo -----------------------------
+    let step_display_order = 1;
+    const newStepsData = recipeInfo.steps
+      .filter((s) => s.step_text)
+      .map((step, indexs) => ({
+        ...step,
+        step_order: step_display_order++,
+      }));
+
+    // // ------------------------ udpate recipeInfo with newComponentData and newStepData ---------------------------
     const newRecipeInfo = {
       ...recipeInfo,
       components: newComponentsData,
+      steps: newStepsData,
     };
-    // setRecipeInfo((prev) => ({
-    //   ...prev,
-    //   components: newComponentsData,
-    // }));
-    // return;
 
-    // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
+    // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
     const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
     console.log("finalData :", finalData);
+
+    // // ----------------------------------- call the bakend api to update recipe -----------------------------------
+    const url = `${serverURL}/recipe/api/update/${id}`;
+    const method = "patch";
+    const body = finalData;
+
+    const updateRecipe = async () => {
+      try {
+        setFetchLoading(true);
+        // call api
+        const res = await axios[method](url, body, config);
+        console.log("res :", res);
+        const x = res.data.data;
+        x.recipe.name = x.recipe.name + " (updated)";
+        console.log("x value is :", x);
+        const recDetails = recipeDetails.map((r) => (r.recipe.recipe_id === Number(id) ? x : r));
+        console.log("value of recDetails :", recDetails);
+        setRecipeDetails(recDetails);
+        navigate(`/recipe/${id}`);
+      } catch (err) {
+        window.alert(`Error while  finalData recipe update with database`);
+        console.log("error while updating finalData with axios is :", err.response);
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    updateRecipe();
   };
 
+  // ----------------------------- ADD new empty ing row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
     setRecipeInfo((prev) => ({
       ...prev,
@@ -359,7 +404,7 @@ function EditRecipe() {
           // console.log("ingredients found are : ", res.data);
           setSuggestedIng(res.data.rows);
         } catch (err) {
-          // setExistIngs("");
+          window.alert(`Error while fetching ingredients list from database`);
           console.log("error in newRecipe.jsx while ing search :", err.response);
         }
       };
@@ -454,6 +499,9 @@ function EditRecipe() {
                           displayUnit: ing.display_unit,
                           displayPrice: ing.display_price,
                           ingredientSource: ing.ingredient_source,
+                          ogBaseQuantity: ing.display_quantity,
+                          ogBaseUnit: ing.display_unit,
+                          ogBasePrice: ing.display_price,
                           ingredientId: ing.id,
                           measuringUnits: units,
                           baseUnits: getBaseUnits(ing.display_unit, units),
@@ -465,6 +513,7 @@ function EditRecipe() {
           ),
         }));
       } catch (err) {
+        window.alert(`Error while fetching measuring unit data from database`);
         console.log("error in createMyIng.jsx while fetching measuring units :", err.response);
       }
     };
@@ -636,7 +685,7 @@ function EditRecipe() {
 
         if (ingCost) {
           totalCost += ingCost;
-          ingredient.cost = ingCost.toFixed(4);
+          ingredient.cost = Number(ingCost.toFixed(4));
         } else {
           ingredient.cost = "";
         }
@@ -785,6 +834,33 @@ function EditRecipe() {
     }));
   };
 
+  // ----------- active/deactivate "Edit recipe" button based on change in data ---------------
+  useEffect(() => {
+    const costLessRecipeInfo = {
+      ...recipeInfo,
+      components: recipeInfo?.components?.map((comp) => ({
+        ...comp,
+        ingredients: comp.ingredients
+          .filter((i) => i.ingredientId)
+          .map(({ cost, ...rest }) => rest),
+      })),
+      steps: recipeInfo?.steps?.filter((s) => s.step_text !== ""),
+    };
+    const costLessOgData = {
+      ...OgData,
+      components: OgData?.components?.map((comp) => ({
+        ...comp,
+        ingredients: comp.ingredients
+          .filter((i) => i.ingredientId)
+          .map(({ cost, ...rest }) => rest),
+      })),
+      steps: OgData?.steps?.filter((s) => s.step_text !== ""),
+    };
+    const btnDisabled = OnDataChange(costLessRecipeInfo ?? {}, costLessOgData ?? {});
+    // console.log("btnDisabled:", btnDisabled);
+    setUpdateBtn(btnDisabled);
+  }, [recipeInfo]);
+
   // console.log("inputText :", inputText);
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
@@ -872,9 +948,10 @@ function EditRecipe() {
       <Button
         children={"Save Recipe"}
         type="button"
-        disabled={false}
+        disabled={updateBtn}
         onClick={() => handleSubmit()}
       />
+      <Button children={`Cancel`} onClick={() => navigate(-1)} />
       <Card>
         <h2>Ingredients</h2>
         {!showTopRow && (
@@ -904,7 +981,7 @@ function EditRecipe() {
           <tbody>
             {recipeInfo?.components?.map((comp, indexc) => (
               <>
-                {(showTopRow || indexc !== 0) && (
+                {(showTopRow || comp.componentText !== "" || indexc !== 0) && (
                   <tr key={comp.uid} style={{ backgroundColor: "#f0f0f0" }}>
                     <td colSpan={7}>
                       <Input
@@ -965,6 +1042,9 @@ function EditRecipe() {
                                               displayQuantity: "",
                                               displayUnit: "",
                                               displayPrice: "",
+                                              ogBaseQuantity: "",
+                                              ogBaseUnit: "",
+                                              ogBasePrice: "",
                                               ingredientSource: "",
                                               ingredientId: "",
                                               measuringUnits: [],

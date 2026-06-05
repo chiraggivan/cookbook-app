@@ -132,6 +132,7 @@ function RecipeDetails() {
 
   useEffect(() => {
     if (!searchMyRecipes) {
+      console.log("when searchMyRecipe not found recipeDetails");
       const fetchData = async () => {
         try {
           setFetchLoading(true);
@@ -255,7 +256,7 @@ function RecipeDetails() {
   // console.log("table rows :", tableRows);
   // console.log("data is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
-
+  console.log("recipeDetails :", recipeDetails);
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>

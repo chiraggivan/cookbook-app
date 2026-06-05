@@ -345,10 +345,12 @@ function validateRecipeIngredientForUpdate(data) {
   for (const [groupName, components] of Object.entries(componentGroups)) {
     if (components.length > 0) {
       for (const comp of components) {
-        const componentDisplayOrder = Number(comp.component_display_order);
+        const componentDisplayOrder = comp.component_display_order
+          ? Number(comp.component_display_order)
+          : null;
         const componentText = comp.component_text;
         const recipeComponentId = Number(comp.recipe_component_id);
-
+        // console.log("recipeComponentId", recipeComponentId);
         // Required fields for add
         if (groupName === "add_components") {
           if (!componentDisplayOrder || !componentText) {
@@ -360,11 +362,11 @@ function validateRecipeIngredientForUpdate(data) {
         if (groupName === "update_components") {
           if (
             !Number.isInteger(recipeComponentId) ||
-            recipeComponentId < 1 ||
-            !Number.isInteger(componentDisplayOrder) ||
-            componentDisplayOrder < 0
+            recipeComponentId < 1
+            // !Number.isInteger(componentDisplayOrder) ||
+            // componentDisplayOrder < 0
           ) {
-            return "Need recipe_component_id as int > 0 and component_display_order >= 0 to update component in recipe.";
+            return `Need recipe_component_id(${recipeComponentId}) as int > 0 and component_display_order >= 0 to update component in recipe.`;
           }
         }
 
@@ -533,7 +535,7 @@ function validateRecipeIngredientForUpdate(data) {
     }
   }
 
-  return none;
+  return null;
 }
 
 module.exports = { normalizeRecipeIngredientDataForUpdate, validateRecipeIngredientForUpdate };

@@ -1,5 +1,6 @@
 const db = require("../../config/database");
 const { readRecipeDetailsQ } = require("./utils/mysqlQueries");
+const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 const {
   normalizeRecipeIngredientDataForUpdate,
   validateRecipeIngredientForUpdate,
@@ -182,6 +183,7 @@ exports.update_recipe = async (req, res) => {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const recipeId = req.params.recipeId;
 
+    console.log("body : ", req.body);
     if (!req.body) {
       return res.status(500).json({
         success: false,
@@ -189,7 +191,7 @@ exports.update_recipe = async (req, res) => {
       });
     }
 
-    // normalise and validate data received for update
+    // --------------------------------- normalise and validate data received for update --------------------------------------
     const data = normalizeRecipeIngredientDataForUpdate(req.body);
     const error = validateRecipeIngredientForUpdate(data);
 
@@ -740,6 +742,12 @@ exports.update_recipe = async (req, res) => {
     }
 
     console.log("every ingredient check and data ready to to be inserted for update");
+    const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
+    return res.json({
+      success: updatedRecipeDetails.success,
+      message: updatedRecipeDetails.message,
+      data: updatedRecipeDetails.data,
+    });
     return;
     // ------------------------------------ below validating steps data -------------------------------------------------
 
@@ -1202,11 +1210,13 @@ exports.update_recipe = async (req, res) => {
     } finally {
       conn.release();
     }
-
+    //  ---------------------- call express function get_recipe_details to send the recipe details back -----------------
+    // const updatedRecipeDetails = getRecipeDetailsById(recipeId, user.id);
     // response the data----------------------- X X X --------------------------------------------------
     res.json({
       success: true,
       message: `Recipe updated.`,
+      data: updatedRecipeDetails,
     });
   } catch (err) {
     console.error("Error in updateRecipeController - update_recipe :", err);
