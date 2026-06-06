@@ -183,7 +183,7 @@ exports.update_recipe = async (req, res) => {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const recipeId = req.params.recipeId;
 
-    console.log("body : ", req.body);
+    // console.log("body : ", req.body);
     if (!req.body) {
       return res.status(500).json({
         success: false,
@@ -750,6 +750,100 @@ exports.update_recipe = async (req, res) => {
     });
     return;
     // ------------------------------------ below validating steps data -------------------------------------------------
+
+    // Validate remove_steps against the database
+    const removeSteps = data.remove_steps || [];
+    for (const step of removeSteps) {
+      const value = step.procedure_id;
+      // if (value === null || value === undefined) continue;
+
+      const checkQuery = `
+        SELECT 1 FROM recipe_procedures 
+        WHERE recipe_id = ? AND procedure_id = ? AND is_active = TRUE
+        LIMIT 1
+      `;
+      const checkValues = [recipeId, value];
+
+      const result = await db.query(checkQuery, checkValues);
+      if (result.length === 0) {
+        return res.status(409).json({
+          success: false,
+          message: `Invalid recipe ingredient id ${value}: this does not belong to the recipe id ${recipe_id}`,
+        });
+      }
+    }
+
+    // Get current count of active ingredients from DB
+    const countStepsQuery = `
+      SELECT COUNT(*) as total FROM recipe_procedures
+      WHERE recipe_id = ? AND is_active = 1
+      LIMIT 1
+    `;
+    const [countSteps] = await db.query(countStepsQuery, [recipeId]);
+    const dbStepsLength = countSteps[0].total;
+
+    // Calculate maxStepDisplayOrder
+    const addSteps = data.add_steps || [];
+    const maxStepDisplayOrder = dbStepsLength + addSteps.length - removeSteps.length;
+
+    // Validate add_steps and update_steps
+    const stepOperations = [
+      { action: "add", steps: addSteps || [] },
+      { action: "update", steps: data.update_steps || [] },
+    ];
+    for (const { action, steps } of stepOperations) {
+      for (const step of steps) {
+        let oldStepText = null;
+        let oldStepDisplayOrder = null;
+        // let oldStepEstimatedTime = null;
+
+        if (action === "update") {
+          // Check if procedure_id exists and fetch current values
+          const checkQuery = `
+            SELECT step_order, step_text, estimated_time            
+            FROM recipe_procedures
+            WHERE procedure_id = ? AND  recipe_id = ? AND i.is_active = TRUE
+            LIMIT 1
+          `;
+          const checkValues = [step.procedure_id, recipeId];
+
+          const [result] = await db.query(checkQuery, checkValues);
+          if (result.length === 0) {
+            return res.status(409).json({
+              success: false,
+              message: `Can't find procedure id ${step.procedure_id} with action as ${action}`,
+            });
+          }
+
+          const row = result;
+          oldStepText = row.step_text;
+          oldStepDisplayOrder = Number(row.display_order);
+          // oldStepEstimatedTime = row.estimated_time;
+        }
+
+        // check to see how many steps are there in total after calculating add, remove and update length
+        //  and make sure the step_display_order is within the range
+        if (step.step_order !== null && step.step_order !== undefined) {
+          if (step.step_order > maxStepDisplayOrder) {
+            return res.status(409).json({
+              success: false,
+              message: `Internal error. stepDisplayOrder out of range`,
+            });
+          }
+        }
+
+        // Preserve old values if not provided (for updates)
+        if (step.step_text === null || step.step_text === undefined) {
+          step.step_text = oldStepText;
+        }
+        if (step.step_order === null || step.step_order === undefined) {
+          step.step_order = oldStepDisplayOrder;
+        }
+        // if (step.estimated_time === null || step.estimated_time === undefined) {
+        //   step.estimated_time = oldStepEstimatedTime;
+        // }
+      }
+    }
 
     // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
 

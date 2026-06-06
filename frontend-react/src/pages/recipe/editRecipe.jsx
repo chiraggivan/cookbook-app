@@ -137,7 +137,7 @@ function EditRecipe() {
         // if (token) {
         const res = await axios[method](url, config);
         const tempRecipe = res?.data?.data;
-        console.log("tempRecipe :", tempRecipe);
+        // console.log("tempRecipe :", tempRecipe);
         tempRecipe?.recipe?.privacy === "private" ? setIsPrivate(true) : setIsPrivate(false);
         const recipeData = { ...tempRecipe.recipe };
         setRecipeInfo((prev) => ({ ...prev, recipe: { ...tempRecipe.recipe } }));
@@ -333,13 +333,27 @@ function EditRecipe() {
         setFetchLoading(true);
         // call api
         const res = await axios[method](url, body, config);
-        console.log("res :", res);
+        // console.log("res :", res);
         const x = res.data.data;
         x.recipe.name = x.recipe.name + " (updated)";
-        console.log("x value is :", x);
-        const recDetails = recipeDetails.map((r) => (r.recipe.recipe_id === Number(id) ? x : r));
-        console.log("value of recDetails :", recDetails);
-        setRecipeDetails(recDetails);
+        // console.log("x value is :", x);
+        // const recDetails = recipeDetails.map((r) => (r.recipe.recipe_id === Number(id) ? x : r));
+        // console.log("value of recDetails :", recDetails);
+        setRecipeDetails(
+          recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
+        );
+        setMyRecipes(
+          myRecipes.map((item) =>
+            item.recipe_id === x.recipe.recipe_id
+              ? {
+                  ...item,
+                  portion_size: x.recipe.portion_size,
+                  name: x.recipe.name,
+                  description: x.recipe.description,
+                }
+              : item,
+          ),
+        );
         navigate(`/recipe/${id}`);
       } catch (err) {
         window.alert(`Error while  finalData recipe update with database`);
@@ -865,8 +879,8 @@ function EditRecipe() {
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
-  console.log("recipeInfo :", recipeInfo);
-  console.log("OgData :", OgData);
+  // console.log("recipeInfo :", recipeInfo);
+  // console.log("OgData :", OgData);
 
   // ------------------------------  initial page loading screen -------------------------------------------
   if (fetchLoading) {

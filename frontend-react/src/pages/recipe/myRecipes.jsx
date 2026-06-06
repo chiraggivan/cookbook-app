@@ -47,7 +47,9 @@ function MyRecipes() {
           if (token) {
             const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
             // console.log("res : ", res);
-            setMyRecipes(res?.data.data);
+            const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
+            setMyRecipes(refinedMyRecipes);
+            // setMyRecipes(res?.data.data);
             setFetchedOnce(true);
           }
         } catch (err) {

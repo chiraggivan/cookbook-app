@@ -1,5 +1,6 @@
 const db = require("../../../config/database");
 const { readRecipeDetailsQ } = require("../utils/mysqlQueries");
+const { getLastRecordOfRecipeCreated } = require("./getLastRecordRecipeCreated");
 
 // get recipeDetails function that can be use multiple times (sending data after updating recipe
 // and also for read recipe data)
@@ -68,7 +69,22 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
       [recipeId],
     );
 
-    // response the data
+    // console.log("reached here");
+    // get the last record of this dish created
+    const { success, message, data } = await getLastRecordOfRecipeCreated(recipeId, userId);
+
+    if (!success) {
+      return {
+        success: success,
+        message: message,
+        data: data,
+      };
+    }
+
+    recipeResult[0].last_prepared_time = data.last_prepared_time;
+    recipeResult[0].last_prepared_date = data.last_prepared_date;
+
+    // return data
     return {
       success: true,
       message: `Recipe details found`,

@@ -1,5 +1,5 @@
 const db = require("../../config/database");
-const { readRecipeDetailsQ } = require("./utils/mysqlQueries");
+// const { readRecipeDetailsQ } = require("./utils/mysqlQueries");
 const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 
 // get all the recipes
