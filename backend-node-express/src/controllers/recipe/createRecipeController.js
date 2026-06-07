@@ -111,7 +111,7 @@ exports.create_recipe = async (req, res) => {
   try {
     const data = normalizeRecipeIngredientData(req.body);
     const error = validateRecipeIngredient(data);
-
+    // return res.json({ success: true, message: `reached here till now`, data, error });
     if (error) {
       return res.status(400).json({
         success: false,
@@ -139,7 +139,7 @@ exports.create_recipe = async (req, res) => {
       });
     }
 
-    // Check for existing recipe with same name and portion_size
+    //--------------------- Check for existing recipe with same name and portion_size ------------------------------
     const [recipeRows] = await db.query(
       `SELECT 1 FROM recipes 
         WHERE name = ? AND portion_size = ? AND user_id = ? AND is_active = TRUE
@@ -153,15 +153,15 @@ exports.create_recipe = async (req, res) => {
       });
     }
 
-    // Validate ingredients(base unit and base price coming from body is correct)
+    // ---------------- Validate ingredients(base unit and base price coming from body is correct) -----------------
     for (const component of components) {
       const ingredients = component.ingredients || [];
 
       for (const ing of ingredients) {
         // Validate unit refers to ingredient
         const [unitRows] = await db.query(
-          "SELECT 1 FROM units WHERE unit_id = ? AND ingredient_id = ?",
-          [ing.unit_id, ing.ingredient_id],
+          "SELECT 1 FROM units WHERE unit_id = ? AND ingredient_id = ? AND ingredient_source = ?",
+          [ing.unit_id, ing.ingredient_id, ing.ingredient_source],
         );
 
         if (unitRows.length === 0) {
@@ -219,7 +219,7 @@ exports.create_recipe = async (req, res) => {
     // validate steps for recipe_procedures if any wrt database
 
     // response the data back
-    // return res.json({ success: true, message: `reached here till now`, data });
+    return res.json({ success: true, message: `reached  here before inserting till now`, data });
 
     // ---------------- Data checked and ready to be inserted. About to actually insert data in db ---------------------------
 

@@ -92,143 +92,6 @@ function NewRecipe() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  // ---------------------------- TEMP console to show recipe for every input ----------------------------------
-  const handlesubmit = () => {
-    finalMainRecipe.name = recipeInfo?.name ?? "";
-    finalMainRecipe.portion_size = recipeInfo?.portion_size ?? "";
-    finalMainRecipe.description = recipeInfo?.description ?? "";
-    finalMainRecipe.privacy = recipeInfo?.privacy == "" ? false : recipeInfo?.privacy;
-
-    const components = [];
-    let ing_display_order = 0;
-
-    sections.forEach((section, indexc) => {
-      const comp = {};
-      comp.component_text = section.component_text ?? "";
-      comp.component_display_order = indexc;
-      comp.uid = section.uid;
-      const ingredients = [];
-
-      section.ingredients.forEach((i) => {
-        if (
-          i.ingredientId ||
-          i.ingredientSource ||
-          i.quantity ||
-          i.unit ||
-          i.displayQuantity ||
-          i.displayUnit ||
-          i.displayPrice
-        ) {
-          ing_display_order++;
-          const ing = {};
-          ing.uid = i.uid;
-          ing.ingredient_display_order = ing_display_order;
-          ing.ingredient_id = i.ingredientId ?? 0;
-          ing.ingredient_source = i.ingredientSource ?? "";
-          ing.quantity = i.quantity ?? "";
-          ing.unit = i.unit ?? "";
-          ing.display_price = i.displayPrice;
-          ing.display_quantity = i.displayQuantity;
-          ing.display_unit = i.displayUnit;
-          ingredients.push(ing);
-        }
-      });
-      comp.ingredients = ingredients;
-      components.push(comp);
-    });
-    finalMainRecipe.components = components;
-
-    const steps = [];
-    let step_display_order = 0;
-
-    // console.log("finalMainRecipe", finalMainRecipe);
-    const checkData = { ...finalMainRecipe };
-    checkData.errors = {};
-    let isValid = true;
-    setErrorMessage("");
-
-    if (!checkData.name || checkData.name.trim() === "") {
-      isValid = false;
-      checkData.errors.name = "Name required";
-    }
-    if (!checkData.portion_size || checkData.portion_size.trim() === "") {
-      isValid = false;
-      checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
-    }
-    if (!checkData.privacy) {
-      recipeInfo.privacy = false;
-    }
-
-    checkData.components.forEach((comp, index) => {
-      if (!checkData.errors.components) {
-        checkData.errors.components = {};
-      }
-      if (!checkData.errors.components[comp.uid]) {
-        checkData.errors.components[comp.uid] = {};
-      }
-
-      if (index === 0 && showTopRow && comp.component_text === "") {
-        isValid = false;
-        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
-      }
-      if (index !== 0 && comp.component_text === "") {
-        isValid = false;
-        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
-      }
-
-      comp.ingredients.forEach((ing) => {
-        if (!checkData?.errors?.components[comp.uid]?.ingredients) {
-          checkData.errors.components[comp.uid].ingredients = {};
-        }
-        if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
-          checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
-        }
-
-        if (
-          ing.ingredient_id ||
-          ing.quantity ||
-          ing.unit ||
-          ing.display_quantity ||
-          ing.display_unit ||
-          ing.display_price
-        ) {
-          if (!ing.display_quantity) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
-              "Reqiure!!";
-          }
-          if (!ing.display_unit) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
-          }
-          if (!ing.display_price) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
-          }
-          if (!ing.unit) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
-          }
-          if (!ing.quantity) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
-          }
-          if (!ing.ingredient_id) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
-          }
-        }
-      });
-    });
-
-    setCheckFinalData(checkData);
-    // console.log("recipeInfo after checking  :", recipeInfo);
-    console.log("checkFinalData", checkFinalData);
-    if (!isValid) {
-      return;
-    }
-  };
-
   // ----------------------------- ADD new empty ingredient row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
     setSections((prev) =>
@@ -737,6 +600,183 @@ function NewRecipe() {
     );
   };
 
+  // ---------------------------- console to show recipe for every input ----------------------------------
+  const handlesubmit = () => {
+    // get recipe info
+
+    finalMainRecipe.name = recipeInfo?.name ?? "";
+    finalMainRecipe.portion_size = recipeInfo?.portion_size ?? "";
+    finalMainRecipe.description = recipeInfo?.description ?? "";
+    finalMainRecipe.privacy = recipeInfo?.privacy == "" ? "private" : recipeInfo?.privacy;
+
+    // get components and ingredients info
+    const components = [];
+    let ing_display_order = 0;
+
+    sections.forEach((section, indexc) => {
+      const comp = {};
+      comp.component_text = section.component_text ?? "";
+      comp.component_display_order = indexc;
+      comp.uid = section.uid;
+      const ingredients = [];
+
+      section.ingredients.forEach((i) => {
+        if (
+          i.ingredientId ||
+          i.ingredientSource ||
+          i.quantity ||
+          i.unit ||
+          i.displayQuantity ||
+          i.displayUnit ||
+          i.displayPrice
+        ) {
+          ing_display_order++;
+          const ing = {};
+          ing.uid = i.uid;
+          ing.ingredient_display_order = ing_display_order;
+          ing.ingredient_id = i.ingredientId ?? 0;
+          ing.ingredient_source = i.ingredientSource ?? "";
+          ing.quantity = i.quantity ?? "";
+          ing.unit = i.unit ?? "";
+          ing.display_price = i.displayPrice;
+          ing.display_quantity = i.displayQuantity;
+          ing.display_unit = i.displayUnit;
+          ingredients.push(ing);
+        }
+      });
+      comp.ingredients = ingredients;
+      components.push(comp);
+    });
+    finalMainRecipe.components = components;
+    finalMainRecipe.steps = recipeInfo.steps;
+
+    //  get steps information
+    const steps = [];
+    let step_display_order = 0;
+    recipeInfo.steps.forEach((s) => {
+      if (s.step_text) {
+        step_display_order++;
+        const step = {};
+        step.step_order = step_display_order;
+        step.step_text = s.step_text;
+        steps.push(step);
+      }
+    });
+
+    // checking data for any errors like incomplete data or missing fields, heading ,,etc
+    const checkData = { ...finalMainRecipe, steps: steps };
+    checkData.errors = {};
+    let isValid = true;
+    setErrorMessage("");
+
+    if (!checkData.name || checkData.name.trim() === "") {
+      isValid = false;
+      checkData.errors.name = "Name required";
+    }
+    if (!checkData.portion_size || checkData.portion_size.trim() === "") {
+      isValid = false;
+      checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+    }
+    if (!checkData.privacy) {
+      recipeInfo.privacy = false;
+    }
+
+    checkData.components.forEach((comp, index) => {
+      let ingCount = 0; //---------------> to count valid ingredients in each component
+      if (!checkData.errors.components) {
+        checkData.errors.components = {};
+      }
+      if (!checkData.errors.components[comp.uid]) {
+        checkData.errors.components[comp.uid] = {};
+      }
+
+      if (index === 0 && showTopRow && comp.component_text === "") {
+        isValid = false;
+        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+      }
+      if (index !== 0 && comp.component_text === "") {
+        isValid = false;
+        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+      }
+
+      comp.ingredients.forEach((ing) => {
+        if (!checkData?.errors?.components[comp.uid]?.ingredients) {
+          checkData.errors.components[comp.uid].ingredients = {};
+        }
+        if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
+          checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
+        }
+
+        if (
+          ing.ingredient_id ||
+          ing.quantity ||
+          ing.unit ||
+          ing.display_quantity ||
+          ing.display_unit ||
+          ing.display_price
+        ) {
+          ingCount++;
+          if (!ing.display_quantity) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
+              "Reqiure!!";
+          }
+          if (!ing.display_unit) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
+          }
+          if (!ing.display_price) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
+          }
+          if (!ing.unit) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
+          }
+          if (!ing.quantity) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
+          }
+          if (!ing.ingredient_id) {
+            isValid = false;
+            checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
+          }
+        }
+      });
+
+      // make sure every component(subheading) has alteast one ingredient
+      if (ingCount === 0) {
+        checkData.errors.components[comp.uid].text =
+          "Need atleast one ingredient within this section";
+      }
+    });
+
+    if (ing_display_order < 2) {
+      isValid = false;
+      setErrorMessage("Need atleast 2 ingredients to make a recipe");
+    }
+    setCheckFinalData(checkData);
+    console.log("checkData inside submit Button :", checkData);
+    if (!isValid) {
+      return;
+    }
+
+    // Call api and save the recipe in db
+    const saveRecipe = async () => {
+      try {
+        const url = `${serverURL}/recipe/api/new`;
+        const method = "post";
+        const body = checkData;
+
+        const res = await axios[method](url, body, config);
+        console.log("res: ", res);
+      } catch (err) {
+        console.log("err found during api: ", err.response.data);
+      }
+    };
+    saveRecipe();
+  };
+
   // console.log("inputText :", inputText);
   console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
@@ -787,7 +827,10 @@ function NewRecipe() {
         offText="Public"
         onChange={(e) => {
           setIsPrivate(e.target.checked);
-          setRecipeInfo({ ...recipeInfo, privacy: e.target.checked });
+          setRecipeInfo({
+            ...recipeInfo,
+            privacy: e.target.checked === true ? "private" : "public",
+          });
         }}
       />
       <div>
@@ -800,6 +843,9 @@ function NewRecipe() {
         disabled={false}
         onClick={() => handlesubmit()}
       />
+      <div style={{ color: "#ff0000" }}>
+        <h4>{errorMessage}</h4>
+      </div>
       <Card>
         <h2>Ingredients</h2>
         {!showTopRow && (

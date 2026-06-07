@@ -1,19 +1,18 @@
 const { toInt, toFloat } = require("./utilities");
+const { mainUnits } = require("../utils/constantValues");
 
 function normalizeRecipeIngredientData(data) {
   const cleaned = {};
 
   // Helper function (like re.sub + strip + lower)
-  const normalizeString = (value) => value.trim().replace(/\s+/g, " ").toLowerCase();
+  const normaliseString = (value) => value.trim().replace(/\s+/g, " ").toLowerCase();
 
   // String fields
   const strFields = ["name", "portion_size", "privacy", "description"];
-
   strFields.forEach((field) => {
     const value = data[field];
-
     if (typeof value === "string") {
-      cleaned[field] = normalizeString(value);
+      cleaned[field] = normaliseString(value);
     } else {
       cleaned[field] = value;
     }
@@ -23,14 +22,12 @@ function normalizeRecipeIngredientData(data) {
   const components = data.components || [];
 
   if (Array.isArray(components)) {
-    const normalizedComponents = components.map((component) => {
-      if (typeof component !== "object" || component === null) return component;
-
+    const onlyObjComponents = components.filter((comp) => typeof comp === "object");
+    const normalisedComponents = onlyObjComponents.map((component) => {
       const normComp = {};
-
       Object.entries(component).forEach(([k, v]) => {
         if (typeof v === "string") {
-          normComp[k] = normalizeString(v);
+          normComp[k] = normaliseString(v);
         } else if (typeof v === "number") {
           normComp[k] = v;
         } else if (Array.isArray(v)) {
@@ -42,7 +39,7 @@ function normalizeRecipeIngredientData(data) {
               const normIng = {};
               Object.entries(ing).forEach(([key, value]) => {
                 if (typeof value === "string") {
-                  normIng[key] = normalizeString(value);
+                  normIng[key] = normaliseString(value);
                 } else {
                   normIng[key] = value;
                 }
@@ -56,7 +53,7 @@ function normalizeRecipeIngredientData(data) {
       return normComp;
     });
 
-    cleaned.components = normalizedComponents;
+    cleaned.components = normalisedComponents;
   } else {
     cleaned.components = [];
   }
@@ -65,14 +62,15 @@ function normalizeRecipeIngredientData(data) {
   const steps = data.steps || [];
 
   if (Array.isArray(steps)) {
-    cleaned.steps = steps.map((step) => {
-      if (typeof step !== "object" || step === null) return step;
+    const onlyObjSteps = steps.filter((step) => typeof step === "object");
+    cleaned.steps = onlyObjSteps.map((step) => {
+      // if (typeof step !== "object" || step === null) return step;
 
       const normStep = {};
 
       Object.entries(step).forEach(([key, value]) => {
         if (typeof value === "string") {
-          normStep[key] = normalizeString(value);
+          normStep[key] = normaliseString(value);
         } else {
           normStep[key] = value;
         }
@@ -89,19 +87,6 @@ function normalizeRecipeIngredientData(data) {
 
 function validateRecipeIngredient(data) {
   const recipe = data;
-
-  // helper converters (you must already have equivalents)
-  //   const toInt = (val, field) => {
-  //     const num = Number(val);
-  //     if (!Number.isInteger(num)) throw new Error(`${field} must be an integer`);
-  //     return num;
-  //   };
-
-  //   const toFloat = (val, field) => {
-  //     const num = Number(val);
-  //     if (isNaN(num)) throw new Error(`${field} must be a number`);
-  //     return num;
-  //   };
 
   // --- name ---
   const name = recipe.name;
@@ -136,104 +121,118 @@ function validateRecipeIngredient(data) {
   const components = recipe.components || [];
   const totalComponents = components.length;
 
+  // --- check component should have ingredients
   for (const component of components) {
     if (!component.ingredients || component.ingredients.length < 1) {
       return "Component cant be empty. atleast one ingredient required";
     }
   }
 
+  //  --- check total ingredients
   let totalIngredients = 0;
   for (const component of components) {
     totalIngredients += component.ingredients.length;
   }
-
   if (totalIngredients < 2) {
     return "minimum 2 ingredients required to make a recipe";
   }
 
   // --- Validate components & ingredients ---
   for (const component of components) {
-    try {
-      const componentDisplayOrder = toInt(
-        component.component_display_order,
-        "component_display_order",
+    const componentDisplayOrder = toInt(
+      component.component_display_order,
+      "component_display_order",
+    );
+
+    // --- validate if comp_display_order in range
+    if (componentDisplayOrder < 0 || componentDisplayOrder >= totalComponents) {
+      return `Invalid component display order`;
+    }
+    // --- validate for empty comp text for comp (allow empty for comp_display_order === 0)
+    const componentText = component.component_text;
+    if (
+      typeof componentText !== "string" ||
+      componentText.length > 50 ||
+      (componentDisplayOrder !== 0 && componentText === "")
+    ) {
+      return "Invalid component_input_text";
+    }
+
+    const ingredients = component.ingredients || [];
+    for (const ing of ingredients) {
+      const ingredientDisplayOrder = toInt(
+        ing.ingredient_display_order,
+        "ingredient_display_order",
       );
 
-      if (componentDisplayOrder < 0 || componentDisplayOrder >= totalComponents) {
-        return `Invalid component display order`;
-      }
-
-      const componentText = component.component_text;
+      // ---- Validate if ing_display_order in range
       if (
-        typeof componentText !== "string" ||
-        componentText.length > 50 ||
-        (componentDisplayOrder !== 0 && componentText === "")
+        !ingredientDisplayOrder ||
+        ingredientDisplayOrder <= 0 ||
+        ingredientDisplayOrder > totalIngredients
       ) {
-        return "Invalid component_input_text";
+        return "Invalid ingredient display order";
       }
 
-      const ingredients = component.ingredients || [];
+      // ---- limit check the ingredient_id value
+      const ingredientId = toInt(ing.ingredient_id, "ingredient_id");
+      if (!ingredientId || ingredientId <= 0 || ingredientId >= 1e6) {
+        return "Invalid ingredient id";
+      }
 
-      for (const ing of ingredients) {
-        const ingredientDisplayOrder = toInt(
-          ing.ingredient_display_order,
-          "ingredient_display_order",
-        );
+      // ---- validate ingredient_source within [main user]
+      const ingredientSource = ing.ingredient_source;
+      if (
+        !ingredientSource ||
+        typeof ingredientSource !== "string" ||
+        !["main", "user"].includes(ingredientSource)
+      ) {
+        return "Invalid ingredient_source";
+      }
 
-        if (ingredientDisplayOrder <= 0 || ingredientDisplayOrder > totalIngredients) {
-          return "Invalid ingredient display order";
-        }
+      // ---- validate quantity value within limit
+      const quantity = toFloat(ing.quantity, "quantity");
+      if (!quantity || quantity <= 0 || quantity >= 1e6) {
+        return "Invalid quantity";
+      }
 
-        const ingredientId = toInt(ing.ingredient_id, "ingredient_id");
-        if (ingredientId <= 0 || ingredientId >= 1e6) {
-          return "Invalid ingredient id";
-        }
+      // ---- validate unit_id value within limit
+      const unitId = toInt(ing.unit, "unit_id");
+      if (unitId <= 0 || unitId >= 1e8) {
+        return "Invalid unit_id";
+      }
 
-        const ingredientSource = ing.ingredient_source;
-        if (typeof ingredientSource !== "string" || !["main", "user"].includes(ingredientSource)) {
-          return "Invalid ingredient_source";
-        }
-
-        const quantity = toFloat(ing.quantity, "quantity");
-        if (quantity <= 0 || quantity >= 1e6) {
-          return "Invalid quantity";
-        }
-
-        const unitId = toInt(ing.unit_id, "unit_id");
-        if (unitId <= 0 || unitId >= 1e8) {
-          return "Invalid unit_id";
-        }
-
-        if (ing.base_price !== undefined) {
-          const basePrice = toFloat(ing.base_price, "base_price");
-          if (basePrice <= 0 || basePrice >= 1e8) {
-            return "Invalid base_price";
-          }
-        }
-
-        if (ing.base_quantity !== undefined) {
-          const baseQuantity = toFloat(ing.base_quantity, "base_quantity");
-          if (baseQuantity <= 0 || baseQuantity >= 1e6) {
-            return "Invalid base_quantity";
-          }
-        }
-
-        if (ing.base_unit !== undefined) {
-          const baseUnit = ing.base_unit;
-          if (typeof baseUnit !== "string" || !["kg", "l", "pc", "bunch"].includes(baseUnit)) {
-            return "Invalid base_unit";
-          }
-        }
-
-        if (ing.location !== undefined) {
-          const location = ing.location;
-          if (typeof location !== "string" || location.length > 50) {
-            return "Invalid location";
-          }
+      if (ing.display_price !== undefined) {
+        // ---- validate base_price value within limit
+        const basePrice = toFloat(ing.display_price, "base_price");
+        if (basePrice <= 0 || basePrice >= 1e8) {
+          return "Invalid base_price";
         }
       }
-    } catch (err) {
-      return err.message;
+
+      if (ing.display_quantity !== undefined) {
+        // ---- validate base_quantity value within limit
+        const baseQuantity = toFloat(ing.display_quantity, "base_quantity");
+        if (baseQuantity <= 0 || baseQuantity >= 1e6) {
+          return "Invalid base_quantity";
+        }
+      }
+
+      if (ing.display_unit !== undefined) {
+        // ---- validate base_unit value within limit []
+        const baseUnit = ing.display_unit;
+        if (typeof baseUnit !== "string" || !mainUnits.includes(baseUnit)) {
+          return "Invalid base_unit";
+        }
+      }
+
+      if (ing.location !== undefined) {
+        // ---- validate location value as string and within limit
+        const location = ing.location;
+        if (typeof location !== "string" || location.length > 50) {
+          return "Invalid location";
+        }
+      }
     }
   }
 
@@ -242,16 +241,18 @@ function validateRecipeIngredient(data) {
   const totalSteps = steps.length;
 
   for (const step of steps) {
+    // ---- validate step as object
     if (typeof step !== "object") {
       return "step must be object";
     }
 
-    const stepDisplayOrder = toInt(step.step_display_order, "step_display_order");
-
+    // ---- Validate if step_display_order in range
+    const stepDisplayOrder = toInt(step.step_order, "step_order");
     if (stepDisplayOrder < 0 || stepDisplayOrder > totalSteps) {
       return "Invalid step display order";
     }
 
+    // ---- Validate if step_text is not empty and in range
     const stepText = step.step_text;
     if (
       typeof stepText !== "string" ||
@@ -261,14 +262,17 @@ function validateRecipeIngredient(data) {
       return "Invalid step_text. Should be less than 500 character";
     }
 
-    const stepTime = step.step_time;
-    if (typeof stepTime !== "string") {
-      return "Invalid step_time";
-    }
+    // ---- validate step_time if received
+    if (step.step_time) {
+      const stepTime = step.step_time;
+      if (typeof stepTime !== "string") {
+        return "Invalid step_time";
+      }
 
-    // HH:MM validation
-    if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(stepTime)) {
-      return `Invalid step_time format (${stepTime})`;
+      // HH:MM validation
+      if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(stepTime)) {
+        return `Invalid step_time format (${stepTime})`;
+      }
     }
   }
 

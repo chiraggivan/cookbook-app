@@ -741,14 +741,6 @@ exports.update_recipe = async (req, res) => {
       }
     }
 
-    console.log("every ingredient check and data ready to to be inserted for update");
-    const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
-    return res.json({
-      success: updatedRecipeDetails.success,
-      message: updatedRecipeDetails.message,
-      data: updatedRecipeDetails.data,
-    });
-    return;
     // ------------------------------------ below validating steps data -------------------------------------------------
 
     // Validate remove_steps against the database
@@ -845,6 +837,14 @@ exports.update_recipe = async (req, res) => {
       }
     }
 
+    console.log("every ingredient check and data ready to to be inserted for update");
+    const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
+    return res.json({
+      success: updatedRecipeDetails.success,
+      message: updatedRecipeDetails.message,
+      data: updatedRecipeDetails.data,
+    });
+    return;
     // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
 
     const conn = await db.getConnection();
