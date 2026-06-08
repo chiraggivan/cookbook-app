@@ -112,7 +112,8 @@ exports.get_my_recipes = async (req, res) => {
         FROM recipes r 
         JOIN users u ON r.user_id = u.user_id
         WHERE r.is_active = TRUE
-        AND r.user_id = ? `,
+        AND r.user_id = ? 
+        ORDER BY r.created_at DESC`,
       [user.id],
     );
 
@@ -146,6 +147,7 @@ exports.get_recipe_details = async (req, res) => {
       });
     }
 
+    // get the recipe details data from calling the function
     const { success, message, data } = await getRecipeDetailsById(recipeId, user.id);
 
     if (!success) {
@@ -154,67 +156,6 @@ exports.get_recipe_details = async (req, res) => {
         message: message,
       });
     }
-    // // query recipes table
-    // const [recipeResult] = await db.query(
-    //   `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.created_at, r.user_id, u.username, u.display_name
-    //     FROM recipes r JOIN users u ON r.user_id = u.user_id
-    //     WHERE r.recipe_id = ?
-    //     AND r.is_active = 1
-    //     AND (r.user_id = ?
-    //     OR r.privacy = 'public')`,
-    //   [recipeId, user.id],
-    // );
-
-    // //  check any recipe found
-    // if (recipeResult.length === 0) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: "Dint find any such recipe",
-    //   });
-    // }
-
-    // // get ingredients for  recipe if found
-    // const [ingredientResult] = await db.query(readRecipeDetailsQ, [user.id, recipeId]);
-
-    // // add measuringUnits  and base units in data
-    // const updtdIngredientResult = await Promise.all(
-    //   ingredientResult.map(async (ing) => {
-    //     const [rows] = await db.query(
-    //       `SELECT unit_id, unit_name, conversion_factor
-    //       FROM units
-    //       WHERE ingredient_id = ? AND ingredient_source = ? AND is_active = 1
-    //       `,
-    //       [ing.ingredient_id, ing.ingredient_source],
-    //     );
-    //     // convert decimal columns - which are auto converted to string - to Number type
-    //     for (const row of rows) {
-    //       const toNumberFields = ["conversion_factor"];
-    //       for (const field of toNumberFields) {
-    //         row[field] = Number(row[field]);
-    //       }
-    //     }
-
-    //     return { ...ing, measuring_units: rows };
-    //   }),
-    // );
-
-    // // convert decimal columns - which are auto converted to string - to Number type
-    // for (const ing of updtdIngredientResult) {
-    //   const toNumberFields = ["base_quantity", "cost", "price", "quantity"];
-    //   for (const field of toNumberFields) {
-    //     ing[field] = Number(ing[field]);
-    //   }
-    // }
-
-    // // Get steps for the recipe
-    // const [stepResult] = await db.query(
-    //   `SELECT procedure_id, step_order, step_text, estimated_time
-    //     FROM recipe_procedures
-    //     WHERE recipe_id = ?
-    //     AND is_active = 1
-    //     ORDER BY step_order`,
-    //   [recipeId],
-    // );
 
     // response the data
     res.json({

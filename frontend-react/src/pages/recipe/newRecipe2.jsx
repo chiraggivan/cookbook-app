@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
@@ -11,6 +11,7 @@ import Table from "../../components/table";
 import Dropdown from "../../components/dropdown";
 import Navbar from "../../components/navbar";
 import Button from "../../components/button";
+import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
@@ -18,19 +19,17 @@ import DropdownArray from "../../components/dropdownArray";
 function NewRecipe() {
   const token = localStorage.getItem("token");
   const [isPrivate, setIsPrivate] = useState(false);
-  // const [selectUnit, setSelectUnit] = useState("");
-  // const [selectBaseUnit, setSelectBaseUnit] = useState("");
   const recipeCosting = useRef(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [suggestedIng, setSuggestedIng] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  // // const [measuringUnits, setMeasuringUnits] = useState([]);
-  const [rowData, setRowData] = useState([]);
-  //   const [inputText, setInputText] = useState([]);
+  const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
+  // const [rowData, setRowData] = useState([]);
+
   const [activeInputId, setActiveInputId] = useState(null);
   const itemRefs = useRef([]); // -------------> for auto scroll be visible while arrow down or up in suggested ingredients div
   const emptyIngRowData = () => ({
-    uid: "ing-" + (Date.now() + Math.floor(Math.random() * 1000)),
+    uid: "ing-" + (Date.now() + Math.random()),
     // rowNo: 1,
     ingredientId: "",
     ingredientSource: "",
@@ -46,14 +45,14 @@ function NewRecipe() {
   });
 
   const emptySectionData = () => ({
-    uid: "comp-" + (Date.now() + Math.floor(Math.random() * 1000)),
+    uid: "comp-" + (Date.now() + Math.random()),
     //   component_display_order: 0,
     component_text: "",
     ingredients: [emptyIngRowData()],
   });
 
   const emptyStepRow = () => ({
-    uid: "step-" + (Date.now() + Math.floor(Math.random() * 1000)),
+    uid: "step-" + (Date.now() + Math.random()),
     step_text: "",
   });
 
@@ -265,6 +264,9 @@ function NewRecipe() {
                           displayQuantity: ing.display_quantity,
                           displayUnit: ing.display_unit,
                           displayPrice: ing.display_price,
+                          ogDisplayQuantity: ing.display_quantity,
+                          ogDisplayUnit: ing.display_unit,
+                          ogDisplayPrice: ing.display_price,
                           ingredientSource: ing.ingredient_source,
                           ingredientId: ing.id,
                           measuringUnits: units,
@@ -603,6 +605,7 @@ function NewRecipe() {
   // ---------------------------- console to show recipe for every input ----------------------------------
   const handlesubmit = () => {
     // get recipe info
+    // console.log("sections in handlesubmit:", sections);
 
     finalMainRecipe.name = recipeInfo?.name ?? "";
     finalMainRecipe.portion_size = recipeInfo?.portion_size ?? "";
@@ -638,9 +641,17 @@ function NewRecipe() {
           ing.ingredient_source = i.ingredientSource ?? "";
           ing.quantity = i.quantity ?? "";
           ing.unit = i.unit ?? "";
-          ing.display_price = i.displayPrice;
-          ing.display_quantity = i.displayQuantity;
-          ing.display_unit = i.displayUnit;
+          // check if display values are same with ogDisplay values
+          if (
+            i.displayPrice !== i.ogDisplayPrice ||
+            i.displayQuantity !== i.ogDisplayQuantity ||
+            i.displayUnit !== i.ogDisplayUnit
+          ) {
+            ing.display_price = i.displayPrice;
+            ing.display_quantity = i.displayQuantity;
+            ing.display_unit = i.displayUnit;
+          }
+
           ingredients.push(ing);
         }
       });
@@ -716,19 +727,6 @@ function NewRecipe() {
           ing.display_price
         ) {
           ingCount++;
-          if (!ing.display_quantity) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
-              "Reqiure!!";
-          }
-          if (!ing.display_unit) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
-          }
-          if (!ing.display_price) {
-            isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
-          }
           if (!ing.unit) {
             isValid = false;
             checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
@@ -740,6 +738,22 @@ function NewRecipe() {
           if (!ing.ingredient_id) {
             isValid = false;
             checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
+          }
+          if (ing.display_quantity || ing.display_unit || ing.display_price) {
+            if (!ing.display_quantity) {
+              isValid = false;
+              checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
+                "Reqiure!!";
+            }
+            if (!ing.display_unit) {
+              isValid = false;
+              checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
+            }
+            if (!ing.display_price) {
+              isValid = false;
+              checkData.errors.components[comp.uid].ingredients[ing.uid].display_price =
+                "Reqiure!!";
+            }
           }
         }
       });
@@ -756,7 +770,7 @@ function NewRecipe() {
       setErrorMessage("Need atleast 2 ingredients to make a recipe");
     }
     setCheckFinalData(checkData);
-    console.log("checkData inside submit Button :", checkData);
+    console.log("data that is being sent to bckend:", checkData);
     if (!isValid) {
       return;
     }
@@ -770,15 +784,22 @@ function NewRecipe() {
 
         const res = await axios[method](url, body, config);
         console.log("res: ", res);
+        const newData = res?.data?.data;
+        if (newData) {
+          setRecipeDetails((prev) => [...prev, newData]);
+          setMyRecipes((prev) => [newData.recipe, ...prev]);
+        }
+        navigate(`/recipe/${res.data.recipeId}`);
       } catch (err) {
-        console.log("err found during api: ", err.response.data);
+        console.log("err found during saving new recipe api: ", err.response.data);
+        return;
       }
     };
     saveRecipe();
   };
 
   // console.log("inputText :", inputText);
-  console.log("sections :", sections);
+  // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
   // console.log("recipeInfo :", recipeInfo);

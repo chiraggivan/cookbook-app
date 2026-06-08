@@ -31,12 +31,6 @@ function MyRecipes() {
   // ------------------- fetch the data by giving url, method and body(if required) -------------------------
   const method = "get";
   const url = `${serverURL}/recipe/api/my`;
-  // const { success, data, message, loading, error } = useFetch(
-  //   token ? url : null,
-  //   token,
-  //   method,
-  //   null,
-  // );
 
   // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {
@@ -49,7 +43,6 @@ function MyRecipes() {
             // console.log("res : ", res);
             const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
             setMyRecipes(refinedMyRecipes);
-            // setMyRecipes(res?.data.data);
             setFetchedOnce(true);
           }
         } catch (err) {

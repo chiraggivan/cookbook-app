@@ -206,7 +206,7 @@ function validateRecipeIngredient(data) {
         // ---- validate base_price value within limit
         const basePrice = toFloat(ing.display_price, "base_price");
         if (basePrice <= 0 || basePrice >= 1e8) {
-          return "Invalid base_price";
+          return "Invalid display_price";
         }
       }
 
@@ -214,7 +214,7 @@ function validateRecipeIngredient(data) {
         // ---- validate base_quantity value within limit
         const baseQuantity = toFloat(ing.display_quantity, "base_quantity");
         if (baseQuantity <= 0 || baseQuantity >= 1e6) {
-          return "Invalid base_quantity";
+          return "Invalid display_quantity";
         }
       }
 
@@ -222,7 +222,7 @@ function validateRecipeIngredient(data) {
         // ---- validate base_unit value within limit []
         const baseUnit = ing.display_unit;
         if (typeof baseUnit !== "string" || !mainUnits.includes(baseUnit)) {
-          return "Invalid base_unit";
+          return "Invalid diplay_unit";
         }
       }
 

@@ -5,6 +5,7 @@ const {
   validateRecipeIngredient,
   normalize_unit,
 } = require("../../utils/recipesUtils");
+const readRecipeDetailsById = require("./utils/readRecipeDetailsById");
 
 exports.search_ingredients = async (req, res) => {
   try {
@@ -161,31 +162,32 @@ exports.create_recipe = async (req, res) => {
         // Validate unit refers to ingredient
         const [unitRows] = await db.query(
           "SELECT 1 FROM units WHERE unit_id = ? AND ingredient_id = ? AND ingredient_source = ?",
-          [ing.unit_id, ing.ingredient_id, ing.ingredient_source],
+          [ing.unit, ing.ingredient_id, ing.ingredient_source],
         );
-
         if (unitRows.length === 0) {
           return res.status(400).json({
-            error: `Unit ID ${ing.unit_id} not valid for ingredient ID ${ing.ingredient_id}`,
+            error: `Unit ID ${ing.unit} not valid for ingredient ID ${ing.ingredient_id}`,
           });
         }
 
         // If base_unit exists - validate compatibility
-        if (ing.base_unit) {
-          const [ingRows] = await db.query(
-            `SELECT i.ingredient_id,
-               COALESCE(up.custom_price, i.default_price) AS price,
-               i.base_unit as base_unit
-            FROM ingredients i
-            LEFT JOIN user_prices up
-                ON i.ingredient_id = up.ingredient_id
-                AND up.user_id = ?
-                AND up.is_active = 1
-            WHERE i.ingredient_id = ?
-                AND i.is_active = 1
-            `,
-            [user.id, ing.ingredient_id],
-          );
+        if (ing.display_unit) {
+          let ingRows;
+          if (ing.ingredient_source === "main") {
+            [ingRows] = await db.query(
+              `SELECT base_unit FROM ingredients
+              WHERE ingredient_id = ? AND is_active = 1
+              `,
+              [ing.ingredient_id],
+            );
+          } else if (ing.ingredient_source === "user") {
+            [ingRows] = await db.query(
+              `SELECT base_unit FROM user_ingredients
+              WHERE user_ingredient_id = ? AND is_active = 1
+              `,
+              [ing.ingredient_id],
+            );
+          }
 
           if (ingRows.length === 0) {
             return res.status(404).json({
@@ -208,7 +210,7 @@ exports.create_recipe = async (req, res) => {
             bunch: ["bunch"],
           };
 
-          if (!groups[ingData.base_unit]?.includes(ing.base_unit)) {
+          if (!groups[ingData.base_unit]?.includes(ing.display_unit)) {
             return res.status(400).json({
               error: `base unit of ingredient ${ing.ingredient_id} not matched with stored data`,
             });
@@ -217,9 +219,6 @@ exports.create_recipe = async (req, res) => {
       }
     }
     // validate steps for recipe_procedures if any wrt database
-
-    // response the data back
-    return res.json({ success: true, message: `reached  here before inserting till now`, data });
 
     // ---------------- Data checked and ready to be inserted. About to actually insert data in db ---------------------------
 
@@ -238,7 +237,7 @@ exports.create_recipe = async (req, res) => {
         [name, portion_size, user.id, privacy, description],
       );
       recipeId = recipeResult.insertId;
-      console.log("recipeId is:", recipeId);
+      // console.log("recipeId is:", recipeId);
 
       // Insert data in recipe components and get the recipe_component_id
       for (const component of components) {
@@ -249,12 +248,9 @@ exports.create_recipe = async (req, res) => {
         );
 
         const component_id = rcResult.insertId;
-        console.log("component_id is :", component_id);
 
         // Insert into recipe_ingredients
         for (const ingredient of component.ingredients) {
-          console.log("reached inside ingredients");
-          // console.log(ingredient);
           const [riResult] = await conn.query(
             `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, ingredient_source, quantity, unit_id, is_active, display_order, component_id)
             VALUES (?, ?, ?, ?, ?, TRUE, ?,?)`,
@@ -263,18 +259,18 @@ exports.create_recipe = async (req, res) => {
               ingredient.ingredient_id,
               ingredient.ingredient_source,
               ingredient.quantity,
-              ingredient.unit_id,
+              ingredient.unit,
               ingredient.ingredient_display_order,
               component_id,
             ],
           );
-          // console.log("reached here after inserting ingredients");
+
           // Update user_prices if base_unit/base_price/base_quantity is provided and different
-          if (ingredient.base_unit) {
+          if (ingredient.display_unit) {
             const [base_price, base_quantity, base_unit] = normalize_unit(
-              ingredient.base_price,
-              ingredient.base_quantity,
-              ingredient.base_unit,
+              ingredient.display_price,
+              ingredient.display_quantity,
+              ingredient.display_unit,
             );
 
             await db.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?)", [
@@ -291,12 +287,12 @@ exports.create_recipe = async (req, res) => {
           }
         }
       }
-      // console.log("about to start inserting in recipe_procedure");
+
       // Insert data in steps
       for (const step of steps) {
-        const step_time = step.step_time || "00:00";
+        const step_time = step?.step_time || "00:00";
         const formattedTime = `${step_time}:00`;
-        console.log("inserting in recipe_procedure");
+        // console.log("inserting in recipe_procedure");
         const [rpResult] = await conn.query(
           `INSERT INTO recipe_procedures (recipe_id, step_order, step_text, estimated_time)
             VALUES(?, ?, ?, ?)`,
@@ -319,11 +315,14 @@ exports.create_recipe = async (req, res) => {
       conn.release();
     }
 
-    // response the data back
+    //-----------  new recipe details data that we saved recently to be sent with res
+    const newData = readRecipeDetailsById(recipeId, user.id);
+
+    // ----- response the data back
     res.json({
       success: true,
       message: `${name} : Recipe created successfully!!!!!`,
-      recipeId,
+      data: newData,
     });
   } catch (error) {
     console.error("Error in createRecipeController - create_recipe");

@@ -136,21 +136,13 @@ function RecipeDetails() {
       const fetchData = async () => {
         try {
           setFetchLoading(true);
-          if (token) {
-            const res = await axios[method](url, config);
-            const tempRecipe = res?.data?.data;
 
-            // adding last prepared timings in recipe section of details
-            // const url2 = `${serverURL}/recipe/api/last-record/${id}`;
-            // const res2 = await axios.get(url2, config);
+          // call api to get recipe details
+          const res = await axios[method](url, config);
+          const tempRecipe = res?.data?.data;
 
-            // if (tempRecipe && tempRecipe.recipe) {
-            //   tempRecipe.recipe.date_prepared = res2.data.data.date_prepared;
-            //   tempRecipe.recipe.time_prepared = res2.data.data.time_prepared;
-            // }
-
-            setRecipeDetails((prev) => [...prev, tempRecipe]);
-          }
+          // save the new recipe details in recipeDetails Context variable
+          setRecipeDetails((prev) => [...prev, tempRecipe]);
         } catch (err) {
           console.log("error while fetching reicpe details with axios is :", err.response);
         } finally {
@@ -256,8 +248,8 @@ function RecipeDetails() {
   // console.log("table rows :", tableRows);
   // console.log("data is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
-  // console.log("recipeDetails :", recipeDetails);
-  // console.log("myRecipes :", myRecipes);
+  console.log("recipeDetails :", recipeDetails);
+  console.log("myRecipes :", myRecipes);
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>

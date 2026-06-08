@@ -336,9 +336,6 @@ function EditRecipe() {
         // console.log("res :", res);
         const x = res.data.data;
         x.recipe.name = x.recipe.name + " (updated)";
-        // console.log("x value is :", x);
-        // const recDetails = recipeDetails.map((r) => (r.recipe.recipe_id === Number(id) ? x : r));
-        // console.log("value of recDetails :", recDetails);
         setRecipeDetails(
           recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
         );
