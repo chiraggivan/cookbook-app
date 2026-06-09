@@ -220,7 +220,7 @@ function normalizeRecipeIngredientDataForUpdate(data) {
   }
 
   // Check and normalize add_steps
-  const addStepFields = ["step_text"];
+  const addStepFields = ["step_text", "step_order"];
   const addSteps = data.add_steps;
   if (!addSteps) {
     cleaned.add_steps = [];
@@ -237,14 +237,6 @@ function normalizeRecipeIngredientDataForUpdate(data) {
           cleanedAddStep[field] = value;
         }
       });
-
-      // Handle 'place' field separately
-      const placeValue = addStep.place;
-      if (typeof placeValue === "string") {
-        cleanedAddStep.place = placeValue.trim().replace(/\s+/g, " ").toLowerCase();
-      } else {
-        cleanedAddStep.place = placeValue;
-      }
 
       return cleanedAddStep;
     });
@@ -341,7 +333,6 @@ function validateRecipeIngredientForUpdate(data) {
 
   // Validate update_components and add_components
   const componentGroups = { update_components: updateComponents, add_components: addComponents };
-
   for (const [groupName, components] of Object.entries(componentGroups)) {
     if (components.length > 0) {
       for (const comp of components) {
@@ -415,7 +406,6 @@ function validateRecipeIngredientForUpdate(data) {
     update_ingredients: updateIngredients,
     add_ingredients: addIngredients,
   };
-
   for (const [groupName, ingredients] of Object.entries(ingredientGroups)) {
     if (ingredients.length > 0) {
       for (const ing of ingredients) {
@@ -442,9 +432,11 @@ function validateRecipeIngredientForUpdate(data) {
         }
 
         // ingredient_id
-        const ingredientId = Number(ing.ingredient_id);
-        if (!ingredientId || !Number.isInteger(ingredientId) || ingredientId <= 0) {
-          return `Invalid ingredient id '${ingredientId}': must be int > 0`;
+        const ingredientId = ing.ingredient_id;
+        if (ingredientId !== null && ingredientId !== undefined) {
+          if (!ingredientId || !Number.isInteger(ingredientId) || ingredientId <= 0) {
+            return `Invalid ingredient id '${ingredientId}': must be int > 0`;
+          }
         }
 
         // ingredient_source
@@ -535,6 +527,65 @@ function validateRecipeIngredientForUpdate(data) {
     }
   }
 
+  // Validate remove_steps
+  if (removeSteps.length > 0) {
+    for (const step of removeSteps) {
+      const value = step.procedure_id;
+      if (value === null || value === undefined) {
+        return "need to have procedure id to remove it";
+      }
+      if (!Number.isInteger(value) || value <= 0) {
+        return "Invalid procedure id: must be an int > 0";
+      }
+    }
+  }
+
+  // Group update/add steps for validation
+  const stepGroups = { update_steps: updateSteps, add_steps: addSteps };
+  for (const [groupName, steps] of Object.entries(stepGroups)) {
+    if (steps.length > 0) {
+      for (const step of steps) {
+        const stepOrder = Number(step.step_order);
+        const stepText = step.step_text;
+        const procedureId = Number(step.procedure_id);
+
+        // Required fields for add
+        if (groupName === "add_steps") {
+          if (!stepOrder || !stepText) {
+            return "Need step_order as int and step_text to add new step in recipe.";
+          }
+        }
+
+        // Required fields for update
+        if (groupName === "update_steps") {
+          if (!procedureId || procedureId < 1) {
+            return "Need procedure id as int to step in recipe.";
+          }
+        }
+
+        // Validate procedure_id (if present)
+        if (procedureId) {
+          if (!Number.isInteger(procedureId) || procedureId < 0) {
+            return `Invalid procedure_id '${procedureId}': must be int >= 0`;
+          }
+        }
+
+        // Validate component_display_order (if present) for update step
+        if (stepOrder !== null && stepOrder !== undefined) {
+          if (!Number.isInteger(stepOrder) || stepOrder < 0) {
+            return `Invalid step_order '${stepOrder}': must be int >= 0`;
+          }
+        }
+
+        // Validate step_text (if present)
+        if (stepText !== null && stepText !== undefined) {
+          if (typeof stepText !== "string" || stepText.length > 999) {
+            return `Invalid step_text '${stepText}': must be string type and less than 1000 characters`;
+          }
+        }
+      }
+    }
+  }
   return null;
 }
 

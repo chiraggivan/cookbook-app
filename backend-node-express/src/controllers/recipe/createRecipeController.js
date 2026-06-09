@@ -265,7 +265,7 @@ exports.create_recipe = async (req, res) => {
             ],
           );
 
-          // Update user_prices if base_unit/base_price/base_quantity is provided and different
+          // Update user_prices if display_unit/display_price/display_quantity is provided
           if (ingredient.display_unit) {
             const [base_price, base_quantity, base_unit] = normalize_unit(
               ingredient.display_price,
@@ -273,17 +273,21 @@ exports.create_recipe = async (req, res) => {
               ingredient.display_unit,
             );
 
-            await db.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?)", [
-              user.id,
-              ingredient.ingredient_id,
-              base_price,
-              base_quantity,
-              base_unit,
-              ingredient.location,
-              ingredient.base_price,
-              ingredient.base_quantity,
-              ingredient.base_unit,
-            ]);
+            if (ingredient.ingredient_source === "main") {
+              await db.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?)", [
+                user.id,
+                ingredient.ingredient_id,
+                ingredient.ingredient_source,
+                base_price,
+                base_quantity,
+                base_unit,
+                ingredient.location,
+                ingredient.display_price,
+                ingredient.display_quantity,
+                ingredient.display_unit,
+              ]);
+            } else if (ingredient.ingredient_source === "user") {
+            }
           }
         }
       }

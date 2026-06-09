@@ -659,7 +659,7 @@ function NewRecipe() {
       components.push(comp);
     });
     finalMainRecipe.components = components;
-    finalMainRecipe.steps = recipeInfo.steps;
+    // finalMainRecipe.steps = recipeInfo.steps;
 
     //  get steps information
     const steps = [];

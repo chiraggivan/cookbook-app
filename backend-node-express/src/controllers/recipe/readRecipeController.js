@@ -13,6 +13,7 @@ exports.get_recipes = async (req, res) => {
         FROM recipes r JOIN users u ON r.user_id = u.user_id
         WHERE r.is_active = TRUE
         AND (r.user_id = ? OR r.privacy = 'public') 
+        ORDER BY r.created_at DESC
         `,
       [user.id],
     );
@@ -69,7 +70,8 @@ exports.get_user_recipes = async (req, res) => {
             JOIN users u ON r.user_id = u.user_id
             WHERE r.is_active = TRUE
             AND r.user_id = ?
-            AND r.privacy = 'public'`,
+            AND r.privacy = 'public'
+            ORDER BY r.created_at DESC`,
       [find_user],
     );
 

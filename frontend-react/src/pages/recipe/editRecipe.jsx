@@ -354,7 +354,7 @@ function EditRecipe() {
         navigate(`/recipe/${id}`);
       } catch (err) {
         window.alert(`Error while  finalData recipe update with database`);
-        console.log("error while updating finalData with axios is :", err.response);
+        console.log("error while updating finalData with axios is :", err.response.data.message);
       } finally {
         setFetchLoading(false);
       }
@@ -516,6 +516,28 @@ function EditRecipe() {
                           ingredientId: ing.id,
                           measuringUnits: units,
                           baseUnits: getBaseUnits(ing.display_unit, units),
+                        }
+                      : ingredient,
+                  ),
+                }
+              : comp,
+          ),
+        }));
+        // update ogData for display values if ingredient_id has changed. While
+        // comparing at the end it should not compare with the old ingredient's display values
+        setOgData((prev) => ({
+          ...prev,
+          components: prev.components.map((comp) =>
+            comp.uid === cid
+              ? {
+                  ...comp,
+                  ingredients: comp.ingredients.map((ingredient) =>
+                    ingredient.uid === iid
+                      ? {
+                          ...ingredient,
+                          displayQuantity: ing.display_quantity,
+                          displayUnit: ing.display_unit,
+                          displayPrice: ing.display_price,
                         }
                       : ingredient,
                   ),

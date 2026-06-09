@@ -105,12 +105,13 @@ export function getFinalDataForBackend(recipeInfo, OgData) {
       if (ing.ingredientId !== OgIng.ingredientId) {
         updtIng.recipe_ingredient_id = ing.recipeIngredientId;
         updtIng.ingredient_id = ing.ingredientId;
-      }
-      //  check ingredient_source
-      if (ing.ingredientSource !== OgIng.ingredientSource) {
-        updtIng.recipe_ingredient_id = ing.recipeIngredientId;
         updtIng.ingredient_source = ing.ingredientSource;
       }
+      //  check ingredient_source --> NOT required as dont have direct access, it should show with the change in ingredientID
+      // if (ing.ingredientSource !== OgIng.ingredientSource) {
+      //   updtIng.recipe_ingredient_id = ing.recipeIngredientId;
+      //   updtIng.ingredient_source = ing.ingredientSource;
+      // }
       //  check quantity
       if (ing.quantity !== OgIng.quantity) {
         updtIng.recipe_ingredient_id = ing.recipeIngredientId;
