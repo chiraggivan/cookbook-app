@@ -7,16 +7,18 @@ import Navbar from "../../components/navbar";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
 import Button from "../../components/button";
+import Toggle from "../../components/toggle";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const [isPrivate, setIsPrivate] = useState(false);
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
-  // const [details4Dish, setDetails4Dish] = useState({});
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
+  const navigate = useNavigate();
   let tableRows = [];
   const details4Dish = {};
   const config = {
@@ -155,6 +157,25 @@ function RecipeDetails() {
     setFetchLoading(false);
   }, []);
 
+  // ------------------------------------  change privacy in recipe details ----------------------------
+  //  only option available to edit in read recipe for quick update.
+
+  const changePrivacy = async (val) => {
+    setFetchLoading(true);
+    const url = `${serverURL}/recipe/api/update-privacy/${id}`;
+    const method = "put";
+    const body = { privacy: val };
+    try {
+      console.log("about to call api ");
+      const res = await axios[method](url, body, config);
+      console.log("res :", res);
+    } catch (err) {
+      console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
   //-------------------------------------- get the total cost of recipe -----------------------------------
   const totalCost =
     Math.ceil(foundRecipeDetails?.ingredients?.reduce((sum, i) => sum + i.price, 0) * 100) / 100 ||
@@ -250,6 +271,7 @@ function RecipeDetails() {
   // console.log("details4Dish is :", details4Dish);
   console.log("recipeDetails :", recipeDetails);
   console.log("myRecipes :", myRecipes);
+
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>
@@ -258,7 +280,37 @@ function RecipeDetails() {
       <h1>{foundRecipeDetails?.recipe.name}</h1>
       <h3>{foundRecipeDetails?.recipe.portion_size}</h3>
       <h3>{foundRecipeDetails?.recipe.description}</h3>
-      <h5>{foundRecipeDetails?.recipe.privacy}</h5>
+      <div>
+        {!changePrvcyLoading && (
+          <Toggle
+            title=""
+            checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+            onText="Private"
+            offText="Private"
+            onChange={(e) => {
+              setChangePrvcyLoading(true);
+              setRecipeDetails(
+                recipeDetails.map(
+                  (item) =>
+                    (item.recipe.recipe_id = id
+                      ? {
+                          ...item,
+                          recipe: {
+                            ...item.recipe,
+                            privacy: e.target.checked ? "private" : "public",
+                          },
+                        }
+                      : item),
+                ),
+              );
+              changePrivacy(e.target.checked ? "private" : "public");
+              setChangePrvcyLoading(false);
+            }}
+          />
+        )}
+        {changePrvcyLoading && <h1> Privacy Loading .............</h1>}
+      </div>
+
       <h3>£ {totalCost}</h3>
       <button onClick={handleCreateDish}>create dish</button>
       <h4>

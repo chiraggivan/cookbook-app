@@ -171,7 +171,7 @@ exports.update_privacy = async (req, res) => {
     console.error("Error in updateRecipeController - update_privacy :", err);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: `Server error ${err}`,
     });
   } finally {
   }

@@ -34,7 +34,7 @@ exports.search_ingredients = async (req, res) => {
         LEFT JOIN user_prices up ON i.ingredient_id = up.ingredient_id AND up.user_id = ? AND up.is_active = 1
         WHERE LOWER(i.name) LIKE ?
         AND (i.approval_status = "approved" OR i.submitted_by = ?)
-        LIMIT 20`,
+        LIMIT 40`,
       [id, i, id, i, id],
     );
     if (rows.length > 0) {

@@ -119,12 +119,11 @@ function NewRecipe() {
   const searchIng = (val) => {
     //  if val.length < 1 then return
     if (val.trim().length === 0) {
+      clearTimeout(timeoutRef.current);
+      setSuggestedIng([]);
       return;
     }
-    // check if token available for api
-    if (!token) {
-      return;
-    }
+
     // check if previous timeout reference is active
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -453,9 +452,9 @@ function NewRecipe() {
   let totalCost = 0;
   sections.forEach((section) => {
     section.ingredients.forEach((ingredient) => {
-      const dq = ingredient.displayQuantity;
+      const dq = Number(ingredient.displayQuantity);
       const du = ingredient.displayUnit;
-      const dp = ingredient.displayPrice;
+      const dp = Number(ingredient.displayPrice);
       const q = ingredient.quantity;
       const u = ingredient.unit;
       const mu = ingredient.measuringUnits;
@@ -798,7 +797,7 @@ function NewRecipe() {
     saveRecipe();
   };
 
-  // console.log("inputText :", inputText);
+  // console.log("sections :", sections);
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
@@ -962,6 +961,11 @@ function NewRecipe() {
                                               ingredientId: "",
                                               measuringUnits: [],
                                               baseUnits: [],
+                                              unit: "",
+                                              quantity: "",
+                                              ogDisplayPrice: "",
+                                              ogDisplayQuantity: "",
+                                              ogDisplayUnit: "",
                                             }
                                           : i,
                                       ),
@@ -971,6 +975,9 @@ function NewRecipe() {
                             );
                             searchIng(e.target.value);
                             addNewIngRow(comp.uid, index);
+                            if (!activeInputId) {
+                              setActiveInputId(ing.uid);
+                            }
                             if (
                               checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                                 ?.name

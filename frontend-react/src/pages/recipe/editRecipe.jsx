@@ -211,157 +211,6 @@ function EditRecipe() {
     fetchData();
   }, []);
 
-  // ---------------------------- TEMP console to show recipe for every input ----------------------------------
-  const handleSubmit = () => {
-    const checkDataErrors = { recipe: {}, components: [], steps: [] };
-    // checkData.errors = {};
-    let isValid = true;
-    setErrorMessage("");
-    // // ---------------------------------- check recipe data ----------------------------------
-    if (!recipeInfo.recipe.name || recipeInfo.recipe.name.trim() === "") {
-      isValid = false;
-      checkDataErrors.recipe.name = "Name required";
-    }
-    if (!recipeInfo.recipe.portion_size || recipeInfo.recipe.portion_size.trim() === "") {
-      isValid = false;
-      checkDataErrors.recipe.portion_size =
-        "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
-    }
-    if (!recipeInfo.recipe.privacy) {
-      recipeInfo.privacy = false;
-    }
-
-    // // ---------------------------- check components + ingredients data ---------------------------
-    recipeInfo.components.forEach((comp, indexc) => {
-      if (!checkDataErrors.components) {
-        checkDataErrors.components = [];
-      }
-      if (!checkDataErrors.components[indexc]) {
-        checkDataErrors.components[indexc] = {};
-      }
-
-      if (indexc === 0 && showTopRow && comp.componentText === "") {
-        isValid = false;
-        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
-      }
-      if (indexc !== 0 && comp.componentText === "") {
-        isValid = false;
-        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
-      }
-
-      comp.ingredients.forEach((ing, indexi) => {
-        if (!checkDataErrors?.components[indexc]?.ingredients) {
-          checkDataErrors.components[indexc].ingredients = {};
-        }
-        if (!checkDataErrors.components[indexc].ingredients[indexi]) {
-          checkDataErrors.components[indexc].ingredients[indexi] = {};
-        }
-
-        if (
-          ing.ingredientId ||
-          ing.quantity ||
-          ing.unitId ||
-          ing.displayQuantity ||
-          ing.displayUnit ||
-          ing.displayPrice
-        ) {
-          [
-            { value: ing.ingredientId, name: "name" },
-            { value: ing.quantity, name: "quantity" },
-            { value: ing.unitId, name: "unitId" },
-            { value: ing.displayQuantity, name: "displayQuantity" },
-            { value: ing.displayUnit, name: "displayQnit" },
-            { value: ing.displayPrice, name: "displayPrice" },
-          ].forEach((i) => {
-            if (!i.value) {
-              isValid = false;
-              checkDataErrors.components[indexc].ingredients[indexi][i.name] = "Reqiure!!";
-            }
-          });
-        }
-      });
-    });
-
-    // check if the data is valid and if NOT then return back to screen
-    setCheckFinalData(checkDataErrors);
-    if (!isValid) {
-      return;
-    }
-
-    // // ------------ get the display order of components and ingredient updated from recipeInfo --------------------
-    let ing_display_order = 1;
-    const newComponentsData = recipeInfo.components.map((comp, indexc) => ({
-      ...comp,
-      componentDisplayOrder: indexc,
-      ingredients: comp.ingredients
-        .filter((i) => i.ingredientId)
-        .map((ing, indexi) => ({
-          ...ing,
-          componentDisplayOrder: indexc,
-          recipeComponentId: comp.recipeComponentId ?? "",
-          ingredientDisplayOrder: ing_display_order++,
-        })),
-    }));
-
-    // // ------------------------ get the display order of Steps updated from recipeInfo -----------------------------
-    let step_display_order = 1;
-    const newStepsData = recipeInfo.steps
-      .filter((s) => s.step_text)
-      .map((step, indexs) => ({
-        ...step,
-        step_order: step_display_order++,
-      }));
-
-    // // ------------------------ udpate recipeInfo with newComponentData and newStepData ---------------------------
-    const newRecipeInfo = {
-      ...recipeInfo,
-      components: newComponentsData,
-      steps: newStepsData,
-    };
-
-    // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
-    const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
-    console.log("finalData :", finalData);
-
-    // // ----------------------------------- call the bakend api to update recipe -----------------------------------
-    const url = `${serverURL}/recipe/api/update/${id}`;
-    const method = "patch";
-    const body = finalData;
-
-    const updateRecipe = async () => {
-      try {
-        setFetchLoading(true);
-        // call api
-        const res = await axios[method](url, body, config);
-        // console.log("res :", res);
-        const x = res.data.data;
-        x.recipe.name = x.recipe.name + " (updated)";
-        setRecipeDetails(
-          recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
-        );
-        setMyRecipes(
-          myRecipes.map((item) =>
-            item.recipe_id === x.recipe.recipe_id
-              ? {
-                  ...item,
-                  portion_size: x.recipe.portion_size,
-                  name: x.recipe.name,
-                  description: x.recipe.description,
-                }
-              : item,
-          ),
-        );
-        navigate(`/recipe/${id}`);
-      } catch (err) {
-        window.alert(`Error while  finalData recipe update with database`);
-        console.log("error while updating finalData with axios is :", err.response.data.message);
-      } finally {
-        setFetchLoading(false);
-      }
-    };
-    updateRecipe();
-  };
-
   // ----------------------------- ADD new empty ing row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
     setRecipeInfo((prev) => ({
@@ -894,6 +743,157 @@ function EditRecipe() {
     setUpdateBtn(btnDisabled);
   }, [recipeInfo]);
 
+  // ---------------------------- TEMP console to show recipe for every input ----------------------------------
+  const handleSubmit = () => {
+    const checkDataErrors = { recipe: {}, components: [], steps: [] };
+    // checkData.errors = {};
+    let isValid = true;
+    setErrorMessage("");
+    // // ---------------------------------- check recipe data ----------------------------------
+    if (!recipeInfo.recipe.name || recipeInfo.recipe.name.trim() === "") {
+      isValid = false;
+      checkDataErrors.recipe.name = "Name required";
+    }
+    if (!recipeInfo.recipe.portion_size || recipeInfo.recipe.portion_size.trim() === "") {
+      isValid = false;
+      checkDataErrors.recipe.portion_size =
+        "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+    }
+    if (!recipeInfo.recipe.privacy) {
+      recipeInfo.privacy = false;
+    }
+
+    // // ---------------------------- check components + ingredients data ---------------------------
+    recipeInfo.components.forEach((comp, indexc) => {
+      if (!checkDataErrors.components) {
+        checkDataErrors.components = [];
+      }
+      if (!checkDataErrors.components[indexc]) {
+        checkDataErrors.components[indexc] = {};
+      }
+
+      if (indexc === 0 && showTopRow && comp.componentText === "") {
+        isValid = false;
+        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
+      }
+      if (indexc !== 0 && comp.componentText === "") {
+        isValid = false;
+        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
+      }
+
+      comp.ingredients.forEach((ing, indexi) => {
+        if (!checkDataErrors?.components[indexc]?.ingredients) {
+          checkDataErrors.components[indexc].ingredients = {};
+        }
+        if (!checkDataErrors.components[indexc].ingredients[indexi]) {
+          checkDataErrors.components[indexc].ingredients[indexi] = {};
+        }
+
+        if (
+          ing.ingredientId ||
+          ing.quantity ||
+          ing.unitId ||
+          ing.displayQuantity ||
+          ing.displayUnit ||
+          ing.displayPrice
+        ) {
+          [
+            { value: ing.ingredientId, name: "name" },
+            { value: ing.quantity, name: "quantity" },
+            { value: ing.unitId, name: "unitId" },
+            { value: ing.displayQuantity, name: "displayQuantity" },
+            { value: ing.displayUnit, name: "displayQnit" },
+            { value: ing.displayPrice, name: "displayPrice" },
+          ].forEach((i) => {
+            if (!i.value) {
+              isValid = false;
+              checkDataErrors.components[indexc].ingredients[indexi][i.name] = "Reqiure!!";
+            }
+          });
+        }
+      });
+    });
+
+    // check if the data is valid and if NOT then return back to screen
+    setCheckFinalData(checkDataErrors);
+    if (!isValid) {
+      return;
+    }
+
+    // // ------------ get the display order of components and ingredient updated from recipeInfo --------------------
+    let ing_display_order = 1;
+    const newComponentsData = recipeInfo.components.map((comp, indexc) => ({
+      ...comp,
+      componentDisplayOrder: indexc,
+      ingredients: comp.ingredients
+        .filter((i) => i.ingredientId)
+        .map((ing, indexi) => ({
+          ...ing,
+          componentDisplayOrder: indexc,
+          recipeComponentId: comp.recipeComponentId ?? "",
+          ingredientDisplayOrder: ing_display_order++,
+        })),
+    }));
+
+    // // ------------------------ get the display order of Steps updated from recipeInfo -----------------------------
+    let step_display_order = 1;
+    const newStepsData = recipeInfo.steps
+      .filter((s) => s.step_text)
+      .map((step, indexs) => ({
+        ...step,
+        step_order: step_display_order++,
+      }));
+
+    // // ------------------------ udpate recipeInfo with newComponentData and newStepData ---------------------------
+    const newRecipeInfo = {
+      ...recipeInfo,
+      components: newComponentsData,
+      steps: newStepsData,
+    };
+
+    // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
+    const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
+    console.log("finalData :", finalData);
+
+    // // ----------------------------------- call the bakend api to update recipe -----------------------------------
+    const url = `${serverURL}/recipe/api/update/${id}`;
+    const method = "patch";
+    const body = finalData;
+
+    const updateRecipe = async () => {
+      try {
+        setFetchLoading(true);
+        // call api
+        const res = await axios[method](url, body, config);
+        // console.log("res :", res);
+        const x = res.data.data;
+        x.recipe.name = x.recipe.name + " (updated)";
+        setRecipeDetails(
+          recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
+        );
+        setMyRecipes(
+          myRecipes.map((item) =>
+            item.recipe_id === x.recipe.recipe_id
+              ? {
+                  ...item,
+                  portion_size: x.recipe.portion_size,
+                  name: x.recipe.name,
+                  description: x.recipe.description,
+                }
+              : item,
+          ),
+        );
+        navigate(`/recipe/${id}`);
+      } catch (err) {
+        window.alert(`Error while  finalData recipe update with database`);
+        console.log("error while updating finalData with axios is :", err.response.data.message);
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    updateRecipe();
+  };
+
   // console.log("inputText :", inputText);
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
@@ -1084,6 +1084,8 @@ function EditRecipe() {
                                               baseUnits: [],
                                               unitId: "",
                                               unitName: "",
+                                              unit: "",
+                                              quantity: "",
                                             }
                                           : i,
                                       ),
@@ -1093,6 +1095,9 @@ function EditRecipe() {
                             }));
                             searchIng(e.target.value);
                             addNewIngRow(comp.uid, index);
+                            if (!activeInputId) {
+                              setActiveInputId(ing.uid);
+                            }
                             if (
                               checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
                                 ?.name
