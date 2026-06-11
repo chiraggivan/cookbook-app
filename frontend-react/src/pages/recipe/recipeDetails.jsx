@@ -127,6 +127,7 @@ function RecipeDetails() {
   const body = null;
 
   const searchMyRecipes = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
+  // console.log("searchMyRecipes :", searchMyRecipes);
   // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {
     setFoundRecipeDetails(searchMyRecipes);
@@ -147,6 +148,7 @@ function RecipeDetails() {
           setRecipeDetails((prev) => [...prev, tempRecipe]);
         } catch (err) {
           console.log("error while fetching reicpe details with axios is :", err.response);
+          window.alert("Something went wrong while fetching recipe. Please try again later.");
         } finally {
           setFetchLoading(false);
         }
@@ -161,18 +163,35 @@ function RecipeDetails() {
   //  only option available to edit in read recipe for quick update.
 
   const changePrivacy = async (val) => {
-    setFetchLoading(true);
+    // setFetchLoading(true);
     const url = `${serverURL}/recipe/api/update-privacy/${id}`;
     const method = "put";
     const body = { privacy: val };
+
     try {
-      console.log("about to call api ");
       const res = await axios[method](url, body, config);
       console.log("res :", res);
     } catch (err) {
-      console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
+      // console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
+      window.alert("Something went wrong while updating privacy. Please try again later.");
+
+      //  change back the privacy that we set with onChange in Toggle component, during err in above try block
+      setRecipeDetails(
+        recipeDetails.map((item) =>
+          item.recipe.recipe_id === id
+            ? {
+                ...item,
+                recipe: {
+                  ...item.recipe,
+                  privacy: val === "pubic" ? "private" : "public",
+                },
+              }
+            : item,
+        ),
+      );
+      return;
     } finally {
-      setFetchLoading(false);
+      // setFetchLoading(false);
     }
   };
 
@@ -289,18 +308,17 @@ function RecipeDetails() {
             offText="Private"
             onChange={(e) => {
               setChangePrvcyLoading(true);
-              setRecipeDetails(
-                recipeDetails.map(
-                  (item) =>
-                    (item.recipe.recipe_id = id
-                      ? {
-                          ...item,
-                          recipe: {
-                            ...item.recipe,
-                            privacy: e.target.checked ? "private" : "public",
-                          },
-                        }
-                      : item),
+              setRecipeDetails((prev) =>
+                prev.map((item) =>
+                  item.recipe.recipe_id === Number(id)
+                    ? {
+                        ...item,
+                        recipe: {
+                          ...item.recipe,
+                          privacy: e.target.checked ? "private" : "public",
+                        },
+                      }
+                    : item,
                 ),
               );
               changePrivacy(e.target.checked ? "private" : "public");
@@ -308,7 +326,7 @@ function RecipeDetails() {
             }}
           />
         )}
-        {changePrvcyLoading && <h1> Privacy Loading .............</h1>}
+        {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
       </div>
 
       <h3>£ {totalCost}</h3>
