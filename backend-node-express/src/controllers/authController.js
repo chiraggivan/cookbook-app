@@ -123,18 +123,30 @@ exports.checkEmail = async (req, res) => {
 exports.register = async (req, res) => {
   const userData = req.body;
   // console.log("in backend and data is :", userData);
+  // ----------------------- normalise and validate data -------------------------------
+  // const data = normaliseNewUserData(userData);
+  // const error = validateNewUserData(data);
 
+  // if (error) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: `Error while validating : ${error}`,
+  //   });
+  // }
+  // ------------------------data normalised and validated -----------------------------
+  const stringData = JSON.stringify(userData);
   let conn;
   try {
     conn = await db.getConnection();
     await conn.beginTransaction();
 
     const query = `CALL create_new_user(?)`;
-    const queryValues = [userData];
+    const queryValues = [stringData];
     const [result] = await conn.query(query, queryValues);
 
     await conn.commit();
   } catch (err) {
+    console.log("Error in authController - register :", err);
     return res.status(400).json({
       success: false,
       message: err.sqlMessage,
