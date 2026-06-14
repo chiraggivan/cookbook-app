@@ -8,8 +8,12 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // const expired = searchParams.get("expired");
-  // const errorMessage = searchParams.get("msg");
+  const expired = searchParams.get("expired");
+  const errorMessage = searchParams.get("msg");
+  const [successMsg, setSuccessMsg] = useState("");
+  if (searchParams.get("successMsg") !== successMsg) {
+    setSuccessMsg(searchParams.get("successMsg"));
+  }
   const [errMessage, setErrMessage] = useState("");
   const [userMsg, setUserMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
@@ -17,7 +21,7 @@ function Login() {
   // submit button function
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("user name is :", username, "password is :", password);
+    // setSuccessMsg("");
     try {
       // check values of username and password
       if (!username || !password) {
@@ -57,6 +61,7 @@ function Login() {
     }
   };
 
+  console.log("successMsg :", successMsg);
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -89,6 +94,7 @@ function Login() {
         {errMessage && <p style={{ color: "red" }}>{errMessage}</p>}
         <button type="submit">Login</button>
       </form>
+      {successMsg && <p style={{ color: "#b4b4b4" }}>{successMsg}</p>}
       <div>
         <p>
           Create an account

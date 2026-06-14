@@ -10,6 +10,7 @@ function register() {
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
   const [userMsg, setUserMsg] = useState("");
+  const [userScss, setUserScss] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
   const [email, setEmail] = useState("");
@@ -26,9 +27,11 @@ function register() {
     try {
       const res = await axios[method](url);
       if (res.data.success === true) {
+        setUserScss(true);
         setUserMsg("Username available");
         return;
       } else {
+        setUserScss(false);
         setUserMsg(res.data.message);
       }
     } catch (err) {
@@ -89,9 +92,11 @@ function register() {
     const method = "post";
     try {
       const res = await axios[method](url, userData);
-      navigate("/login");
+      console.log("res :", res.data.message);
+      const msg = `Login again with your username as : ${username}`;
+      navigate(`/login?successMsg=${encodeURIComponent(msg)}`);
     } catch (err) {
-      console.log("err is :", err.response.data.message);
+      console.log("Error during register is :", err.response.data.message);
       setErrMsg(err.response.data.message);
     }
 
@@ -141,7 +146,8 @@ function register() {
             onBlur={(e) => checkUsername(e.target.value)}
           />
         </div>
-        {userMsg && <h4 style={{ color: "red" }}>{userMsg}</h4>}
+        {userMsg && userScss === false && <h4 style={{ color: "red" }}>{userMsg}</h4>}
+        {userMsg && userScss === true && <h4 style={{ color: "green" }}>{userMsg}</h4>}
         <div>
           <label>Password:</label>
           <input
