@@ -10,19 +10,30 @@ function register() {
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
   const [userMsg, setUserMsg] = useState("");
-  const [userScss, setUserScss] = useState(false);
+  const [nameMsg, setNameMsg] = useState("");
   const [emailMsg, setEmailMsg] = useState("");
+  const [userScss, setUserScss] = useState(false);
+  // const [emailMsg, setEmailMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
   const [email, setEmail] = useState("");
   const [errMsg, setErrMsg] = useState("");
   const navigate = useNavigate();
+  const [disableRegisterBtn, setDisableRegisterBtn] = useState(true);
+
+  const checkName = (val) => {
+    if (!val || val.length > 30) {
+      setNameMsg("Name should be less than 30 chars.");
+    }
+  };
 
   const checkUsername = async (val) => {
-    if (!val) {
+    if (!val || val.length < 3 || !/^[a-zA-Z0-9]+$/.test(val)) {
+      setUserScss(false);
+      setUserMsg("Be atleast 3 character long and can only have alpha numeric values.");
       return;
     }
 
-    const url = `${serverURL}/auth/api/checkid/${val}`;
+    const url = `${serverURL}/auth/api/checkUsername/${val}`;
     const method = "get";
     try {
       const res = await axios[method](url);
@@ -43,7 +54,7 @@ function register() {
   };
 
   const checkEmail = async (val) => {
-    if (!val) {
+    if (!val || !val.includes("@") || !val.includes(".")) {
       // as this is run onBlur, possible user will comeout of the field without any text
       return;
     }
@@ -70,14 +81,56 @@ function register() {
   };
 
   const checkPassword = (pass, repass) => {
-    if (password !== rePassword) {
+    if (pass !== repass) {
       setPwdMsg("Passwords did not matched.");
+    }
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_$#*&%@])[a-zA-Z0-9_$#*&%@]+$/.test(password)) {
+      setPwdMsg(
+        "Password should have 1 Upper, 1 Lower, 1 number and 1 Special character : _$#*&%@",
+      );
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (
+      nameMsg === "" &&
+      userScss === true &&
+      pwdMsg === "" &&
+      emailMsg === "" &&
+      name !== "" &&
+      username !== "" &&
+      email !== "" &&
+      password !== ""
+    ) {
+      setDisableRegisterBtn(false);
+    } else {
+      setDisableRegisterBtn(true);
+    }
+  }, [nameMsg, userScss, pwdMsg, emailMsg, name, username, email, password]);
 
+  const handleSubmit = async (e) => {
+    console.log("registerbtn :", registerBtn);
+    console.log(
+      "nameMsg: ",
+      nameMsg,
+      " userScss: ",
+      userScss,
+      " pwdMsg: ",
+      pwdMsg,
+      " emailMsg: ",
+      emailMsg,
+      " name: ",
+      name,
+      " username: ",
+      username,
+      " email: ",
+      email,
+      " password: ",
+      password,
+    );
+    e.preventDefault();
+    return;
     const userData = {
       name: name,
       email: email,
@@ -102,7 +155,7 @@ function register() {
 
     // return;
   };
-
+  console.log("disableRegisterBtn :", disableRegisterBtn);
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -115,9 +168,12 @@ function register() {
             onChange={(e) => {
               e.preventDefault();
               setName(e.target.value);
+              setNameMsg("");
             }}
+            onBlur={(e) => checkName(e.target.value)}
           />
         </div>
+        {nameMsg && <h4 style={{ color: "red" }}>{nameMsg}</h4>}
         <div>
           <label>Email:</label>
           <input
@@ -143,7 +199,14 @@ function register() {
               setUserMsg("");
               // setErrMessage("");
             }}
-            onBlur={(e) => checkUsername(e.target.value)}
+            onBlur={(e) => {
+              if (e.target.value.length === 0) {
+                setUserScss(false);
+                setUserMsg("Username required");
+              } else {
+                checkUsername(e.target.value);
+              }
+            }}
           />
         </div>
         {userMsg && userScss === false && <h4 style={{ color: "red" }}>{userMsg}</h4>}
@@ -175,7 +238,9 @@ function register() {
         </div>
         {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>}
 
-        <button type="submit">Register</button>
+        <button type="submit" disabled={disableRegisterBtn}>
+          Register
+        </button>
         {errMsg && <p style={{ color: "red" }}>{errMsg}</p>}
       </form>
     </>

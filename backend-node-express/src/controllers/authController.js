@@ -1,10 +1,14 @@
 const jwt = require("jsonwebtoken");
 const db = require("../config/database");
 const bcrypt = require("bcryptjs");
+const {
+  normaliseNewUserData,
+  validateNewUserData,
+} = require("./authNhome/utils/normaliseNvalidateUserData");
 
 //
 exports.login = async (req, res) => {
-  // console.log("req :", req.body);
+  //  return;
   try {
     const { username, password } = req.body;
 
@@ -35,7 +39,7 @@ exports.login = async (req, res) => {
     if (!isValidPwd) {
       return res.status(401).json({
         success: false,
-        message: "Username and password does match",
+        message: "Username and password does not match",
       });
     }
 
@@ -72,8 +76,8 @@ exports.checkUsername = async (req, res) => {
   // check if val is empty
   if (!val) {
     return res.json({
-      success: true,
-      message: "",
+      success: false,
+      message: "No username to check",
     });
   }
 
@@ -99,8 +103,8 @@ exports.checkEmail = async (req, res) => {
   // if empty val
   if (!val) {
     return res.json({
-      success: true,
-      message: "",
+      success: false,
+      message: "No email address provided.",
     });
   }
 
@@ -109,7 +113,7 @@ exports.checkEmail = async (req, res) => {
   if (result.length === 0) {
     return res.json({
       success: true,
-      message: "",
+      message: "Email Available",
     });
   } else {
     return res.json({
@@ -124,17 +128,21 @@ exports.register = async (req, res) => {
   const userData = req.body;
   // console.log("in backend and data is :", userData);
   // ----------------------- normalise and validate data -------------------------------
-  // const data = normaliseNewUserData(userData);
-  // const error = validateNewUserData(data);
+  const data = normaliseNewUserData(userData);
+  const error = validateNewUserData(data);
 
-  // if (error) {
-  //   return res.status(400).json({
-  //     success: false,
-  //     message: `Error while validating : ${error}`,
-  //   });
-  // }
-  // ------------------------data normalised and validated -----------------------------
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: `Error while validating : ${error}`,
+    });
+  }
+  // ------------------------ hash the password before sending to procedure -----------------------------
+
+  const hashedPassword = await bcrypt.hash(userData.password, 10); // 10 is the number of salt rounds
+  userData.password = hashedPassword;
   const stringData = JSON.stringify(userData);
+  // console.log("stringData :", stringData);
   let conn;
   try {
     conn = await db.getConnection();
@@ -143,15 +151,18 @@ exports.register = async (req, res) => {
     const query = `CALL create_new_user(?)`;
     const queryValues = [stringData];
     const [result] = await conn.query(query, queryValues);
-
     await conn.commit();
+    res.json({
+      success: true,
+      message: `New user created with username : ${userData.username}`,
+    });
   } catch (err) {
+    await conn.rollback();
     console.log("Error in authController - register :", err);
     return res.status(400).json({
       success: false,
       message: err.sqlMessage,
     });
-    await conn.rollback();
   } finally {
     await conn.release();
   }

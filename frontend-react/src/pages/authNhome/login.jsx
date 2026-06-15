@@ -54,6 +54,7 @@ function Login() {
       //   err.response.data.message === "Username and password does not match"
       // ) {
       // navigate(`/login?expired=true&msg=${err.response.data.message}`);
+      console.log(" response in error is :", err.response);
       setErrMessage(err.response.data.message);
       return;
       // }
@@ -61,7 +62,7 @@ function Login() {
     }
   };
 
-  console.log("successMsg :", successMsg);
+  // console.log("successMsg :", successMsg);
   return (
     <>
       <form onSubmit={handleSubmit}>
