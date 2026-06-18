@@ -69,7 +69,7 @@ function register() {
         // setUserMsg("Username available");
         return;
       } else {
-        // console.log(" res for succes false is :", res);
+        // console.log(" res for succes false is : ", res);
         setEmailMsg(res.data.message);
       }
     } catch (err) {
