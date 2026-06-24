@@ -20,16 +20,20 @@ function register() {
   const navigate = useNavigate();
   const [disableRegisterBtn, setDisableRegisterBtn] = useState(true);
 
+  // validate name is there and not larger than 30 char
   const checkName = (val) => {
     if (!val || val.length > 30) {
       setNameMsg("Name should be less than 30 chars.");
     }
   };
 
+  // validate username is there and not less than 3 or more than 20 chars and are within the allowed chars
   const checkUsername = async (val) => {
-    if (!val || val.length < 3 || !/^[a-zA-Z0-9]+$/.test(val)) {
+    if (!val || val.length < 3 || val.length > 20 || !/^[a-zA-Z0-9]+$/.test(val)) {
       setUserScss(false);
-      setUserMsg("Be atleast 3 character long and can only have alpha numeric values.");
+      setUserMsg(
+        "Be atleast 3 characters long, not more than 20 chars and can only have alpha numeric values.",
+      );
       return;
     }
 
@@ -53,6 +57,7 @@ function register() {
     }
   };
 
+  // validate if the email is in valid format
   const checkEmail = async (val) => {
     if (!val || !val.includes("@") || !val.includes(".")) {
       // as this is run onBlur, possible user will comeout of the field without any text
@@ -80,18 +85,24 @@ function register() {
     }
   };
 
+  //  validate if password has 1 upper case, 1 lowercase , 1 digit and 1 symbol and len is 8 chars
   const checkPassword = (pass, repass) => {
+    if (pass.length < 8) {
+      setPwdMsg("Passwords must be 8 characters long.");
+    }
+
     if (pass !== repass) {
       setPwdMsg("Passwords did not matched.");
     }
 
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_$#*&%@])[a-zA-Z0-9_$#*&%@]+$/.test(password)) {
       setPwdMsg(
-        "Password should have 1 Upper, 1 Lower, 1 number and 1 Special character : _$#*&%@",
+        "Password should have 1 Upper, 1 Lower, 1 number and 1 Special character from _$#*&%@",
       );
     }
   };
 
+  // re render logic when useState value changes
   useEffect(() => {
     if (
       nameMsg === "" &&
@@ -109,6 +120,7 @@ function register() {
     }
   }, [nameMsg, userScss, pwdMsg, emailMsg, name, username, email, password]);
 
+  //  handle the submit button function
   const handleSubmit = async (e) => {
     console.log("registerbtn :", registerBtn);
     console.log(
@@ -158,91 +170,183 @@ function register() {
   console.log("disableRegisterBtn :", disableRegisterBtn);
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
-          <input
-            type="text"
-            value={name}
-            required
-            onChange={(e) => {
-              e.preventDefault();
-              setName(e.target.value);
-              setNameMsg("");
-            }}
-            onBlur={(e) => checkName(e.target.value)}
-          />
-        </div>
-        {nameMsg && <h4 style={{ color: "red" }}>{nameMsg}</h4>}
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onFocus={() => setEmailMsg("")}
-            onChange={(e) => {
-              e.preventDefault();
-              setEmail(e.target.value);
-            }}
-            onBlur={(e) => checkEmail(e.target.value)}
-          />
-        </div>
-        {emailMsg && <h4 style={{ color: "red" }}>{emailMsg}</h4>}
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              setUserMsg("");
-              // setErrMessage("");
-            }}
-            onBlur={(e) => {
-              if (e.target.value.length === 0) {
-                setUserScss(false);
-                setUserMsg("Username required");
-              } else {
-                checkUsername(e.target.value);
-              }
-            }}
-          />
-        </div>
-        {userMsg && userScss === false && <h4 style={{ color: "red" }}>{userMsg}</h4>}
-        {userMsg && userScss === true && <h4 style={{ color: "green" }}>{userMsg}</h4>}
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => {
-              e.preventDefault();
-              setPassword(e.target.value);
-              setPwdMsg("");
-            }}
-          />
-        </div>
-        <div>
-          <label>Again Password:</label>
-          <input
-            type="password"
-            value={rePassword}
-            onChange={(e) => {
-              e.preventDefault();
-              setRePassword(e.target.value);
-              setPwdMsg("");
-            }}
-            onBlur={(e) => checkPassword(password, e.target.value)}
-          />
-        </div>
-        {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>}
+      <div className="min-h-screen flex items-start justify-center bg-gray-50 ">
+        <div className="w-full max-w-2xl rounded-2xl border-2 mt-8 lg:p-8 shadow-lg bg-white border-gray-400 p-8">
+          <h1 className="text-3xl font-bold text-center mb-4">Registration</h1>
 
-        <button type="submit" disabled={disableRegisterBtn}>
-          Register
-        </button>
-        {errMsg && <p style={{ color: "red" }}>{errMsg}</p>}
-      </form>
+          {/* Line separator */}
+          <div className="flex items-center mb-4">
+            <div className="grow border-t border-gray-300"></div>
+          </div>
+
+          {/* Form  */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <label className="w-1/5 text-sm text-right font-medium mb-1">Name:</label>
+
+                <input
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
+                  type="text"
+                  value={name}
+                  required
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setName(e.target.value);
+                    setNameMsg("");
+                  }}
+                  onBlur={(e) => checkName(e.target.value)}
+                />
+              </div>
+              <div>
+                {nameMsg && (
+                  <div className="flex items-center">
+                    <label className="w-1/5 text-sm text-right font-medium mb-1"></label>
+                    <p className="w-full pt-2 text-red-400 font-bold text-sm px-2">{nameMsg}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <label className="w-1/5 text-sm text-right font-medium mb-1">Email:</label>
+                <input
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
+                  type="email"
+                  required
+                  value={email}
+                  onFocus={() => setEmailMsg("")}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setEmail(e.target.value);
+                  }}
+                  onBlur={(e) => checkEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                {emailMsg && (
+                  <div className="flex items-center">
+                    <label className="w-1/5 text-sm text-right font-medium mb-1"></label>
+                    <p className="w-full pt-2 text-red-400 font-bold text-sm px-2">{emailMsg}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* {emailMsg && <h4 style={{ color: "red" }}>{emailMsg}</h4>} */}
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <label className="w-1/5 text-sm text-right font-medium mb-1">Username:</label>
+                <input
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUserMsg("");
+                    // setErrMessage("");
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value.length === 0) {
+                      setUserScss(false);
+                      setUserMsg("Username required");
+                    } else {
+                      checkUsername(e.target.value);
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <div>
+                  {userMsg && userScss === false && (
+                    <div className="flex items-center">
+                      <label className="w-1/5 text-sm text-right font-medium mb-1"></label>
+                      <p className="w-full pt-2 text-red-400 font-bold text-sm px-2">{userMsg}</p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  {userMsg && userScss === true && (
+                    <div className="flex items-center">
+                      <label className="w-1/5 text-sm text-right font-medium mb-1"></label>
+                      <p className="w-full pt-2 text-green-400 font-bold text-sm px-2">{userMsg}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* {userMsg && userScss === false && <h4 style={{ color: "red" }}>{userMsg}</h4>}
+            {userMsg && userScss === true && <h4 style={{ color: "green" }}>{userMsg}</h4>} */}
+
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <label className="w-1/5 text-sm text-right font-medium mb-1">Password:</label>
+                <input
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setPassword(e.target.value);
+                    setPwdMsg("");
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <label className="w-1/5 text-sm text-right font-medium mb-1">
+                  Re-type Password:
+                </label>
+                <input
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
+                  type="password"
+                  value={rePassword}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setRePassword(e.target.value);
+                    setPwdMsg("");
+                  }}
+                  onBlur={(e) => checkPassword(password, e.target.value)}
+                />
+              </div>
+              <div>
+                {pwdMsg && (
+                  <div className="flex items-center">
+                    <label className="w-1/5 text-sm text-right font-medium mb-1"></label>
+                    <p className="w-full text-red-400 font-bold text-sm px-2">{pwdMsg}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>} */}
+
+            <div className="flex justify-between mt-10">
+              <button
+                className="w-1/3 p-4 text-white shadow-md font-bold bg-blue-400 rounded-lg hover:bg-blue-600 hover:cursor-pointer"
+                type="submit"
+                disabled={disableRegisterBtn}
+              >
+                Register
+              </button>
+
+              <button
+                className="p-4  text-gray-600 shadow-md font-bold bg-gray-200 rounded-lg hover:bg-gray-400 hover:cursor-pointer"
+                onClick={() => navigate(-1)}
+              >
+                Login
+              </button>
+            </div>
+
+            {errMsg && <p className="w-full text-red-400 font-bold text-sm px-2">{errMsg}</p>}
+          </form>
+        </div>
+      </div>
     </>
   );
 }
