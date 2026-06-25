@@ -112,7 +112,8 @@ function register() {
       name !== "" &&
       username !== "" &&
       email !== "" &&
-      password !== ""
+      password !== "" &&
+      rePassword !== ""
     ) {
       setDisableRegisterBtn(false);
     } else {
@@ -122,7 +123,7 @@ function register() {
 
   //  handle the submit button function
   const handleSubmit = async (e) => {
-    console.log("registerbtn :", registerBtn);
+    // console.log("registerbtn :", registerBtn);
     console.log(
       "nameMsg: ",
       nameMsg,
@@ -142,7 +143,7 @@ function register() {
       password,
     );
     e.preventDefault();
-    return;
+
     const userData = {
       name: name,
       email: email,
@@ -152,7 +153,7 @@ function register() {
 
     console.log("userData :", userData);
     // check length of password, characters that are valid
-
+    return;
     const url = `${serverURL}/auth/api/register`;
     const method = "post";
     try {
@@ -167,7 +168,9 @@ function register() {
 
     // return;
   };
+
   console.log("disableRegisterBtn :", disableRegisterBtn);
+
   return (
     <>
       <div className="min-h-screen flex items-start justify-center bg-gray-50 ">
@@ -186,7 +189,7 @@ function register() {
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Name:</label>
 
                 <input
-                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-sm
                   focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
                   type="text"
                   value={name}
@@ -213,7 +216,7 @@ function register() {
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Email:</label>
                 <input
-                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-sm
                   focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
                   type="email"
                   required
@@ -240,7 +243,7 @@ function register() {
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Username:</label>
                 <input
-                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-sm
                   focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
                   type="text"
                   value={username}
@@ -285,7 +288,7 @@ function register() {
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Password:</label>
                 <input
-                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-sm
                   focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
                   type="password"
                   value={password}
@@ -303,7 +306,7 @@ function register() {
                   Re-type Password:
                 </label>
                 <input
-                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-md
+                  className="w-full px-4 py-1 border border-gray-300 rounded-lg shadow-sm
                   focus:outline-none focus:ring-4 focus:ring-blue-300 focus:bg-yellow-50"
                   type="password"
                   value={rePassword}
@@ -328,7 +331,7 @@ function register() {
 
             <div className="flex justify-between mt-10">
               <button
-                className="w-1/3 p-4 text-white shadow-md font-bold bg-blue-400 rounded-lg hover:bg-blue-600 hover:cursor-pointer"
+                className={`w-1/3 p-4 text-white shadow-md font-bold bg-blue-400  hover:bg-blue-600  hover:cursor-pointer rounded-lg`}
                 type="submit"
                 disabled={disableRegisterBtn}
               >
