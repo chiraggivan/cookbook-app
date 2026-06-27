@@ -56,13 +56,26 @@ function Login() {
 
   //  google signin
   const googleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      console.log("You're in!", tokenResponse);
-      // Send tokenResponse.credential to your backend
+    onSuccess: async (tokenResponse) => {
+      console.log("Token from google oauth is :", tokenResponse);
+
+      // Send tokenResponse.code to your backend
+      try {
+        const res = await ax.post(`${serverURL}/auth/api/googleSignin`, {
+          code: tokenResponse.code,
+        });
+        console.log("response is : ", res.data);
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/");
+      } catch (error) {
+        console.log("error is : ", error);
+      }
     },
     onError: () => {
       console.log("Oops, something went wrong");
     },
+    flow: "auth-code",
   });
 
   const googleSignin = () => {

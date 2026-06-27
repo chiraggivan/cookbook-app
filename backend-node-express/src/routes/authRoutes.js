@@ -9,5 +9,6 @@ router.get("/profile", authenticateToken, authController.profile);
 router.get("/checkUsername/:uname", authController.checkUsername);
 router.get("/checkemail/:email", authController.checkEmail);
 router.post("/register", authController.register);
+router.post("/googleSignin", authController.googleSignin);
 
 module.exports = router;
