@@ -184,7 +184,7 @@ exports.profile = (req, res) => {
 // google login
 exports.googleSignin = async (req, res) => {
   const token = req.body;
-  console.log("token is :", token);
+
   // if no token found
   if (!token) {
     return res.status(400).json({
@@ -194,17 +194,12 @@ exports.googleSignin = async (req, res) => {
   }
 
   // Initialize the OAuth2 client with your client ID and Client Secret
-  const client = new OAuth2Client(
-    GOOGLE_CLIENT_ID,
-    "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",
-    "postmessage",
-  );
-  // console.log("client :", client);
-  console.log("reached here ");
+  const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, "postmessage");
+
   try {
     // Get the tokens from Google with the help of code value from frontend
     const { tokens } = await client.getToken(req.body.code);
-    console.log("tokens are :", tokens);
+
     // Verify the id_token recieved within the tokens with the help of obj of OAuth2Client and verifyIdToken func
     const user = await client.verifyIdToken({
       idToken: tokens.id_token,
@@ -213,7 +208,6 @@ exports.googleSignin = async (req, res) => {
 
     // get the payload from the above obj. payload will contain all the user details needed to check or store in db
     const payload = user.getPayload();
-    // console.log("payload is :", payload);
 
     // retreive imp data from payload
     const firstName = payload.given_name;
@@ -223,19 +217,26 @@ exports.googleSignin = async (req, res) => {
     const google_sub = payload.sub;
     const email = payload.email;
     const email_verified = payload.email_verified;
-    console.log("reached here");
+
     // check if user emailId exists to login directly or create new user and login after that
     const [userResult] = await db.query(
       `
-        SELECT user_id, display_name, role, picture_url, google_sub 
-        FROM users WHERE email = ? and is_active = 1      
+        SELECT user_id, display_name, role, picture_url, google_sub, is_active
+        FROM users WHERE email = ?     
       `,
       [email],
     );
-    console.log("userResult :", userResult[0]);
+
     if (userResult.length != 0) {
       const user = userResult[0];
-      console.log("first");
+
+      //  check if the user is active in our app
+      if (!user.is_active) {
+        return res
+          .status(400)
+          .json({ success: false, message: "User is not active. Contact the support team." });
+      }
+
       const [userUpdt] = await db.query(
         `UPDATE users 
         SET last_login_at = CURRENT_TIMESTAMP, picture_url = ?, display_name = ?
@@ -243,7 +244,6 @@ exports.googleSignin = async (req, res) => {
         [imgUrl, fullName, email],
       );
 
-      console.log("first");
       // create token with user details to be sent as response
       const token = jwt.sign(
         {
@@ -255,7 +255,7 @@ exports.googleSignin = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "24h" },
       );
-      console.log("second");
+
       //  send response to frontend
       return res.json({
         success: true,
@@ -267,12 +267,59 @@ exports.googleSignin = async (req, res) => {
           role: user.role,
         },
       });
+    } else {
+      // create new user
+      try {
+        const [result] = await db.query(
+          ` INSERT INTO users ( display_name, picture_url, email, email_verified, google_sub, role, last_login_at )
+          VALUES (?, ?, ?, 1, ?, 'user', CURRENT_TIMESTAMP)
+        `,
+          [fullName, imgUrl, email, google_sub],
+        );
+        console.log("inserted new user with id :", result.insertId);
+        const [users] = await db.query(
+          `
+          SELECT user_id, display_name, role, picture_url, google_sub 
+          FROM users WHERE user_id = ? AND is_active = 1`,
+          [result.insertId],
+        );
+        const user = users[0];
+        console.log("new user details :", user);
+        // create token with user details to be sent as response
+        const token = jwt.sign(
+          {
+            id: user.user_id,
+            username: user.username ?? user.email,
+            name: user.display_name,
+            role: user.role,
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: "24h" },
+        );
+
+        //  send response to frontend
+        return res.json({
+          success: true,
+          message: "Login successful",
+          token,
+          user: {
+            user_id: user.user_id,
+            username: user.username ?? user.display_name,
+            role: user.role,
+          },
+        });
+      } catch (error) {
+        console.log("error found while creating new user with google signin :", error);
+        return res
+          .status(400)
+          .json({ success: false, message: "something went wrong while creating new user" });
+      }
     }
 
     // return res.json({ success: true, user: payload });
   } catch (error) {
     console.log("something went wrong");
-    return res.status(400).json({ success: true, message: "something went wrong" });
+    return res.status(400).json({ success: false, message: "something went wrong" });
   }
 
   return res.json({

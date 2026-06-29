@@ -16,6 +16,7 @@ function Login() {
     setSuccessMsg(searchParams.get("successMsg"));
   }
   const [errMessage, setErrMessage] = useState("");
+  const [errGSigninMsg, setErrGSigninMsg] = useState("");
   const [userMsg, setUserMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
 
@@ -65,15 +66,21 @@ function Login() {
           code: tokenResponse.code,
         });
         console.log("response is : ", res.data);
+        if (!res.data.token || !res.data.user) {
+          console.log("token / user was absent. Cant proceed further.");
+          return;
+        }
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         navigate("/");
       } catch (error) {
-        console.log("error is : ", error);
+        console.log("error is : ", error.response.data);
+        setErrGSigninMsg(error.response.data.message);
+        return;
       }
     },
-    onError: () => {
-      console.log("Oops, something went wrong");
+    onError: (errorResponse) => {
+      console.log("Oops, something went wrong : ", errorResponse);
     },
     flow: "auth-code",
   });
@@ -142,7 +149,7 @@ function Login() {
           {/* Google signin button */}
           <button
             className="w-full flex text-gray-700 items-center justify-center gap-3 
-              border border-gray-300 py-3 rounded-lg hover:bg-gray-100 hover:cursor-pointer 
+              border border-gray-300 py-3 mb-1 rounded-lg hover:bg-gray-100 hover:cursor-pointer 
               transition"
             onClick={googleSignin}
           >
@@ -170,6 +177,7 @@ function Login() {
             </svg>
             <span className="font-medium">Sign in with Google</span>
           </button>
+          {errGSigninMsg && <p className="text-red-400 font-bold text-sm">* {errGSigninMsg}</p>}
 
           {/* OR Separator */}
           <div className="flex items-center my-2">
