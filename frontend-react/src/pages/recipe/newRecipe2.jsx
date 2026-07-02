@@ -9,12 +9,13 @@ import Toggle from "../../components/toggle";
 import Card from "../../components/card";
 import Table from "../../components/table";
 import Dropdown from "../../components/dropdown";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import Button from "../../components/button";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
+import TopBar from "../../components/topBar";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -804,476 +805,488 @@ function NewRecipe() {
   // console.log("recipeInfo :", recipeInfo);
   return (
     <>
-      <Navbar />
-      <h1>Welcome to Create Recipes</h1>
-      <Input
-        label={"Recipe name: "}
-        type="text"
-        value={recipeInfo.name ?? ""}
-        onChange={(e) => {
-          setRecipeInfo({ ...recipeInfo, name: e.target.value });
-          if (checkFinalData?.errors?.name) {
-            checkFinalData.errors.name = "";
-          }
-        }}
-        placeholder={"Name of the recipe...."}
-        error={checkFinalData?.errors?.name}
-      />
-      <Input
-        label={"Portion of: "}
-        type="text"
-        onChange={(e) => {
-          setRecipeInfo({ ...recipeInfo, portion_size: e.target.value });
-          if (checkFinalData?.errors?.portion_size) {
-            checkFinalData.errors.portion_size = "";
-          }
-        }}
-        placeholder={"eg. 2 person, 1kg, 750ml, etc."}
-        error={checkFinalData?.errors?.portion_size}
-      />
-      <Textarea
-        label={"Description"}
-        onChange={(e) => {
-          setRecipeInfo({ ...recipeInfo, description: e.target.value });
-        }}
-        placeholder="description of your recipe..."
-        error={checkFinalData?.errors?.description}
-        rows={10}
-      />
-      <Toggle
-        title="privacy"
-        checked={isPrivate}
-        onText="Private"
-        offText="Public"
-        onChange={(e) => {
-          setIsPrivate(e.target.checked);
-          setRecipeInfo({
-            ...recipeInfo,
-            privacy: e.target.checked === true ? "private" : "public",
-          });
-        }}
-      />
-      <div>
-        {" "}
-        <h3>Total cost: {recipeCosting.current === 0 ? "0.00" : recipeCosting.current}</h3>
-      </div>
-      <Button
-        children={"Save Recipe"}
-        type="button"
-        disabled={false}
-        onClick={() => handlesubmit()}
-      />
-      <div style={{ color: "#ff0000" }}>
-        <h4>{errorMessage}</h4>
-      </div>
-      <Card>
-        <h2>Ingredients</h2>
-        {!showTopRow && (
+      <TopBar />
+      <div className="flex mt-(--top-bar-height)">
+        <div></div>
+        <div>
+          <h1>Welcome to Create Recipes</h1>
+          <Input
+            label={"Recipe name: "}
+            type="text"
+            value={recipeInfo.name ?? ""}
+            onChange={(e) => {
+              setRecipeInfo({ ...recipeInfo, name: e.target.value });
+              if (checkFinalData?.errors?.name) {
+                checkFinalData.errors.name = "";
+              }
+            }}
+            placeholder={"Name of the recipe...."}
+            error={checkFinalData?.errors?.name}
+          />
+          <Input
+            label={"Portion of: "}
+            type="text"
+            onChange={(e) => {
+              setRecipeInfo({ ...recipeInfo, portion_size: e.target.value });
+              if (checkFinalData?.errors?.portion_size) {
+                checkFinalData.errors.portion_size = "";
+              }
+            }}
+            placeholder={"eg. 2 person, 1kg, 750ml, etc."}
+            error={checkFinalData?.errors?.portion_size}
+          />
+          <Textarea
+            label={"Description"}
+            onChange={(e) => {
+              setRecipeInfo({ ...recipeInfo, description: e.target.value });
+            }}
+            placeholder="description of your recipe..."
+            error={checkFinalData?.errors?.description}
+            rows={10}
+          />
+          <Toggle
+            title="privacy"
+            checked={isPrivate}
+            onText="Private"
+            offText="Public"
+            onChange={(e) => {
+              setIsPrivate(e.target.checked);
+              setRecipeInfo({
+                ...recipeInfo,
+                privacy: e.target.checked === true ? "private" : "public",
+              });
+            }}
+          />
+          <div>
+            {" "}
+            <h3>Total cost: {recipeCosting.current === 0 ? "0.00" : recipeCosting.current}</h3>
+          </div>
           <Button
-            id={"add_top_header"}
-            children={"Add Top Header"}
+            children={"Save Recipe"}
             type="button"
             disabled={false}
-            onClick={() => setShowTopRow(true)}
+            onClick={() => handlesubmit()}
           />
-        )}
+          <div style={{ color: "#ff0000" }}>
+            <h4>{errorMessage}</h4>
+          </div>
+          <Card>
+            <h2>Ingredients</h2>
+            {!showTopRow && (
+              <Button
+                id={"add_top_header"}
+                children={"Add Top Header"}
+                type="button"
+                disabled={false}
+                onClick={() => setShowTopRow(true)}
+              />
+            )}
 
-        <Table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Quantity</th>
-              <th>Unit</th>
-              <th>Cost</th>
-              <th>Base quantity</th>
-              <th>Base Unit</th>
-              <th>Base price</th>
-              <th>Delete</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sections.map((comp, indexc) => (
-              <>
-                {(showTopRow || indexc !== 0) && (
-                  <tr key={comp.uid} style={{ backgroundColor: "#f0f0f0" }}>
-                    <td colSpan={7}>
-                      <Input
-                        type={"text"}
-                        value={comp?.component_text ?? ""}
-                        placeholder={"Base, Dough, etc..."}
-                        onChange={(e) => {
-                          setSections((prev) =>
-                            prev.map((section) =>
-                              section.uid === comp.uid
-                                ? { ...section, component_text: e.target.value }
-                                : section,
-                            ),
-                          );
-                          if (checkFinalData?.errors?.components[comp.uid]?.text) {
-                            checkFinalData.errors.components[comp.uid].text = "";
-                          }
-                        }}
-                        error={checkFinalData?.errors?.components[comp.uid]?.text}
-                      />
-                    </td>
-                    <td>
-                      <Button
-                        // id={"delete"}
-                        children={"Delete"}
-                        type="button"
-                        disabled={false}
-                        onClick={() => deleteComponentHeader(comp.uid, indexc)}
-                      />
-                    </td>
-                    <td></td>
-                  </tr>
-                )}
+            <Table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Quantity</th>
+                  <th>Unit</th>
+                  <th>Cost</th>
+                  <th>Base quantity</th>
+                  <th>Base Unit</th>
+                  <th>Base price</th>
+                  <th>Delete</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sections.map((comp, indexc) => (
+                  <>
+                    {(showTopRow || indexc !== 0) && (
+                      <tr key={comp.uid} style={{ backgroundColor: "#f0f0f0" }}>
+                        <td colSpan={7}>
+                          <Input
+                            type={"text"}
+                            value={comp?.component_text ?? ""}
+                            placeholder={"Base, Dough, etc..."}
+                            onChange={(e) => {
+                              setSections((prev) =>
+                                prev.map((section) =>
+                                  section.uid === comp.uid
+                                    ? { ...section, component_text: e.target.value }
+                                    : section,
+                                ),
+                              );
+                              if (checkFinalData?.errors?.components[comp.uid]?.text) {
+                                checkFinalData.errors.components[comp.uid].text = "";
+                              }
+                            }}
+                            error={checkFinalData?.errors?.components[comp.uid]?.text}
+                          />
+                        </td>
+                        <td>
+                          <Button
+                            // id={"delete"}
+                            children={"Delete"}
+                            type="button"
+                            disabled={false}
+                            onClick={() => deleteComponentHeader(comp.uid, indexc)}
+                          />
+                        </td>
+                        <td></td>
+                      </tr>
+                    )}
 
-                {sections[indexc]?.ingredients?.map((ing, index) => (
-                  <tr key={ing.uid}>
-                    <td>
-                      <div style={{ position: "relative" }}>
-                        <Input
-                          type={"text"}
-                          value={ing.name ?? ""}
-                          onFocus={(e) => {
-                            setActiveInputId(ing.uid);
-                            searchIng(e.target.value);
-                            // setInputText((prev) => ({ ...prev, [index]: e.target.value }));
-                            // console.log("setInputText :", inputText[index]);
-                          }}
-                          onChange={(e) => {
-                            setSections((prev) =>
-                              prev.map((section) =>
-                                section.uid === comp.uid
-                                  ? {
-                                      ...section,
-                                      ingredients: section.ingredients.map((i) =>
-                                        i.uid === ing.uid
-                                          ? {
-                                              ...i,
-                                              name: e.target.value,
-                                              displayQuantity: "",
-                                              displayUnit: "",
-                                              displayPrice: "",
-                                              ingredientSource: "",
-                                              ingredientId: "",
-                                              measuringUnits: [],
-                                              baseUnits: [],
-                                              unit: "",
-                                              quantity: "",
-                                              ogDisplayPrice: "",
-                                              ogDisplayQuantity: "",
-                                              ogDisplayUnit: "",
-                                            }
-                                          : i,
-                                      ),
-                                    }
-                                  : section,
-                              ),
-                            );
-                            searchIng(e.target.value);
-                            addNewIngRow(comp.uid, index);
-                            if (!activeInputId) {
-                              setActiveInputId(ing.uid);
-                            }
-                            if (
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.name
-                            ) {
-                              const x = checkFinalData.errors.components[comp.uid];
-                              x.ingredients[ing.uid].name = "";
-                            }
-                          }}
-                          onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
-                          placeholder={"milk, blue cheese, etc.."}
-                          error={
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.name ?? ""
-                          }
-                          onBlur={() => {
-                            blurTimeout = setTimeout(() => {
-                              hideSuggestions(comp.uid, ing.uid);
-                            }, 100);
-                          }}
-                        />
-                        {activeInputId === ing.uid &&
-                          suggestedIng.length > 0 && ( // inputText[index] &&
-                            <div
-                              style={{
-                                position: "absolute",
-                                top: "100%",
-                                left: 0,
-                                width: "100%",
-                                background: "white",
-                                border: "1px solid #ccc",
-                                zIndex: 10,
-                                maxHeight: "70px",
-                                overflow: "auto",
+                    {sections[indexc]?.ingredients?.map((ing, index) => (
+                      <tr key={ing.uid}>
+                        <td>
+                          <div style={{ position: "relative" }}>
+                            <Input
+                              type={"text"}
+                              value={ing.name ?? ""}
+                              onFocus={(e) => {
+                                setActiveInputId(ing.uid);
+                                searchIng(e.target.value);
+                                // setInputText((prev) => ({ ...prev, [index]: e.target.value }));
+                                // console.log("setInputText :", inputText[index]);
                               }}
-                            >
-                              {suggestedIng.map((ingredient, index) => (
+                              onChange={(e) => {
+                                setSections((prev) =>
+                                  prev.map((section) =>
+                                    section.uid === comp.uid
+                                      ? {
+                                          ...section,
+                                          ingredients: section.ingredients.map((i) =>
+                                            i.uid === ing.uid
+                                              ? {
+                                                  ...i,
+                                                  name: e.target.value,
+                                                  displayQuantity: "",
+                                                  displayUnit: "",
+                                                  displayPrice: "",
+                                                  ingredientSource: "",
+                                                  ingredientId: "",
+                                                  measuringUnits: [],
+                                                  baseUnits: [],
+                                                  unit: "",
+                                                  quantity: "",
+                                                  ogDisplayPrice: "",
+                                                  ogDisplayQuantity: "",
+                                                  ogDisplayUnit: "",
+                                                }
+                                              : i,
+                                          ),
+                                        }
+                                      : section,
+                                  ),
+                                );
+                                searchIng(e.target.value);
+                                addNewIngRow(comp.uid, index);
+                                if (!activeInputId) {
+                                  setActiveInputId(ing.uid);
+                                }
+                                if (
+                                  checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                    ing.uid
+                                  ]?.name
+                                ) {
+                                  const x = checkFinalData.errors.components[comp.uid];
+                                  x.ingredients[ing.uid].name = "";
+                                }
+                              }}
+                              onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
+                              placeholder={"milk, blue cheese, etc.."}
+                              error={
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.name ?? ""
+                              }
+                              onBlur={() => {
+                                blurTimeout = setTimeout(() => {
+                                  hideSuggestions(comp.uid, ing.uid);
+                                }, 100);
+                              }}
+                            />
+                            {activeInputId === ing.uid &&
+                              suggestedIng.length > 0 && ( // inputText[index] &&
                                 <div
-                                  key={ingredient.ingredient_id + "-" + index}
-                                  ref={(el) => (itemRefs.current[index] = el)}
                                   style={{
-                                    backgroundColor:
-                                      index === highlightedIndex ? "#f0f0f0" : "white",
-                                    // padding: "10px",
-                                    cursor: "pointer",
-                                  }}
-                                  onClick={() => {
-                                    clearTimeout(blurTimeout);
-                                    handleSelectedIng(comp.uid, ing.uid, ingredient);
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: 0,
+                                    width: "100%",
+                                    background: "white",
+                                    border: "1px solid #ccc",
+                                    zIndex: 10,
+                                    maxHeight: "70px",
+                                    overflow: "auto",
                                   }}
                                 >
-                                  {ingredient.name}
+                                  {suggestedIng.map((ingredient, index) => (
+                                    <div
+                                      key={ingredient.ingredient_id + "-" + index}
+                                      ref={(el) => (itemRefs.current[index] = el)}
+                                      style={{
+                                        backgroundColor:
+                                          index === highlightedIndex ? "#f0f0f0" : "white",
+                                        // padding: "10px",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() => {
+                                        clearTimeout(blurTimeout);
+                                        handleSelectedIng(comp.uid, ing.uid, ingredient);
+                                      }}
+                                    >
+                                      {ingredient.name}
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          )}
-                      </div>
-                    </td>
-                    <td>
-                      <Input
-                        type={"number"}
-                        value={ing?.quantity ?? ""}
-                        onChange={(e) => {
-                          updateQuantity(comp.uid, ing.uid, e.target.value);
-                          if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.quantity
-                          ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].quantity = "";
-                          }
-                        }}
-                        error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.quantity ?? ""
-                        }
-                      />
-                    </td>
-                    <td>
-                      <Dropdown
-                        options={ing?.measuringUnits}
-                        value={ing?.unit}
-                        onChange={(e) => {
-                          updateUnit(comp.uid, ing.uid, e.target.value);
-                          if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.unit
-                          ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].unit = "";
-                          }
-                        }}
-                        error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.unit ?? ""
-                        }
-                        style={{ maxHeight: "30px", overflow: "auto" }}
-                      />
-                    </td>
-                    <td>{ing?.cost ?? ""}</td>
-                    <td>
-                      <Input
-                        type={"number"}
-                        value={ing?.displayQuantity ?? ""}
-                        onChange={(e) => {
-                          updateBaseQuantity(comp.uid, ing.uid, e.target.value);
-                          if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.display_quantity
-                          ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].display_quantity = "";
-                          }
-                        }}
-                        error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.display_quantity ?? ""
-                        }
-                      />
-                    </td>
-                    <td>
-                      <DropdownArray
-                        options={ing?.baseUnits}
-                        value={ing?.displayUnit ?? ""}
-                        onChange={(e) => {
-                          updateBaseUnit(comp.uid, ing.uid, e.target.value);
-                          if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.display_unit
-                          ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].display_unit = "";
-                          }
-                        }}
-                        error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.display_unit ?? ""
-                        }
-                      />
-                    </td>
-                    <td>
-                      <Input
-                        type={"number"}
-                        value={ing?.displayPrice ?? ""}
-                        onChange={(e) => {
-                          updateBasePrice(comp.uid, ing.uid, e.target.value);
-                          if (
-                            checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                              ?.display_price
-                          ) {
-                            const x = checkFinalData.errors.components[comp.uid];
-                            x.ingredients[ing.uid].display_price = "";
-                          }
-                        }}
-                        error={
-                          checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                            ?.display_price ?? ""
-                        }
-                      />
-                    </td>
-                    <td>
-                      {index !== sections[indexc].ingredients.length - 1 && (
-                        <Button
-                          // id={"delete"}
-                          children={"Delete"}
-                          type="button"
-                          disabled={false}
-                          onClick={() => deleteIngredient(comp.uid, ing.uid)}
-                        />
-                      )}
-                    </td>
-                    <td>
-                      {index !== sections[indexc].ingredients.length - 1 && (
-                        <>
-                          {(indexc !== 0 || index !== 0) && (
+                              )}
+                          </div>
+                        </td>
+                        <td>
+                          <Input
+                            type={"number"}
+                            value={ing?.quantity ?? ""}
+                            onChange={(e) => {
+                              updateQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.quantity
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].quantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
+                                ?.quantity ?? ""
+                            }
+                          />
+                        </td>
+                        <td>
+                          <Dropdown
+                            options={ing?.measuringUnits}
+                            value={ing?.unit}
+                            onChange={(e) => {
+                              updateUnit(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.unit
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].unit = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
+                                ?.unit ?? ""
+                            }
+                            style={{ maxHeight: "30px", overflow: "auto" }}
+                          />
+                        </td>
+                        <td>{ing?.cost ?? ""}</td>
+                        <td>
+                          <Input
+                            type={"number"}
+                            value={ing?.displayQuantity ?? ""}
+                            onChange={(e) => {
+                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.display_quantity
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].display_quantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
+                                ?.display_quantity ?? ""
+                            }
+                          />
+                        </td>
+                        <td>
+                          <DropdownArray
+                            options={ing?.baseUnits}
+                            value={ing?.displayUnit ?? ""}
+                            onChange={(e) => {
+                              updateBaseUnit(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.display_unit
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].display_unit = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
+                                ?.display_unit ?? ""
+                            }
+                          />
+                        </td>
+                        <td>
+                          <Input
+                            type={"number"}
+                            value={ing?.displayPrice ?? ""}
+                            onChange={(e) => {
+                              updateBasePrice(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.display_price
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].display_price = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
+                                ?.display_price ?? ""
+                            }
+                          />
+                        </td>
+                        <td>
+                          {index !== sections[indexc].ingredients.length - 1 && (
                             <Button
                               // id={"delete"}
-                              children={"↑"}
+                              children={"Delete"}
                               type="button"
                               disabled={false}
-                              onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                              onClick={() => deleteIngredient(comp.uid, ing.uid)}
                             />
                           )}
-                          {(indexc !== sections.length - 1 ||
-                            index !== sections[indexc].ingredients.length - 2) && (
-                            <Button
-                              // id={"delete"}
-                              children={"↓"}
-                              type="button"
-                              disabled={false}
-                              onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
-                            />
+                        </td>
+                        <td>
+                          {index !== sections[indexc].ingredients.length - 1 && (
+                            <>
+                              {(indexc !== 0 || index !== 0) && (
+                                <Button
+                                  // id={"delete"}
+                                  children={"↑"}
+                                  type="button"
+                                  disabled={false}
+                                  onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                                />
+                              )}
+                              {(indexc !== sections.length - 1 ||
+                                index !== sections[indexc].ingredients.length - 2) && (
+                                <Button
+                                  // id={"delete"}
+                                  children={"↓"}
+                                  type="button"
+                                  disabled={false}
+                                  onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
+                                />
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
-                    </td>
-                  </tr>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
                 ))}
-              </>
-            ))}
-          </tbody>
-        </Table>
+              </tbody>
+            </Table>
 
-        <Button
-          id={"add_header"}
-          children={"Add New Section"}
-          type="button"
-          disabled={false}
-          onClick={() => {
-            setSections((prev) => [...prev, emptySectionData()]);
-          }}
-        />
-      </Card>
+            <Button
+              id={"add_header"}
+              children={"Add New Section"}
+              type="button"
+              disabled={false}
+              onClick={() => {
+                setSections((prev) => [...prev, emptySectionData()]);
+              }}
+            />
+          </Card>
 
-      {/* -------------------------- Steps section ----------------------- */}
+          {/* -------------------------- Steps section ----------------------- */}
 
-      <Card>
-        <h2>Steps</h2>
+          <Card>
+            <h2>Steps</h2>
 
-        <Table>
-          <thead>
-            <tr>
-              <th>Sr. No.</th>
-              <th>Step Text</th>
-              <th>Delete</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recipeInfo.steps.map((step, index) => (
-              <>
-                <tr key={step.uid}>
-                  <td>{index + 1}</td>
-                  <td>
-                    <Textarea
-                      label={""}
-                      value={recipeInfo?.steps[index]?.step_text ?? ""}
-                      onChange={(e) => {
-                        setRecipeInfo({
-                          ...recipeInfo,
-                          steps: recipeInfo.steps.map((s, index) =>
-                            s.uid === step.uid
-                              ? {
-                                  ...s,
-                                  step_text: e.target.value,
-                                }
-                              : s,
-                          ),
-                        });
-                        addNewStepRow(index);
-                      }}
-                      placeholder="text....."
-                      error={checkFinalData?.errors?.description}
-                      rows={2}
-                    />
-                  </td>
-                  <td>
-                    {index !== recipeInfo.steps.length - 1 && (
-                      <Button
-                        // id={"delete"}
-                        children={"Delete"}
-                        type="button"
-                        disabled={false}
-                        onClick={() => deleteStep(step.uid)}
-                      />
-                    )}
-                  </td>
-                  <td>
-                    {index !== recipeInfo.steps.length - 1 && (
-                      <>
-                        {index !== 0 && (
-                          <Button
-                            // id={"delete"}
-                            children={"↑"}
-                            type="button"
-                            disabled={false}
-                            onClick={() => moveStep(step.uid, index, -1)}
-                          />
-                        )}
-                        {index !== recipeInfo.steps.length - 2 && (
-                          <Button
-                            // id={"delete"}
-                            children={"↓"}
-                            type="button"
-                            disabled={false}
-                            onClick={() => moveStep(step.uid, index, 1)}
-                          />
-                        )}
-                      </>
-                    )}
-                  </td>
+            <Table>
+              <thead>
+                <tr>
+                  <th>Sr. No.</th>
+                  <th>Step Text</th>
+                  <th>Delete</th>
+                  <th>Action</th>
                 </tr>
-              </>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
+              </thead>
+              <tbody>
+                {recipeInfo.steps.map((step, index) => (
+                  <>
+                    <tr key={step.uid}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <Textarea
+                          label={""}
+                          value={recipeInfo?.steps[index]?.step_text ?? ""}
+                          onChange={(e) => {
+                            setRecipeInfo({
+                              ...recipeInfo,
+                              steps: recipeInfo.steps.map((s, index) =>
+                                s.uid === step.uid
+                                  ? {
+                                      ...s,
+                                      step_text: e.target.value,
+                                    }
+                                  : s,
+                              ),
+                            });
+                            addNewStepRow(index);
+                          }}
+                          placeholder="text....."
+                          error={checkFinalData?.errors?.description}
+                          rows={2}
+                        />
+                      </td>
+                      <td>
+                        {index !== recipeInfo.steps.length - 1 && (
+                          <Button
+                            // id={"delete"}
+                            children={"Delete"}
+                            type="button"
+                            disabled={false}
+                            onClick={() => deleteStep(step.uid)}
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {index !== recipeInfo.steps.length - 1 && (
+                          <>
+                            {index !== 0 && (
+                              <Button
+                                // id={"delete"}
+                                children={"↑"}
+                                type="button"
+                                disabled={false}
+                                onClick={() => moveStep(step.uid, index, -1)}
+                              />
+                            )}
+                            {index !== recipeInfo.steps.length - 2 && (
+                              <Button
+                                // id={"delete"}
+                                children={"↓"}
+                                type="button"
+                                disabled={false}
+                                onClick={() => moveStep(step.uid, index, 1)}
+                              />
+                            )}
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  </>
+                ))}
+              </tbody>
+            </Table>
+          </Card>
+        </div>
+      </div>
     </>
   );
 }

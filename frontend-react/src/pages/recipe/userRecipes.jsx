@@ -3,8 +3,10 @@ import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import { serverURL } from "../../utils/appUtils";
+import TopBar from "../../components/topBar";
+import LeftSideBar from "../../components/leftSideBar";
 
 function UserRecipes() {
   const { id } = useParams();
@@ -47,16 +49,21 @@ function UserRecipes() {
   //   console.log("data before return html : ", data);
   return (
     <>
-      <Navbar />
-      <h1>Welcome to {data?.[0].username}'s Recipes</h1>
+      <TopBar />
+      <div className="flex mt-(--top-bar-height)">
+        <LeftSideBar />
+        <div className="w-full ml-(--left-side-bar) mt-5">
+          <h1>Welcome to {data?.[0].username}'s Recipes</h1>
 
-      {data?.map((i) => (
-        <div key={i.recipe_id}>
-          <h2 onClick={() => navigate(`/recipe/${i.recipe_id}`)}>{i.name}</h2>
-          <h4>portion : {i.portion_size}</h4>
-          <h4>Desription : {i.description}</h4>
+          {data?.map((i) => (
+            <div key={i.recipe_id}>
+              <h2 onClick={() => navigate(`/recipe/${i.recipe_id}`)}>{i.name}</h2>
+              <h4>portion : {i.portion_size}</h4>
+              <h4>Desription : {i.description}</h4>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </>
   );
 }

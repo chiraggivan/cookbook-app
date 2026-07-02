@@ -9,7 +9,7 @@ import Toggle from "../../components/toggle";
 import Card from "../../components/card";
 import Table from "../../components/table";
 import Dropdown from "../../components/dropdown";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import Button from "../../components/button";
 import { serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";

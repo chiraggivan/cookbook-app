@@ -4,7 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Button from "../../components/button";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import { MyIngredientContext } from "../../context/myIngredientContext";
 import { serverURL } from "../../utils/appUtils";
 

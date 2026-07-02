@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import Button from "../../components/button";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import DishDetailsPage from "./-dishDetailsPage";

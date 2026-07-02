@@ -3,11 +3,13 @@ import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
 import Button from "../../components/button";
 import Toggle from "../../components/toggle";
+import TopBar from "../../components/topBar";
+import LeftSideBar from "../../components/leftSideBar";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -294,80 +296,85 @@ function RecipeDetails() {
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>
-      <Navbar />
-      <p></p>
-      <h1>{foundRecipeDetails?.recipe.name}</h1>
-      <h3>{foundRecipeDetails?.recipe.portion_size}</h3>
-      <h3>{foundRecipeDetails?.recipe.description}</h3>
-      <div>
-        {!changePrvcyLoading && (
-          <Toggle
-            title=""
-            checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-            onText="Private"
-            offText="Private"
-            onChange={(e) => {
-              setChangePrvcyLoading(true);
-              setRecipeDetails((prev) =>
-                prev.map((item) =>
-                  item.recipe.recipe_id === Number(id)
-                    ? {
-                        ...item,
-                        recipe: {
-                          ...item.recipe,
-                          privacy: e.target.checked ? "private" : "public",
-                        },
-                      }
-                    : item,
-                ),
-              );
-              changePrivacy(e.target.checked ? "private" : "public");
-              setChangePrvcyLoading(false);
-            }}
-          />
-        )}
-        {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-      </div>
+      <TopBar />
+      <div className="flex mt-(--top-bar-height)">
+        <LeftSideBar />
+        <div className="w-full ml-(--left-side-bar) mt-5">
+          <p></p>
+          <h1>{foundRecipeDetails?.recipe.name}</h1>
+          <h3>{foundRecipeDetails?.recipe.portion_size}</h3>
+          <h3>{foundRecipeDetails?.recipe.description}</h3>
+          <div>
+            {!changePrvcyLoading && (
+              <Toggle
+                title=""
+                checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+                onText="Private"
+                offText="Private"
+                onChange={(e) => {
+                  setChangePrvcyLoading(true);
+                  setRecipeDetails((prev) =>
+                    prev.map((item) =>
+                      item.recipe.recipe_id === Number(id)
+                        ? {
+                            ...item,
+                            recipe: {
+                              ...item.recipe,
+                              privacy: e.target.checked ? "private" : "public",
+                            },
+                          }
+                        : item,
+                    ),
+                  );
+                  changePrivacy(e.target.checked ? "private" : "public");
+                  setChangePrvcyLoading(false);
+                }}
+              />
+            )}
+            {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+          </div>
 
-      <h3>£ {totalCost}</h3>
-      <button onClick={handleCreateDish}>create dish</button>
-      <h4>
-        Last Prepared on : {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
-        {foundRecipeDetails?.recipe.last_prepared_time}
-      </h4>
-      <Button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</Button>
-      <button onClick={handleDelete}>Delete</button>
-      <table>
-        <thead>
-          <tr>
-            <th>ingredient name</th>
-            <th>Quantity</th>
-            <th>Unit</th>
-            <th>price</th>
-            <th>Base Quantity</th>
-            <th>Base Unit</th>
-            <th>Base Price</th>
-            <th>Ing. Source</th>
-          </tr>
-        </thead>
-        <tbody>{tableRows}</tbody>
-      </table>
-      <table>
-        <thead>
-          <tr>
-            <th>Sr-No.</th>
-            <th>Steps Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {foundRecipeDetails?.steps.map((s) => (
-            <tr key={s.step_order}>
-              <td>{s.step_order}</td>
-              <td>{s.step_text}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <h3>£ {totalCost}</h3>
+          <button onClick={handleCreateDish}>create dish</button>
+          <h4>
+            Last Prepared on : {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
+            {foundRecipeDetails?.recipe.last_prepared_time}
+          </h4>
+          <Button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</Button>
+          <button onClick={handleDelete}>Delete</button>
+          <table>
+            <thead>
+              <tr>
+                <th>ingredient name</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>price</th>
+                <th>Base Quantity</th>
+                <th>Base Unit</th>
+                <th>Base Price</th>
+                <th>Ing. Source</th>
+              </tr>
+            </thead>
+            <tbody>{tableRows}</tbody>
+          </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr-No.</th>
+                <th>Steps Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {foundRecipeDetails?.steps.map((s) => (
+                <tr key={s.step_order}>
+                  <td>{s.step_order}</td>
+                  <td>{s.step_text}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import Button from "../../../components/button";
 import Dropdown from "../../../components/dropdown";
 import submitButtonForEdit from "./utils/submitButtonForEdit";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
-import Navbar from "../../../components/navbar";
+import Navbar from "../../../components/navbarOld";
 import EditIngPage from "./-editIngredientPage";
 import { serverURL } from "../../../utils/appUtils";
 

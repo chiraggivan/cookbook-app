@@ -1,11 +1,16 @@
 @import "tailwindcss";
 
 body {
-  max-width: 1100px;
+  /* max-width: 1100px; */
   margin: 0 auto;
   padding: 0 15px;
 }
 
 .navbar li {
   padding: 0 10px;
+}
+
+:root {
+  --top-bar-height: 4rem;
+  --left-side-bar: 12rem;
 }

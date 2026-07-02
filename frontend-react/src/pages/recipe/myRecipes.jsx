@@ -3,10 +3,12 @@ import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
 import Button from "../../components/button";
+import TopBar from "../../components/topBar";
+import LeftSideBar from "../../components/leftSideBar";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -67,18 +69,23 @@ function MyRecipes() {
   // console.log("myRecipes before return html :", myRecipes);
   return (
     <>
-      <Navbar />
-      <h1>Welcome to My Recipes</h1>
-      <Button children={"Add New Recipe"} onClick={() => navigate("/recipe/new")} />
+      <TopBar />
+      <div className="flex mt-(--top-bar-height)">
+        <LeftSideBar />
+        <div className="w-full ml-(--left-side-bar) mt-5">
+          <h1>Welcome to My Recipes</h1>
+          <Button children={"Add New Recipe"} onClick={() => navigate("/recipe/new")} />
 
-      {myRecipes?.map((i) => (
-        <div key={i.recipe_id}>
-          <h2 onClick={() => navigate(`/recipe/${i.recipe_id}`)}>{i.name}</h2>
-          <h4>portion : {i.portion_size}</h4>
-          <h4>Desription : {i.description}</h4>
-          <p></p>
+          {myRecipes?.map((i) => (
+            <div key={i.recipe_id}>
+              <h2 onClick={() => navigate(`/recipe/${i.recipe_id}`)}>{i.name}</h2>
+              <h4>portion : {i.portion_size}</h4>
+              <h4>Desription : {i.description}</h4>
+              <p></p>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </>
   );
 }

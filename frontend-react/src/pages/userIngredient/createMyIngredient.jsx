@@ -8,7 +8,7 @@ import Textarea from "../../components/textarea";
 import Button from "../../components/button";
 import Dropdown from "../../components/dropdown";
 import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/navbarOld";
 import { MyIngredientContext } from "../../context/myIngredientContext";
 import { serverURL } from "../../utils/appUtils";
 
