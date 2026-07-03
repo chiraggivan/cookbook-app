@@ -52,10 +52,9 @@ exports.get_user_recipes = async (req, res) => {
 
     // verify user exists
     const [userResult] = await db.query(
-      "SELECT username FROM users WHERE user_id = ? AND is_active = 1",
+      "SELECT display_name, username, email, picture_url, email_verified FROM users WHERE user_id = ? AND is_active = 1",
       [find_user],
     );
-
     if (userResult.length === 0) {
       return res.status(404).json({
         success: false,
@@ -75,11 +74,15 @@ exports.get_user_recipes = async (req, res) => {
       [find_user],
     );
 
+    const sendData = {};
+    sendData.userInfo = userResult[0];
+    sendData.userRecipes = finalResult;
+    // console.log("sendData :", sendData);
     // response the data
     res.json({
       success: true,
       message: `Recipes found for ${find_user}`,
-      data: finalResult,
+      data: sendData,
     });
   } catch (err) {
     console.error("Error in readRecipeController - get_user_recipes:", err);

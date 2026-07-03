@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 function LeftSideBar() {
   return (
     <>
-      <div className="fixed top-(--top-bar-height) left-0  w-(--left-side-bar)  text-gray-800 min-h-screen p-4">
+      <div className="fixed top-(--top-bar-height) left-0 mt-(--top-bar-height)  w-(--left-side-bar)  text-gray-800 min-h-screen p-4">
         <ul className="space-y-6">
           <li>
             <Link

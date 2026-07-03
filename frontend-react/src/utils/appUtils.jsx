@@ -1,6 +1,7 @@
 const serverURL = "http://localhost:5001";
 
 const getInitials = (name) => {
+  if (!name) return "";
   const nameArray = name.split(" ");
   if (nameArray.length === 1) {
     return nameArray[0].slice(0, 2).toUpperCase();
