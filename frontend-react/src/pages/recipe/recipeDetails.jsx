@@ -10,6 +10,8 @@ import Button from "../../components/button";
 import Toggle from "../../components/toggle";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
+import ConfirmModal from "../../components/confirmModal";
+import DishesModal from "../../components/dishesModal";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -20,6 +22,8 @@ function RecipeDetails() {
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [fetchLoading, setFetchLoading] = useState(true);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const navigate = useNavigate();
   let tableRows = [];
   const details4Dish = {};
@@ -292,6 +296,7 @@ function RecipeDetails() {
   // console.log("details4Dish is :", details4Dish);
   console.log("recipeDetails :", recipeDetails);
   console.log("myRecipes :", myRecipes);
+  console.log("isDishModalOpen : ", isDishModalOpen);
 
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
@@ -335,13 +340,14 @@ function RecipeDetails() {
           </div>
 
           <h3>£ {totalCost}</h3>
-          <button onClick={handleCreateDish}>create dish</button>
+          <button onClick={() => setIsDishModalOpen(true)}>create dish</button>
           <h4>
             Last Prepared on : {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
             {foundRecipeDetails?.recipe.last_prepared_time}
           </h4>
           <Button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</Button>
-          <button onClick={handleDelete}>Delete</button>
+          {/* <button onClick={handleDelete}>Delete</button> */}
+          <button onClick={() => setIsConfirmModalOpen(true)}>Delete</button>
           <table>
             <thead>
               <tr>
@@ -375,6 +381,27 @@ function RecipeDetails() {
           </table>
         </div>
       </div>
+      {isConfirmModalOpen && (
+        <ConfirmModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          onConfirm={handleDelete}
+          title={"Delete Recipe"}
+          message={"Are you sure you want to delete"}
+          OKtext={"Ca Dabra"}
+          cancelText={"Abra"}
+        />
+      )}
+      {isDishModalOpen && (
+        <DishesModal
+          isOpen={isDishModalOpen}
+          onClose={() => setIsDishModalOpen(false)}
+          onConfirm={handleCreateDish}
+          title={"Created This Dish ?"}
+          cancelText={"Cancel"}
+          OKtext={"Create Dish"}
+        />
+      )}
     </div>
   );
 }
