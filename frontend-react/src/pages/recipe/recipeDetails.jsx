@@ -12,6 +12,11 @@ import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import ConfirmModal from "../../components/confirmModal";
 import DishesModal from "../../components/dishesModal";
+import { capitaliseWords } from "../../utils/appUtils";
+import { Alert, ToggleSwitch, TabItem, Tabs } from "flowbite-react";
+
+import { HiTrash, HiClipboardList } from "react-icons/hi";
+import ToggleSwitchC from "../../components/toggleSwitch";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -24,6 +29,10 @@ function RecipeDetails() {
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+  const [isAlert, setIsAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
+  const [switch1, setSwitch1] = useState(false);
+
   const navigate = useNavigate();
   let tableRows = [];
   const details4Dish = {};
@@ -36,88 +45,94 @@ function RecipeDetails() {
   const handleDelete = async (e) => {
     e.preventDefault();
 
-    if (
-      window.confirm(
-        `Are you sure you want to delete this recipe - ${foundRecipeDetails?.recipe.name}`,
-      )
-    ) {
-      const deleteurl = `${serverURL}/recipe/api/delete/${id}`;
-      try {
-        const res = await axios.delete(deleteurl, config);
-        if (res?.data?.success === true) {
-          alert(res?.data?.message);
-          // edit context variables as well
-          const x = recipeDetails.filter((i) => i.recipe.recipe_id !== Number(id));
-          setRecipeDetails(x);
-          const y = myRecipes.filter((i) => i.recipe_id !== Number(id));
-          setMyRecipes(y);
-          // ---------------------------
-          navigate("/MyRecipes");
-          return;
-        } else {
-          alert(res?.data?.message);
-          // console.log(res?.data?.message);
-          return;
-        }
-      } catch (err) {
-        // console.log(err.response?.data?.message);
-        alert(err.response?.data?.message);
+    // if (
+    //   window.confirm(
+    //     `Are you sure you want to delete this recipe - ${foundRecipeDetails?.recipe.name}`,
+    //   )
+    // ) {
+    const deleteurl = `${serverURL}/recipe/api/delete/${id}`;
+    try {
+      const res = await axios.delete(deleteurl, config);
+      if (res?.data?.success === true) {
+        // alert(res?.data?.message);
+        setAlertMsg(res?.data?.message);
+        setIsAlert(true);
+        // edit context variables as well
+        const x = recipeDetails.filter((i) => i.recipe.recipe_id !== Number(id));
+        setRecipeDetails(x);
+        const y = myRecipes.filter((i) => i.recipe_id !== Number(id));
+        setMyRecipes(y);
+        // ---------------------------
+        navigate("/MyRecipes");
+        return;
+      } else {
+        alert(res?.data?.message);
+        // console.log(res?.data?.message);
         return;
       }
-    } else {
-      console.log("cancelled");
+    } catch (err) {
+      // console.log(err.response?.data?.message);
+      alert(err.response?.data?.message);
+      return;
     }
+    // } else {
+    //   console.log("cancelled");
+    // }
   };
 
   // ------------------------------------- create DISH button function  ----------------------------------------
-  const handleCreateDish = async (e) => {
-    e.preventDefault();
-    // console.log("details4Dish :", details4Dish);
-    // adding current date and time in recipe to create dish date and time
+  const handleCreateDish = async (additionalData) => {
+    // adding current time temporarily until we create input time mechanism
     const now = new Date();
-    const currentData = now.toISOString().split("T")[0];
     const currentTime = now.toTimeString().split(" ")[0];
-    details4Dish.preparation_date = currentData;
+
+    details4Dish.preparation_date = additionalData.date;
+    details4Dish.comment = additionalData.comment;
     details4Dish.time_prepared = currentTime;
 
-    if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {
-      const createURL = `${serverURL}/dish/api/create`;
+    // console.log("currentTime :", currentTime);
+    // return;
+    // if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {
+    const createURL = `${serverURL}/dish/api/create`;
 
-      try {
-        const res = await axios.post(createURL, details4Dish, config);
-        if (res?.data?.success === true) {
-          alert(res?.data?.message);
-          // update the recipeDetails Context (cache) on local machine
-          const updatedDetails = recipeDetails.map((i) =>
-            i.recipe.recipe_id === Number(id)
-              ? {
-                  ...i,
-                  recipe: {
-                    ...i.recipe,
-                    date_prepared: currentData,
-                    time_prepared: currentTime,
-                  },
-                }
-              : i,
-          );
-          setRecipeDetails(updatedDetails);
+    try {
+      const res = await axios.post(createURL, details4Dish, config);
+      if (res?.data?.success === true) {
+        // alert(res?.data?.message);
+        // update the recipeDetails Context (cache) on local machine
+        const updatedDetails = recipeDetails.map((i) =>
+          i.recipe.recipe_id === Number(id)
+            ? {
+                ...i,
+                recipe: {
+                  ...i.recipe,
+                  last_prepared_date: additionalData.date,
+                  last_prepared_time: currentTime,
+                },
+              }
+            : i,
+        );
+        setRecipeDetails(updatedDetails);
+        setIsDishModalOpen(false);
 
-          // navigate(`/recipe/`);
-          return;
-        } else {
-          alert(res?.data?.message);
-          console.log(res?.data?.message);
-          return;
-        }
-      } catch (err) {
-        console.log("response message for dish created button:", err.response);
-        console.log(err.response?.data?.message);
-        alert(err.response?.data?.message);
+        // navigate(`/recipe/`);
+        return;
+      } else {
+        // alert(res?.data?.message);
+        console.log(res?.data?.message);
+        setIsAlert(true);
+        setAlertMsg(res?.data?.message);
         return;
       }
-    } else {
-      console.log("cancelled");
+    } catch (err) {
+      console.log("response message for dish created button:", err.response);
+      console.log(err.response?.data?.message);
+      alert(err.response?.data?.message);
+      return;
     }
+    // } else {
+    //   console.log("cancelled");
+    // }
   };
 
   //----------------------------------------- Redirect effect --------------------------------------------------
@@ -213,14 +228,15 @@ function RecipeDetails() {
 
   // ------------------------ Create html for table with components and ingredients rows -------------------
   if (foundRecipeDetails) {
+    // //////////////////////////////////////////////////////
     // below variable to create data for dish creation api
     details4Dish.recipe_id = foundRecipeDetails.recipe.recipe_id;
     details4Dish.recipe_name = foundRecipeDetails.recipe.name;
     details4Dish.portion_size = foundRecipeDetails.recipe.portion_size;
+    details4Dish.recipe_by = foundRecipeDetails.recipe.user_id;
     details4Dish.total_cost = totalCost;
     details4Dish.meal = "lunch";
-    details4Dish.recipe_by = foundRecipeDetails.recipe.user_id;
-    details4Dish.comment = " nothing much";
+    details4Dish.comment = "";
     details4Dish.components = [];
     // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -291,12 +307,12 @@ function RecipeDetails() {
     }
   }
 
-  // console.log("table rows :", tableRows);
+  // console.log("HiTrash :", HiTrash);
   // console.log("data is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
   console.log("recipeDetails :", recipeDetails);
-  console.log("myRecipes :", myRecipes);
-  console.log("isDishModalOpen : ", isDishModalOpen);
+  // console.log("myRecipes :", myRecipes);
+  // console.log("isDishModalOpen : ", isDishModalOpen);
 
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
@@ -305,7 +321,151 @@ function RecipeDetails() {
       <div className="flex mt-(--top-bar-height)">
         <LeftSideBar />
         <div className="w-full ml-(--left-side-bar) mt-5">
-          <p></p>
+          <div className="flex flex-col bg-amber-100">
+            {/* Recipe Name header */}
+            <div className="flex mx-auto p-2 max-w-xl text-center text-2xl md:text-4xl lg:text-5xl bg-amber-300 ">
+              {capitaliseWords(foundRecipeDetails?.recipe.name)}
+            </div>
+            {/* Recipe Details and image */}
+            <div className="flex  flex-col-reverse h-30 md:flex-row ">
+              <div className="flex flex-col w-full md:w-4/5 md:bg-amber-200">
+                <div className="flex">
+                  <div>Portion Size:</div>
+                  <div> {foundRecipeDetails?.recipe.portion_size}</div>
+                </div>
+
+                {/* toggle switch for private recipe */}
+                <div className="flex">
+                  <div>
+                    {!changePrvcyLoading && (
+                      <Toggle
+                        title=""
+                        checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+                        onText="Private"
+                        offText="Private"
+                        onChange={(e) => {
+                          setChangePrvcyLoading(true);
+                          setRecipeDetails((prev) =>
+                            prev.map((item) =>
+                              item.recipe.recipe_id === Number(id)
+                                ? {
+                                    ...item,
+                                    recipe: {
+                                      ...item.recipe,
+                                      privacy: e.target.checked ? "private" : "public",
+                                    },
+                                  }
+                                : item,
+                            ),
+                          );
+                          changePrivacy(e.target.checked ? "private" : "public");
+                          setChangePrvcyLoading(false);
+                        }}
+                      />
+                    )}
+                    {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                  </div>
+                </div>
+
+                {/* cost of recipe */}
+                <div>
+                  <h3>£ {totalCost}</h3>
+                </div>
+
+                {/* Last prepared */}
+                <div>
+                  <h4>
+                    Last Prepared on : {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
+                    {foundRecipeDetails?.recipe.last_prepared_time}
+                  </h4>
+                </div>
+
+                {/* Create dish button */}
+                <div>
+                  <button onClick={() => setIsDishModalOpen(true)}>create dish</button>
+                </div>
+              </div>
+              <div className="flex flex-col w-full md:w-1/5 md:bg-amber-300">Image here</div>
+            </div>
+            {/* Buttons for owner */}
+            <div className="flex justify-between">
+              <button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</button>
+
+              <button onClick={() => setIsConfirmModalOpen(true)}>Delete</button>
+            </div>
+            {/* description od recipe */}
+            <div className="flex bg-amber-500">
+              <div>Description: {foundRecipeDetails?.recipe.description}</div>
+            </div>
+            {/* tabs option of flowbite */}
+            <div className="overflow-x-auto">
+              <Tabs aria-label="Full width tabs" variant="fullWidth">
+                <TabItem active title="Ingredients" icon={HiTrash}>
+                  This is{" "}
+                  <span className="font-medium text-gray-800 dark:text-white">
+                    Profile tab's associated content
+                  </span>
+                  . Clicking another tab will toggle the visibility of this one for the next. The
+                  tab JavaScript swaps classes to control the content visibility and styling.
+                </TabItem>
+                <TabItem title="Steps" icon={HiClipboardList}>
+                  This is{" "}
+                  <span className="font-medium text-gray-800 dark:text-white">
+                    Dashboard tab's associated content
+                  </span>
+                  . Clicking another tab will toggle the visibility of this one for the next. The
+                  tab JavaScript swaps classes to control the content visibility and styling.
+                </TabItem>
+              </Tabs>
+            </div>
+            {/* Tabs */}
+            <div className="flex">
+              <div className="w-1/2 text-center border-t-2 border-gray-600 rounded-t-2xl border-l-2 border-r-2">
+                <button> Ingredients</button>
+              </div>
+              <div>
+                <button> Steps</button>
+              </div>
+            </div>
+            {/* Recipe Ingredients */}
+            <div className="flex bg-amber-100">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ingredient name</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>price</th>
+                    <th>Base Quantity</th>
+                    <th>Base Unit</th>
+                    <th>Base Price</th>
+                    <th>Ing. Source</th>
+                  </tr>
+                </thead>
+                <tbody>{tableRows}</tbody>
+              </table>
+            </div>
+            {/* Recipe steps */}
+            <div className="flex bg-amber-300">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sr-No.</th>
+                    <th>Steps Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {foundRecipeDetails?.steps.map((s) => (
+                    <tr key={s.step_order}>
+                      <td>{s.step_order}</td>
+                      <td>{s.step_text}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <h1>{foundRecipeDetails?.recipe.name}</h1>
           <h3>{foundRecipeDetails?.recipe.portion_size}</h3>
           <h3>{foundRecipeDetails?.recipe.description}</h3>
@@ -338,6 +498,38 @@ function RecipeDetails() {
             )}
             {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
           </div>
+          <div>
+            {!changePrvcyLoading && (
+              <ToggleSwitch
+                theme={{
+                  toggle: { checked: { color: { default: "bg-blue-900" } } },
+                }}
+                checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+                // checked={false}
+                label="Private"
+                onChange={(flag) => {
+                  setChangePrvcyLoading(true);
+                  setRecipeDetails((prev) =>
+                    prev.map((item) =>
+                      item.recipe.recipe_id === Number(id)
+                        ? {
+                            ...item,
+                            recipe: {
+                              ...item.recipe,
+                              privacy: flag ? "private" : "public",
+                            },
+                          }
+                        : item,
+                    ),
+                  );
+                  changePrivacy(flag ? "private" : "public");
+                  setChangePrvcyLoading(false);
+                }}
+              />
+            )}
+            {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+          </div>
+          <ToggleSwitchC />
 
           <h3>£ {totalCost}</h3>
           <button onClick={() => setIsDishModalOpen(true)}>create dish</button>
@@ -387,9 +579,10 @@ function RecipeDetails() {
           onClose={() => setIsConfirmModalOpen(false)}
           onConfirm={handleDelete}
           title={"Delete Recipe"}
-          message={"Are you sure you want to delete"}
-          OKtext={"Ca Dabra"}
-          cancelText={"Abra"}
+          message={`Are you sure to delete - ${capitaliseWords(foundRecipeDetails.recipe.name)} ?`}
+          OKtext={"Delete"}
+          OKtextIcon={HiTrash}
+          cancelText={"No, Are you crazy"}
         />
       )}
       {isDishModalOpen && (
@@ -397,11 +590,13 @@ function RecipeDetails() {
           isOpen={isDishModalOpen}
           onClose={() => setIsDishModalOpen(false)}
           onConfirm={handleCreateDish}
-          title={"Created This Dish ?"}
+          title={"Created This Dish On:"}
           cancelText={"Cancel"}
           OKtext={"Create Dish"}
+          OKtextIcon={HiClipboardList}
         />
       )}
+      {isAlert && <Alert message={alertMsg} />}
     </div>
   );
 }

@@ -16,7 +16,7 @@ exports.delete_recipe = async (req, res) => {
 
     // validate is user and recipe is still active and belongs to same user
     const [userResult] = await db.query(
-      `SELECT 1
+      `SELECT r.name
         FROM users u JOIN recipes r ON u.user_id = r.user_id
         WHERE r.recipe_id = ? AND r.user_id = ? AND r.is_active = 1 AND u.is_active = 1`,
       [recipeId, user.id],
@@ -40,9 +40,10 @@ exports.delete_recipe = async (req, res) => {
     // }
 
     // response the data back
+
     res.json({
       success: true,
-      message: `Recipe deleted`,
+      message: `${userResult[0].name} - recipe deleted`,
     });
   } catch (err) {
     console.error("Error in deleteRecipeController - delete_recipe is : ", err);

@@ -1,5 +1,6 @@
 const serverURL = "http://localhost:5001";
 
+// get the intials (mostly username) in Upper case for alternative to image of user
 const getInitials = (name) => {
   if (!name) return "";
   const nameArray = name.split(" ");
@@ -11,4 +12,12 @@ const getInitials = (name) => {
   }
 };
 
-export { serverURL, getInitials };
+//  get  capitalise first char of every word
+function capitaliseWords(str) {
+  if (!str) return "";
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+export { serverURL, getInitials, capitaliseWords };
