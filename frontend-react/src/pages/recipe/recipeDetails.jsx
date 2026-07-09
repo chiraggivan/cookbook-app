@@ -6,16 +6,19 @@ import useFetch from "../../hooks/useFetch";
 import Navbar from "../../components/navbarOld";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
-import Button from "../../components/button";
+// import Button from "../../components/button";
 import Toggle from "../../components/toggle";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import ConfirmModal from "../../components/confirmModal";
 import DishesModal from "../../components/dishesModal";
 import { capitaliseWords } from "../../utils/appUtils";
-import { Alert, ToggleSwitch, TabItem, Tabs } from "flowbite-react";
+import { Alert, ToggleSwitch, TabItem, Tabs, Button } from "flowbite-react";
 
 import { HiTrash, HiClipboardList } from "react-icons/hi";
+import { GiHotMeal } from "react-icons/gi";
+import { MdOutlineEditNote } from "react-icons/md";
+
 import ToggleSwitchC from "../../components/toggleSwitch";
 
 function RecipeDetails() {
@@ -263,29 +266,40 @@ function RecipeDetails() {
         // console.log("first component text is empty");
       } else if (u === 0 && comp_text !== "") {
         tableRows.push(
-          <tr colSpan={8}>
-            <td>{comp_text}</td>
+          <tr className="bg-gray-200 text-lg font-semibold">
+            <td className="p-2 rounded-sm" colSpan={8}>
+              {comp_text}
+            </td>
           </tr>,
         );
       } else if (u !== 0) {
         tableRows.push(
-          <tr colSpan={8}>
-            <td>{comp_text}</td>
+          <tr className="bg-gray-200 text-lg font-semibold">
+            <td className="p-2 rounded-sm" colSpan={8}>
+              {comp_text}
+            </td>
           </tr>,
         );
       }
 
       for (const i of compIngs) {
         tableRows.push(
-          <tr key={i.ingredient_display_order}>
-            <td>{i.name}</td>
-            <td>{i.quantity}</td>
-            <td>{i.unit_name}</td>
-            <td>{Number(i.price.toFixed(3))}</td>
-            <td>{i.base_quantity}</td>
-            <td>{i.unit}</td>
-            <td>{i.cost}</td>
-            <td>{i.ingredient_source}</td>
+          <tr className="w-full text-lg" key={i.ingredient_display_order}>
+            <td className="px-1 ">{i.quantity}</td>
+            <td className="px-1">{i.unit_name}</td>
+            <td className="px-1 ">
+              {i.ingredient_source === "main"
+                ? capitaliseWords(i.name)
+                : capitaliseWords(i.name) + "*"}
+            </td>
+            <td className="px-5 text-end min-w-25">£ {Number(i.price.toFixed(3))}</td>
+            <td className="px-1 text-sm text-end text-gray-400" colSpan={4}>
+              £ {i.cost}/ {i.base_quantity}
+              {i.unit}
+            </td>
+            {/* <td className="px-1">{i.unit}</td>
+            <td className="px-1">{i.cost}</td> 
+            <td>{i.ingredient_source}</td> */}
           </tr>,
         );
         // --------------Below for create dish---------------------------
@@ -308,7 +322,7 @@ function RecipeDetails() {
   }
 
   // console.log("HiTrash :", HiTrash);
-  // console.log("data is :", foundRecipeDetails);
+  console.log("data is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
   console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);
@@ -321,16 +335,20 @@ function RecipeDetails() {
       <div className="flex mt-(--top-bar-height)">
         <LeftSideBar />
         <div className="w-full ml-(--left-side-bar) mt-5">
-          <div className="flex flex-col bg-amber-100">
+          <div className="flex flex-col space-y-4 mt-1">
             {/* Recipe Name header */}
-            <div className="flex mx-auto p-2 max-w-xl text-center text-2xl md:text-4xl lg:text-5xl bg-amber-300 ">
+            <div className="flex mx-auto p-2 max-w-xl text-center font-extrabold text-3xl md:text-4xl lg:text-5xl">
               {capitaliseWords(foundRecipeDetails?.recipe.name)}
             </div>
             {/* Recipe Details and image */}
-            <div className="flex  flex-col-reverse h-30 md:flex-row ">
-              <div className="flex flex-col w-full md:w-4/5 md:bg-amber-200">
-                <div className="flex">
-                  <div>Portion Size:</div>
+            <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
+              <div
+                className="flex flex-col m-3 space-y-3 text-md 
+                              md:text-xl md:w-3/5 rounded-2xl 
+                              lg:text-2xl"
+              >
+                <div className="flex space-x-2">
+                  <div className="font-semibold">Portion Size:</div>
                   <div> {foundRecipeDetails?.recipe.portion_size}</div>
                 </div>
 
@@ -368,136 +386,216 @@ function RecipeDetails() {
                 </div>
 
                 {/* cost of recipe */}
-                <div>
-                  <h3>£ {totalCost}</h3>
+                <div className="flex space-x-2">
+                  <div className="font-semibold">Costing :</div>
+                  <p>£ {totalCost}</p>
                 </div>
 
                 {/* Last prepared */}
-                <div>
-                  <h4>
-                    Last Prepared on : {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
+                <div className="flex space-x-2">
+                  <div className="font-semibold">Last Prepared on :</div>
+                  <p>
+                    {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
                     {foundRecipeDetails?.recipe.last_prepared_time}
-                  </h4>
+                  </p>
                 </div>
 
                 {/* Create dish button */}
                 <div>
-                  <button onClick={() => setIsDishModalOpen(true)}>create dish</button>
+                  <Button
+                    className="cursor-pointer"
+                    color="dark"
+                    onClick={() => setIsDishModalOpen(true)}
+                  >
+                    <HiClipboardList className="mr-2 w-5 h-5" />
+                    create dish
+                  </Button>
                 </div>
               </div>
-              <div className="flex flex-col w-full md:w-1/5 md:bg-amber-300">Image here</div>
+              <div className="flex flex-col rounded-xl mr-3 md:w-2/5  ">
+                <GiHotMeal className="h-full w-full max-h-60 bg-gray-200 rounded-xl" />
+              </div>
             </div>
             {/* Buttons for owner */}
-            <div className="flex justify-between">
-              <button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</button>
+            <div className="flex justify-between p-3">
+              {/* Create edit button */}
+              <div className="">
+                <Button
+                  className="cursor-pointer"
+                  color="light"
+                  onClick={() => navigate(`/recipe/edit/${id}`)}
+                >
+                  <MdOutlineEditNote className="mr-2 w-5 h-5" />
+                  Edit Recipe
+                </Button>
+              </div>
 
-              <button onClick={() => setIsConfirmModalOpen(true)}>Delete</button>
+              {/* Delete recipe */}
+              <div>
+                <Button
+                  className="cursor-pointer"
+                  color="red"
+                  onClick={() => setIsConfirmModalOpen(true)}
+                >
+                  <HiTrash className="mr-2 w-5 h-5" />
+                  Delete Recipe
+                </Button>
+              </div>
             </div>
-            {/* description od recipe */}
-            <div className="flex bg-amber-500">
-              <div>Description: {foundRecipeDetails?.recipe.description}</div>
+            {/* description of recipe */}
+            <div className="flex min-h-20 max-w-xl m-3 text-2xl">
+              <div>
+                {" "}
+                <span className="font-semibold">Description: </span>{" "}
+                {foundRecipeDetails?.recipe.description}
+              </div>
             </div>
-            {/* tabs option of flowbite */}
-            <div className="overflow-x-auto">
-              <Tabs aria-label="Full width tabs" variant="fullWidth">
+            {/* tabs option of flowbite for smaller screen below xl */}
+            <Tabs className="flex xl:hidden" aria-label="Tabs with icons" variant="fullWidth">
+              {/* Ingredients */}
+              <TabItem active title="Ingredients" icon={HiTrash}>
+                <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl ">
+                  <table>
+                    <thead>
+                      <tr className="">
+                        <th className=""></th>
+                        <th className=""></th>
+                        <th className=""></th>
+                        <th className=""></th>
+                        <th className=""></th>
+                        <th className=""></th>
+                        <th className=""></th>
+                        <th className=""></th>
+                      </tr>
+                    </thead>
+                    <tbody>{tableRows}</tbody>
+                  </table>
+                </div>
+              </TabItem>
+              {/* Recipe steps */}
+              <TabItem title="Steps" icon={HiClipboardList}>
+                <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl">
+                  <table>
+                    {/* <thead>
+                      <tr>
+                        <th>Sr-No.</th>
+                        <th>Steps Description</th>
+                      </tr>
+                    </thead> */}
+                    <tbody>
+                      {foundRecipeDetails.steps.length === 0 && (
+                        <div className="italic text-gray-400">No steps defined for recipe</div>
+                      )}
+                      {foundRecipeDetails.steps.length !== 0 &&
+                        foundRecipeDetails?.steps.map((s) => (
+                          <tr className="" key={s.step_order}>
+                            <td className="flex flex-col text-end top-0 px-4">
+                              {s.step_order + "."}
+                            </td>
+                            <td>{s.step_text}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabItem>
+            </Tabs>
+
+            {/* tabs option of flowbite for screen bigger than xl */}
+            <div className="hidden xl:block">
+              <Tabs className="flex" aria-label="Tabs with icons" variant="fullWidth">
+                {/* Ingredients */}
                 <TabItem active title="Ingredients" icon={HiTrash}>
-                  This is{" "}
-                  <span className="font-medium text-gray-800 dark:text-white">
-                    Profile tab's associated content
-                  </span>
-                  . Clicking another tab will toggle the visibility of this one for the next. The
-                  tab JavaScript swaps classes to control the content visibility and styling.
+                  <div className="flex">
+                    <table className="w-1/2">
+                      <div className="m-2 p-2">
+                        <thead>
+                          <tr className="">
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                          </tr>
+                        </thead>
+                        <tbody>{tableRows}</tbody>
+                      </div>
+                    </table>
+                    <table className=" w-1/2  ">
+                      {/* <thead>
+                      <tr>
+                        <th>Sr-No.</th>
+                        <th>Steps Description</th>
+                      </tr>
+                    </thead> */}
+                      <tbody>
+                        {foundRecipeDetails.steps.length === 0 && (
+                          <div className="italic text-gray-400">No steps defined for recipe</div>
+                        )}
+                        {foundRecipeDetails.steps.length !== 0 &&
+                          foundRecipeDetails?.steps.map((s) => (
+                            <tr className="" key={s.step_order}>
+                              <td className="flex flex-col text-end top-0 px-4">
+                                {s.step_order + "."}
+                              </td>
+                              <td>{s.step_text}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </TabItem>
+                {/* Recipe steps */}
                 <TabItem title="Steps" icon={HiClipboardList}>
-                  This is{" "}
-                  <span className="font-medium text-gray-800 dark:text-white">
-                    Dashboard tab's associated content
-                  </span>
-                  . Clicking another tab will toggle the visibility of this one for the next. The
-                  tab JavaScript swaps classes to control the content visibility and styling.
+                  <div className="flex  ">
+                    <table className="w-1/2">
+                      <div className="m-2 p-2 ">
+                        <thead>
+                          <tr className="">
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                            <th className=""></th>
+                          </tr>
+                        </thead>
+                        <tbody>{tableRows}</tbody>
+                      </div>
+                    </table>
+                    <table className="w-1/2 ">
+                      {/* <thead>
+                      <tr>
+                        <th>Sr-No.</th>
+                        <th>Steps Description</th>
+                      </tr>
+                    </thead> */}
+                      <tbody>
+                        {foundRecipeDetails.steps.length === 0 && (
+                          <div className="italic text-gray-400">No steps defined for recipe</div>
+                        )}
+                        {foundRecipeDetails.steps.length !== 0 &&
+                          foundRecipeDetails?.steps.map((s) => (
+                            <tr className="" key={s.step_order}>
+                              <td className="flex flex-col text-end top-0 px-4">
+                                {s.step_order + "."}
+                              </td>
+                              <td>{s.step_text}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </TabItem>
               </Tabs>
             </div>
-            {/* Tabs */}
-            <div className="flex">
-              <div className="w-1/2 text-center border-t-2 border-gray-600 rounded-t-2xl border-l-2 border-r-2">
-                <button> Ingredients</button>
-              </div>
-              <div>
-                <button> Steps</button>
-              </div>
-            </div>
-            {/* Recipe Ingredients */}
-            <div className="flex bg-amber-100">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ingredient name</th>
-                    <th>Quantity</th>
-                    <th>Unit</th>
-                    <th>price</th>
-                    <th>Base Quantity</th>
-                    <th>Base Unit</th>
-                    <th>Base Price</th>
-                    <th>Ing. Source</th>
-                  </tr>
-                </thead>
-                <tbody>{tableRows}</tbody>
-              </table>
-            </div>
-            {/* Recipe steps */}
-            <div className="flex bg-amber-300">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Sr-No.</th>
-                    <th>Steps Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {foundRecipeDetails?.steps.map((s) => (
-                    <tr key={s.step_order}>
-                      <td>{s.step_order}</td>
-                      <td>{s.step_text}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
 
-          <h1>{foundRecipeDetails?.recipe.name}</h1>
-          <h3>{foundRecipeDetails?.recipe.portion_size}</h3>
-          <h3>{foundRecipeDetails?.recipe.description}</h3>
-          <div>
-            {!changePrvcyLoading && (
-              <Toggle
-                title=""
-                checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-                onText="Private"
-                offText="Private"
-                onChange={(e) => {
-                  setChangePrvcyLoading(true);
-                  setRecipeDetails((prev) =>
-                    prev.map((item) =>
-                      item.recipe.recipe_id === Number(id)
-                        ? {
-                            ...item,
-                            recipe: {
-                              ...item.recipe,
-                              privacy: e.target.checked ? "private" : "public",
-                            },
-                          }
-                        : item,
-                    ),
-                  );
-                  changePrivacy(e.target.checked ? "private" : "public");
-                  setChangePrvcyLoading(false);
-                }}
-              />
-            )}
-            {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-          </div>
           <div>
             {!changePrvcyLoading && (
               <ToggleSwitch
@@ -530,47 +628,6 @@ function RecipeDetails() {
             {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
           </div>
           <ToggleSwitchC />
-
-          <h3>£ {totalCost}</h3>
-          <button onClick={() => setIsDishModalOpen(true)}>create dish</button>
-          <h4>
-            Last Prepared on : {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
-            {foundRecipeDetails?.recipe.last_prepared_time}
-          </h4>
-          <Button onClick={() => navigate(`/recipe/edit/${id}`)}>Edit</Button>
-          {/* <button onClick={handleDelete}>Delete</button> */}
-          <button onClick={() => setIsConfirmModalOpen(true)}>Delete</button>
-          <table>
-            <thead>
-              <tr>
-                <th>ingredient name</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>price</th>
-                <th>Base Quantity</th>
-                <th>Base Unit</th>
-                <th>Base Price</th>
-                <th>Ing. Source</th>
-              </tr>
-            </thead>
-            <tbody>{tableRows}</tbody>
-          </table>
-          <table>
-            <thead>
-              <tr>
-                <th>Sr-No.</th>
-                <th>Steps Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {foundRecipeDetails?.steps.map((s) => (
-                <tr key={s.step_order}>
-                  <td>{s.step_order}</td>
-                  <td>{s.step_text}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
       {isConfirmModalOpen && (

@@ -5,7 +5,7 @@ function TopBar() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   return (
-    <header className="fixed top-0 left-0 w-full h-[var(--top-bar-height)]:">
+    <header className="fixed top-0 left-0 z-50 w-full h-(--top-bar-height)">
       <div className="flex w-full bg-white  h-16">
         {/* logo section */}
         <div className=" flex font-extrabold text-2xl tracking-tighter items-center justify-start w-[15%] px-4 py-2">
