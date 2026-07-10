@@ -412,6 +412,7 @@ function RecipeDetails() {
                   </Button>
                 </div>
               </div>
+              {/* recipe image */}
               <div className="flex flex-col rounded-xl mr-3 md:w-2/5  ">
                 <GiHotMeal className="h-full w-full max-h-60 bg-gray-200 rounded-xl" />
               </div>
@@ -483,10 +484,11 @@ function RecipeDetails() {
                       </tr>
                     </thead> */}
                     <tbody>
-                      {foundRecipeDetails.steps.length === 0 && (
+                      {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
                         <div className="italic text-gray-400">No steps defined for recipe</div>
                       )}
-                      {foundRecipeDetails.steps.length !== 0 &&
+                      {foundRecipeDetails?.steps &&
+                        foundRecipeDetails?.steps.length !== 0 &&
                         foundRecipeDetails?.steps.map((s) => (
                           <tr className="" key={s.step_order}>
                             <td className="flex flex-col text-end top-0 px-4">
@@ -532,10 +534,11 @@ function RecipeDetails() {
                       </tr>
                     </thead> */}
                       <tbody>
-                        {foundRecipeDetails.steps.length === 0 && (
+                        {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
                           <div className="italic text-gray-400">No steps defined for recipe</div>
                         )}
-                        {foundRecipeDetails.steps.length !== 0 &&
+                        {foundRecipeDetails?.steps &&
+                          foundRecipeDetails?.steps.length !== 0 &&
                           foundRecipeDetails?.steps.map((s) => (
                             <tr className="" key={s.step_order}>
                               <td className="flex flex-col text-end top-0 px-4">
@@ -576,10 +579,11 @@ function RecipeDetails() {
                       </tr>
                     </thead> */}
                       <tbody>
-                        {foundRecipeDetails.steps.length === 0 && (
+                        {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
                           <div className="italic text-gray-400">No steps defined for recipe</div>
                         )}
-                        {foundRecipeDetails.steps.length !== 0 &&
+                        {foundRecipeDetails?.steps &&
+                          foundRecipeDetails?.steps.length !== 0 &&
                           foundRecipeDetails?.steps.map((s) => (
                             <tr className="" key={s.step_order}>
                               <td className="flex flex-col text-end top-0 px-4">
