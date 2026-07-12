@@ -23,6 +23,7 @@ import ToggleSwitchC from "../../components/toggleSwitch";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const [isPrivate, setIsPrivate] = useState(false);
@@ -30,6 +31,7 @@ function RecipeDetails() {
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [fetchLoading, setFetchLoading] = useState(true);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
+  const [isRecipeOwner, setIsRecipeOwner] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
@@ -183,6 +185,19 @@ function RecipeDetails() {
     setFetchLoading(false);
   }, []);
 
+  // ----------------------- check if user is the owner of the recipe --------------------------------
+  useEffect(() => {
+    // this below is done to make sure there is no flicker of recipe by for owner
+    if (!foundRecipeDetails) {
+      return;
+    }
+    if (user.user_id === foundRecipeDetails?.recipe.user_id) {
+      // console.log("Yes i am the owner");
+      setIsRecipeOwner(true);
+    } else {
+      setIsRecipeOwner(false);
+    }
+  }, [foundRecipeDetails]);
   // ------------------------------------  change privacy in recipe details ----------------------------
   //  only option available to edit in read recipe for quick update.
 
@@ -322,11 +337,12 @@ function RecipeDetails() {
   }
 
   // console.log("HiTrash :", HiTrash);
-  console.log("data is :", foundRecipeDetails);
+  // console.log("data is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
-  console.log("recipeDetails :", recipeDetails);
+  // console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);
   // console.log("isDishModalOpen : ", isDishModalOpen);
+  // console.log("isRecipeOwner :", isRecipeOwner);
 
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
@@ -336,9 +352,23 @@ function RecipeDetails() {
         <LeftSideBar />
         <div className="w-full ml-(--left-side-bar) mt-5">
           <div className="flex flex-col space-y-4 mt-1">
-            {/* Recipe Name header */}
-            <div className="flex mx-auto p-2 max-w-xl text-center font-extrabold text-3xl md:text-4xl lg:text-5xl">
-              {capitaliseWords(foundRecipeDetails?.recipe.name)}
+            {/* Recipe Name header & recipe by */}
+            <div className="flex flex-col relative">
+              <div
+                className="flex mx-auto p-2 max-w-sm text-center font-extrabold text-3xl 
+                              md:text-4xl md:max-w-lg
+                              lg:text-5xl lg:max-w-xl"
+              >
+                {capitaliseWords(foundRecipeDetails?.recipe.name)}
+              </div>
+
+              {/* Show recipe owner details if different from user */}
+              {isRecipeOwner === false && (
+                <div className="absolute flex space-x-2 right-3 bottom-0">
+                  <div className="font-semibold">By :</div>
+                  <p>{foundRecipeDetails?.recipe.user_id}</p>
+                </div>
+              )}
             </div>
             {/* Recipe Details and image */}
             <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
@@ -353,37 +383,39 @@ function RecipeDetails() {
                 </div>
 
                 {/* toggle switch for private recipe */}
-                <div className="flex">
-                  <div>
-                    {!changePrvcyLoading && (
-                      <Toggle
-                        title=""
-                        checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-                        onText="Private"
-                        offText="Private"
-                        onChange={(e) => {
-                          setChangePrvcyLoading(true);
-                          setRecipeDetails((prev) =>
-                            prev.map((item) =>
-                              item.recipe.recipe_id === Number(id)
-                                ? {
-                                    ...item,
-                                    recipe: {
-                                      ...item.recipe,
-                                      privacy: e.target.checked ? "private" : "public",
-                                    },
-                                  }
-                                : item,
-                            ),
-                          );
-                          changePrivacy(e.target.checked ? "private" : "public");
-                          setChangePrvcyLoading(false);
-                        }}
-                      />
-                    )}
-                    {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                {isRecipeOwner === true && (
+                  <div className="flex">
+                    <div>
+                      {!changePrvcyLoading && (
+                        <Toggle
+                          title=""
+                          checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+                          onText="Private"
+                          offText="Private"
+                          onChange={(e) => {
+                            setChangePrvcyLoading(true);
+                            setRecipeDetails((prev) =>
+                              prev.map((item) =>
+                                item.recipe.recipe_id === Number(id)
+                                  ? {
+                                      ...item,
+                                      recipe: {
+                                        ...item.recipe,
+                                        privacy: e.target.checked ? "private" : "public",
+                                      },
+                                    }
+                                  : item,
+                              ),
+                            );
+                            changePrivacy(e.target.checked ? "private" : "public");
+                            setChangePrvcyLoading(false);
+                          }}
+                        />
+                      )}
+                      {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* cost of recipe */}
                 <div className="flex space-x-2">
@@ -391,58 +423,73 @@ function RecipeDetails() {
                   <p>£ {totalCost}</p>
                 </div>
 
-                {/* Last prepared */}
-                <div className="flex space-x-2">
-                  <div className="font-semibold">Last Prepared on :</div>
-                  <p>
-                    {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
-                    {foundRecipeDetails?.recipe.last_prepared_time}
-                  </p>
-                </div>
+                {/* if Owner - Last prepared & create dish*/}
+                {isRecipeOwner && (
+                  <>
+                    <div className="flex space-x-2">
+                      <div className="font-semibold">Last Prepared on :</div>
+                      <p>
+                        {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
+                        {foundRecipeDetails?.recipe.last_prepared_time}
+                      </p>
+                    </div>
+                    {/* Create dish button */}
+                    <div>
+                      <Button
+                        className="cursor-pointer"
+                        color="dark"
+                        onClick={() => setIsDishModalOpen(true)}
+                      >
+                        <HiClipboardList className="mr-2 w-5 h-5" />
+                        create dish
+                      </Button>
+                    </div>
+                  </>
+                )}
 
-                {/* Create dish button */}
-                <div>
-                  <Button
-                    className="cursor-pointer"
-                    color="dark"
-                    onClick={() => setIsDishModalOpen(true)}
-                  >
-                    <HiClipboardList className="mr-2 w-5 h-5" />
-                    create dish
-                  </Button>
-                </div>
+                {/* if not owner then - recipe creator's name */}
+                {!isRecipeOwner && (
+                  <div className="flex space-x-2">
+                    <div className="font-semibold">Recipe By :</div>
+                    <p>{foundRecipeDetails?.recipe.user_id}</p>
+                  </div>
+                )}
               </div>
               {/* recipe image */}
               <div className="flex flex-col rounded-xl mr-3 md:w-2/5  ">
                 <GiHotMeal className="h-full w-full max-h-60 bg-gray-200 rounded-xl" />
               </div>
             </div>
-            {/* Buttons for owner */}
-            <div className="flex justify-between p-3">
-              {/* Create edit button */}
-              <div className="">
-                <Button
-                  className="cursor-pointer"
-                  color="light"
-                  onClick={() => navigate(`/recipe/edit/${id}`)}
-                >
-                  <MdOutlineEditNote className="mr-2 w-5 h-5" />
-                  Edit Recipe
-                </Button>
-              </div>
 
-              {/* Delete recipe */}
-              <div>
-                <Button
-                  className="cursor-pointer"
-                  color="red"
-                  onClick={() => setIsConfirmModalOpen(true)}
-                >
-                  <HiTrash className="mr-2 w-5 h-5" />
-                  Delete Recipe
-                </Button>
+            {/* Buttons for owner */}
+            {isRecipeOwner && (
+              <div className="flex justify-between p-3">
+                {/* Create edit button */}
+                <div className="">
+                  <Button
+                    className="cursor-pointer"
+                    color="light"
+                    onClick={() => navigate(`/recipe/edit/${id}`)}
+                  >
+                    <MdOutlineEditNote className="mr-2 w-5 h-5" />
+                    Edit Recipe
+                  </Button>
+                </div>
+
+                {/* Delete recipe */}
+                <div>
+                  <Button
+                    className="cursor-pointer"
+                    color="red"
+                    onClick={() => setIsConfirmModalOpen(true)}
+                  >
+                    <HiTrash className="mr-2 w-5 h-5" />
+                    Delete Recipe
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
+
             {/* description of recipe */}
             <div className="flex min-h-20 max-w-xl m-3 text-2xl">
               <div>

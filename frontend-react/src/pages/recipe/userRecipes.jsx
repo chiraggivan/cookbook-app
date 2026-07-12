@@ -72,7 +72,9 @@ function UserRecipes() {
                       lg:h-40 lg:item-end lg:justify-end lg:w-50% "
           >
             <div>
-              <div className="flex mt-4 lg:mt-0 lg:pr-88 lg:justify-end">Search Your Recipe </div>
+              <div className="flex mt-4 lg:mt-0 lg:pr-88 lg:justify-end">
+                Search {data?.userInfo.username}'s Recipe
+              </div>
               <div className="flex items-end justify-end w-full py-2">
                 <input
                   className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 

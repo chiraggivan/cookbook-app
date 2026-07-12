@@ -243,7 +243,7 @@ function AddIngredient() {
                     }}
                   />
                 </div>
-                <div className="text-sm font-semibold text-red-700 h-5  max-w-100">
+                <div className="pl-33 text-sm font-semibold text-red-700 h-5  max-w-100">
                   {ingData?.errors?.name ? "*Name Required" : ""}
                 </div>
               </div>
@@ -271,10 +271,10 @@ function AddIngredient() {
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <div className="flex items-center space-x-0">
+                  <div className="flex items-center space-x-1">
                     <p>Unit:</p>
                     <Select
-                      className="w-19 m-1"
+                      className="w-19"
                       value={ingData?.display_unit ?? ""}
                       onChange={(e) => {
                         handleChange("display_unit", e.target.value);
