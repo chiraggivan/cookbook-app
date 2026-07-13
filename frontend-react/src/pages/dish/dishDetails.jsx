@@ -8,7 +8,7 @@ import Button from "../../components/button";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import DishDetailsPage from "./-dishDetailsPage";
 import { DishContext } from "../../context/dishContext";
-import { serverURL } from "../../utils/appUtils";
+import { capitaliseWords, serverURL } from "../../utils/appUtils";
 
 function DishDetails() {
   const { id } = useParams();
@@ -19,6 +19,7 @@ function DishDetails() {
   const [foundDish, setFoundDish] = useState();
   const [fetchLoading, setFetchLoading] = useState(true);
   let tableRows = [];
+  let ingsDiv = [];
 
   //----------------------------- delete button function ------------------------------------------------------
   const handleDelete = async (e, id, token, navigate) => {
@@ -109,11 +110,21 @@ function DishDetails() {
             <td>{comp_text}</td>
           </tr>,
         );
+        ingsDiv.push(
+          <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 rounded-md px-2">
+            {comp_text}
+          </div>,
+        );
       } else if (u !== 0) {
         tableRows.push(
           <tr colSpan={8}>
             <td>{comp_text}</td>
           </tr>,
+        );
+        ingsDiv.push(
+          <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 rounded-md px-2">
+            {comp_text}
+          </div>,
         );
       }
 
@@ -130,21 +141,48 @@ function DishDetails() {
             <td>{i.ingredient_source}</td>
           </tr>,
         );
+        ingsDiv.push(
+          <div className="flex flex-col max-w-xl mx-auto">
+            <div className="flex p-1 justify-between  ">
+              <div className="flex">
+                <div className="flex min-w-8 text-md items-start justify-end mr-1">
+                  {i.quantity}
+                </div>
+                <div className="flex min-w-12 text-md items-start justify-center mr-1">
+                  {capitaliseWords(i.unit_name)}
+                </div>
+                <div className="flex min-w-20 text-md items-start justify-start mr-2">
+                  {capitaliseWords(i.ingredient_name)}
+                </div>
+              </div>
+              <div className="flex flex-col my-0.5">
+                <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost}</div>
+                <div className="flex min-w-7 text-sm justify-end mr-1 text-gray-500">
+                  £{i.base_price}/{i.base_unit}
+                </div>
+              </div>
+            </div>
+            {/* <div className="grow items-center border-t border-gray-400"></div> */}
+          </div>,
+        );
       }
     }
   }
 
   // console.log("dishD before jsx: ", foundDish);
+  console.log("ingDiv : ", ingsDiv);
   return (
     <>
-      <Navbar />
-      <DishDetailsPage
-        id={id}
-        data={foundDish}
-        navigate={navigate}
-        tableRows={tableRows}
-        handleDelete={handleDelete}
-      />
+      <div className="flex flex-col w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
+        <DishDetailsPage
+          id={id}
+          data={foundDish}
+          navigate={navigate}
+          tableRows={tableRows}
+          ingsDiv={ingsDiv}
+          handleDelete={handleDelete}
+        />
+      </div>
     </>
   );
 }
