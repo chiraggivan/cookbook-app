@@ -12,10 +12,12 @@ import Dropdown from "../../components/dropdown";
 import Navbar from "../../components/navbarOld";
 import Button from "../../components/button";
 import { MyRecipeContext } from "../../context/myRecipeContext";
-import { serverURL } from "../../utils/appUtils";
+import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
 import TopBar from "../../components/topBar";
+import { TextInput } from "flowbite-react";
+import { GiHotMeal } from "react-icons/gi";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -805,9 +807,115 @@ function NewRecipe() {
   // console.log("recipeInfo :", recipeInfo);
   return (
     <>
-      <TopBar />
+      {/* <TopBar />
       <div className="flex mt-(--top-bar-height)">
-        <div></div>
+        <div></div> */}
+      <div className="flex flex-col  mt-(--top-bar-height) ml-(--left-side-bar) ">
+        <div className="flex flex-col w-full max-w-3xl  mx-auto my-5">
+          <div className="text-xl font-bold mt-8 mb-4"> Edit Recipe Details</div>
+          {/* Line Separator */}
+          <div className="flex items-center mb-2">
+            <div className="grow border-t border-gray-300"></div>
+          </div>
+          {/* recipe details and image */}
+          <div className="flex flex-col-reverse w-full gap-3 md:flex-row md:justify-between">
+            {/* recipe details */}
+            <div className="flex flex-col justify-between h-40">
+              {/* recipe name section */}
+              <div className="flex max-w-md">
+                {/* title of recipe name */}
+                <div className="flex px-1 items-center font-semibold justify-end w-26">Name :</div>
+                {/* input section */}
+                <div className="">
+                  {/* input */}
+                  <div className="w-full">
+                    <TextInput
+                      value={capitaliseWords(recipeInfo.name) ?? ""}
+                      onChange={(e) => {
+                        setRecipeInfo({ ...recipeInfo, name: e.target.value });
+                        if (checkFinalData?.errors?.name) {
+                          checkFinalData.errors.name = "";
+                        }
+                      }}
+                      placeholder={"Name of the recipe...."}
+                    />
+                  </div>
+                  {/* error of input */}
+                  <div className="text-red-500 text-sm font-semibold"></div>
+                </div>
+              </div>
+              {/* recipe portion size section */}
+              <div className="flex max-w-md">
+                {/* title of portion size*/}
+                <div className="flex px-1 items-center font-semibold justify-end w-26">
+                  Portion size :
+                </div>
+                {/* input portion section */}
+                <div className="">
+                  {/* input */}
+                  <div className="w-full">
+                    <TextInput />
+                  </div>
+                  {/* error of portion size */}
+                  <div className="text-red-500 text-sm font-semibold"></div>
+                </div>
+              </div>
+              {/* recipe Privacy section */}
+              <div className="flex max-w-md">
+                {/* title of privacy*/}
+                <div className="flex px-1 items-center font-semibold justify-end w-26">
+                  Privacy :
+                </div>
+                {/* Toggle for privacy*/}
+                <div className="">
+                  {/* input */}
+                  <div className="w-full">
+                    <TextInput />
+                  </div>
+                  {/* error of portion size */}
+                  <div className="text-red-500 text-sm font-semibold"></div>
+                </div>
+              </div>
+            </div>
+            {/* image */}
+            <div className="mx-auto max-w-70 h-40 md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
+              <GiHotMeal className="h-full w-full" />
+            </div>
+          </div>
+          {/* recipe description */}
+          <div className="flex flex-col mt-5">
+            <div className="flex font-semibold justify-end w-26">Description :</div>
+            <div className="mt-2">
+              <Textarea className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg" />
+            </div>
+            {/* error of Description */}
+            <div className="text-red-500 text-sm font-semibold"></div>
+          </div>
+          {/* button to add first heading */}
+          <div className="mt-1">
+            <Button
+              className="cursor-pointer rounded-full"
+              color="light"
+              onClick={() => navigate(`/recipe/edit/${id}`)}
+            >
+              Add Top Header
+            </Button>
+          </div>
+          {/* ingredients list */}
+          <div className=""></div>
+          {/* button for adding new heading at the bottom */}
+          <div className=""></div>
+          {/* buttons for save and cancel at the bottom */}
+          <div className="mt-1">
+            <Button
+              className="cursor-pointer rounded-full"
+              color="light"
+              onClick={() => navigate(`/recipe/edit/${id}`)}
+            >
+              Add New Header
+            </Button>
+          </div>
+        </div>
         <div>
           <h1>Welcome to Create Recipes</h1>
           <Input

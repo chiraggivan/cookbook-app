@@ -109,19 +109,19 @@ function MyDishes() {
           </div>
           {/* Line Separator */}
           <div className="flex items-center">
-            <div className="grow border-t border-gray-300"></div>
+            <div className="grow border-b shadow border-gray-500"></div>
           </div>
         </div>
         {/* show all your saved Dishes*/}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 mt-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-8">
           {dishes?.map((i) => (
             <div
               className="flex m-2 shadow-md border-gray-400  cursor-pointer"
               onClick={() => navigate(`/dish/${i.dish_id}`)}
             >
               {/* image section - left */}
-              <div className="w-[40%] border-0 ">
-                <GiHotMeal className="p-[30%] h-full w-full rounded-r-xl bg-gray-300" />
+              <div className="min-w-45 min-h-45 max-w-45 max-h-45 border-0 ">
+                <GiHotMeal className=" h-full w-full rounded-r-xl bg-gray-300" />
               </div>
               {/* details section right */}
               <div className="px-2 pb-2" key={i.user_ingredient_id}>

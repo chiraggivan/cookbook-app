@@ -105,22 +105,12 @@ function DishDetails() {
       if (u === 0 && comp_text === "") {
         // console.log("first component text is empty");
       } else if (u === 0 && comp_text !== "") {
-        tableRows.push(
-          <tr colSpan={8}>
-            <td>{comp_text}</td>
-          </tr>,
-        );
         ingsDiv.push(
           <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 rounded-md px-2">
             {comp_text}
           </div>,
         );
       } else if (u !== 0) {
-        tableRows.push(
-          <tr colSpan={8}>
-            <td>{comp_text}</td>
-          </tr>,
-        );
         ingsDiv.push(
           <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 rounded-md px-2">
             {comp_text}
@@ -129,18 +119,6 @@ function DishDetails() {
       }
 
       for (const i of compIngs) {
-        tableRows.push(
-          <tr key={i.ingredient_display_order}>
-            <td>{i.ingredient_name}</td>
-            <td>{i.quantity}</td>
-            <td>{i.unit_name}</td>
-            <td>{i.cost}</td>
-            <td>{1}</td>
-            <td>{i.base_unit}</td>
-            <td>{i.base_price}</td>
-            <td>{i.ingredient_source}</td>
-          </tr>,
-        );
         ingsDiv.push(
           <div className="flex flex-col max-w-xl mx-auto">
             <div className="flex p-1 justify-between  ">
@@ -178,7 +156,7 @@ function DishDetails() {
           id={id}
           data={foundDish}
           navigate={navigate}
-          tableRows={tableRows}
+          // tableRows={tableRows}
           ingsDiv={ingsDiv}
           handleDelete={handleDelete}
         />

@@ -10,14 +10,18 @@ import Card from "../../components/card";
 import Table from "../../components/table";
 import Dropdown from "../../components/dropdown";
 import Navbar from "../../components/navbarOld";
-import Button from "../../components/button";
-import { serverURL } from "../../utils/appUtils";
+// import Button from "../../components/button";
+import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
 import { getFinalDataForBackend } from "./editRecipeUtils/getFinalDataForBackend";
 import OnDataChange from "../../utils/submitButtonActivation";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import TopBar from "../../components/topBar";
+import { Button, TextInput } from "flowbite-react";
+import { GiHotMeal, GiHotSpices } from "react-icons/gi";
+import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
+import { HiTrash } from "react-icons/hi";
 
 function EditRecipe() {
   const token = localStorage.getItem("token");
@@ -909,9 +913,152 @@ function EditRecipe() {
 
   return (
     <>
-      <TopBar />
-      <div className="flex mt-(--top-bar-height)">
-        <div></div>
+      <div className="flex flex-col  mt-(--top-bar-height) ml-(--left-side-bar) ">
+        {/* line just below top bar  */}
+        <div className="flex sticky z-10 h-0.5 shadow top-(--top-bar-height) bg-white"></div>
+
+        <div className="flex flex-col w-full max-w-3xl  mx-auto my-5">
+          <div className="text-xl font-bold mt-8 mb-4"> Edit Recipe Details</div>
+          {/* Line Separator */}
+          <div className="flex items-center mb-2">
+            <div className="grow border-t border-gray-300"></div>
+          </div>
+          {/* recipe details and image */}
+          <div className="flex flex-col-reverse w-full gap-3 md:flex-row md:justify-between">
+            {/* recipe details */}
+            <div className="flex flex-col justify-between h-40">
+              {/* recipe name section */}
+              <div className="flex max-w-md">
+                {/* title of recipe name */}
+                <div className="flex px-1 items-center font-semibold justify-end w-26">Name :</div>
+                {/* input section */}
+                <div className="">
+                  {/* input */}
+                  <div className="w-full">
+                    <TextInput
+                      value={capitaliseWords(recipeInfo?.recipe?.name) ?? ""}
+                      onChange={(e) => {
+                        setRecipeInfo({
+                          ...recipeInfo,
+                          recipe: { ...recipeInfo.recipe, name: e.target.value },
+                        });
+                        if (checkFinalData?.recipe?.name) {
+                          checkFinalData.recipe.name = "";
+                        }
+                      }}
+                      placeholder={"Name of the recipe...."}
+                    />
+                  </div>
+                  {/* error of input */}
+                  <div className="text-red-500 text-sm font-semibold"></div>
+                </div>
+              </div>
+              {/* recipe portion size section */}
+              <div className="flex max-w-md">
+                {/* title of portion size*/}
+                <div className="flex px-1 items-center font-semibold justify-end w-26">
+                  Portion size :
+                </div>
+                {/* input portion section */}
+                <div className="">
+                  {/* input */}
+                  <div className="w-full">
+                    <TextInput />
+                  </div>
+                  {/* error of portion size */}
+                  <div className="text-red-500 text-sm font-semibold"></div>
+                </div>
+              </div>
+              {/* recipe Privacy section */}
+              <div className="flex max-w-md">
+                {/* title of privacy*/}
+                <div className="flex px-1 items-center font-semibold justify-end w-26">
+                  Privacy :
+                </div>
+                {/* Toggle for privacy*/}
+                <div className="">
+                  {/* input */}
+                  <div className="w-full">
+                    <TextInput />
+                  </div>
+                  {/* error of portion size */}
+                  <div className="text-red-500 text-sm font-semibold"></div>
+                </div>
+              </div>
+            </div>
+            {/* image */}
+            <div className="mx-auto max-w-70 h-40 md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
+              <GiHotMeal className="h-full w-full" />
+            </div>
+          </div>
+          {/* recipe description */}
+          <div className="flex flex-col mt-5">
+            <div className="flex font-semibold justify-end w-26">Description :</div>
+            <div className="mt-2">
+              <Textarea className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg" />
+            </div>
+            {/* error of Description */}
+            <div className="text-red-500 text-sm font-semibold"></div>
+          </div>
+          {/* button to add first heading */}
+          {!showTopRow && (
+            <div className="mt-1">
+              <Button
+                className="cursor-pointer rounded-full"
+                color="light"
+                onClick={() => navigate(`/recipe/edit/${id}`)}
+              >
+                Add Top Header
+              </Button>
+            </div>
+          )}
+          {/* ingredients list */}
+          <div className="flex w-full space-x-1 bg-blue-200 my-2">
+            <div className="flex w-15 mr-1">
+              <div className="flex gap-1 items-center pl-2">
+                <div className="bg-white p-1">
+                  <FaAngleDoubleUp />
+                </div>
+                <div className="bg-white p-1">
+                  <FaAngleDoubleDown />
+                </div>
+              </div>
+              <div className=""></div>
+            </div>
+            <div className="flex items-center w-full max-w-[70%]">
+              <div className="flex min-w-10 justify-center bg-amber-100">No.</div>
+              <div className="flex min-w-42 max-w-48 justify-center bg-amber-200">Name</div>
+              <div className="flex min-w-15 justify-center bg-amber-100">Quantity</div>
+              <div className="flex min-w-18 justify-center bg-amber-200">Unit</div>
+              <div className="flex min-w-15 justify-center bg-amber-100">Cost</div>
+            </div>
+            <div className=" flex flex-col w-full max-w-[30%] border-2 border-gray-500">
+              <div className="text-sm  mx-auto ">Base</div>
+              <div className="h-0.5 bg-gray-500"></div>
+              <div className="flex text-sm ">
+                <div className="flex w-1/3 justify-center">Qty</div>
+                <div className="flex w-1/3 justify-center">Unit</div>
+                <div className="flex w-1/3 justify-center">Price</div>
+              </div>
+            </div>
+            <div className="flex items-center mx-auto px-2">Action</div>
+          </div>
+          {/* button for adding new heading at the bottom */}
+          <div className="">
+            <Button
+              className="cursor-pointer rounded-full"
+              color="light"
+              onClick={() => navigate(`/recipe/edit/${id}`)}
+            >
+              Add New Header
+            </Button>
+          </div>
+          {/* steps list */}
+          <div className=""></div>
+          {/* button for save and cancel at the bottom */}
+          <div className="mt-1"></div>
+        </div>
+        {/* //////////////////////////////////////////////////////////////////////// */}
         <div>
           <h1>Welcome to Create Recipes</h1>
           <Input
@@ -979,9 +1126,8 @@ function EditRecipe() {
             }}
           />
           <div>
-            {" "}
             <h3>
-              Total cost:{" "}
+              Total cost:
               {recipeCosting.current === 0 ? "0.00" : Math.ceil(recipeCosting.current * 100) / 100}
             </h3>
           </div>

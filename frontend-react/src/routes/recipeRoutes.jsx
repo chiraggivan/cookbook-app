@@ -32,7 +32,21 @@ export const RecipeRoutes = (
         </MainLayout>
       }
     />
-    <Route path="/recipe/new" element={<NewRecipe />} />
-    <Route path="/recipe/edit/:id" element={<EditRecipe />} />
+    <Route
+      path="/recipe/new"
+      element={
+        <MainLayout>
+          <NewRecipe />
+        </MainLayout>
+      }
+    />
+    <Route
+      path="/recipe/edit/:id"
+      element={
+        <MainLayout>
+          <EditRecipe />
+        </MainLayout>
+      }
+    />
   </>
 );
