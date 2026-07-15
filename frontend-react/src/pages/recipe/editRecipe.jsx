@@ -903,7 +903,7 @@ function EditRecipe() {
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
-  // console.log("recipeInfo :", recipeInfo);
+  console.log("recipeInfo :", recipeInfo);
   // console.log("OgData :", OgData);
 
   // ------------------------------  initial page loading screen -------------------------------------------
@@ -995,7 +995,7 @@ function EditRecipe() {
           <div className="flex flex-col mt-5">
             <div className="flex font-semibold justify-end w-26">Description :</div>
             <div className="mt-2">
-              <Textarea className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg" />
+              {/* <Textarea className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg" /> */}
             </div>
             {/* error of Description */}
             <div className="text-red-500 text-sm font-semibold"></div>
@@ -1013,38 +1013,313 @@ function EditRecipe() {
             </div>
           )}
           {/* ingredients list */}
-          <div className="flex w-full space-x-1 bg-blue-200 my-2">
-            <div className="flex w-15 mr-1">
-              <div className="flex gap-1 items-center pl-2">
-                <div className="bg-white p-1">
-                  <FaAngleDoubleUp />
-                </div>
-                <div className="bg-white p-1">
-                  <FaAngleDoubleDown />
+          <div className="flex flex-col ">
+            {/* Ingredients table header */}
+            <div className="flex w-full bg-blue-200 mt-2">
+              <div className="flex w-18 min-w-15 items-center justify-center bg-amber-100">
+                Move
+              </div>
+              <div className="flex items-center w-full justify-between bg-pink-400">
+                <div className="flex min-w-10 justify-center bg-amber-100">No.</div>
+                <div className="flex min-w-42 max-w-48 justify-center bg-amber-200">Name</div>
+                <div className="flex min-w-15 justify-center bg-amber-100">Qnty</div>
+                <div className="flex min-w-18 justify-center bg-amber-200">Unit</div>
+                <div className="flex min-w-15 justify-center bg-amber-100">Cost</div>
+              </div>
+              <div className=" hidden lg:flex lg:flex-col lg:w-full lg:min-w-58 lg:border-2 lg:border-gray-500 lg:rounded-t-xl">
+                <div className="text-sm  mx-auto ">Base</div>
+                <div className="h-0.5 bg-gray-500"></div>
+                <div className="flex text-sm">
+                  <div className="flex w-1/3 justify-center">Qty</div>
+                  <div className="flex w-1/3 justify-center">Unit</div>
+                  <div className="flex w-1/3 justify-center">Price</div>
                 </div>
               </div>
-              <div className=""></div>
-            </div>
-            <div className="flex items-center w-full max-w-[70%]">
-              <div className="flex min-w-10 justify-center bg-amber-100">No.</div>
-              <div className="flex min-w-42 max-w-48 justify-center bg-amber-200">Name</div>
-              <div className="flex min-w-15 justify-center bg-amber-100">Quantity</div>
-              <div className="flex min-w-18 justify-center bg-amber-200">Unit</div>
-              <div className="flex min-w-15 justify-center bg-amber-100">Cost</div>
-            </div>
-            <div className=" flex flex-col w-full max-w-[30%] border-2 border-gray-500">
-              <div className="text-sm  mx-auto ">Base</div>
-              <div className="h-0.5 bg-gray-500"></div>
-              <div className="flex text-sm ">
-                <div className="flex w-1/3 justify-center">Qty</div>
-                <div className="flex w-1/3 justify-center">Unit</div>
-                <div className="flex w-1/3 justify-center">Price</div>
+              <div className="flex w-14 lg:w-1">
+                <div className="flex w-full justify-end items-center px-2">Action</div>
               </div>
             </div>
-            <div className="flex items-center mx-auto px-2">Action</div>
+            {/* Dynamic ingredient rows display */}
+            <div className="flex flex-col w-full bg-blue-100">
+              {recipeInfo?.components?.map((comp, indexc) => (
+                <>
+                  {/* displaying the sub header if condition matched*/}
+                  {(showTopRow || comp.componentText !== "" || indexc !== 0) && (
+                    <div key={comp.uid} className="flex w-full justify-between bg-blue-100">
+                      <div className="p-1 w-full max-w-sm">
+                        <Input
+                          className="flex w-full py-1 rounded placeholder:text-gray-400"
+                          color="white"
+                          value={comp?.componentText ?? ""}
+                          placeholder={"Base, Dough, etc..."}
+                          onChange={(e) => {
+                            setRecipeInfo((prev) => ({
+                              ...prev,
+                              components: prev.components.map((component) =>
+                                component.uid === comp.uid
+                                  ? { ...component, componentText: e.target.value }
+                                  : component,
+                              ),
+                            }));
+                            if (checkFinalData?.components?.[indexc]?.text) {
+                              checkFinalData.components[indexc].text = "";
+                            }
+                          }}
+                          error={checkFinalData?.components?.[indexc]?.text}
+                        />
+                      </div>
+                      <div className="flex w-15 items-center justify-center">
+                        <Button
+                          className="p-0 w-8 h-8 bg-gray-100 text-red-600 border border-gray-500 "
+                          onClick={() => deleteComponentHeader(comp.uid, indexc)}
+                        >
+                          <HiTrash className="h-full w-full py-1" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {/* displaying ingredients within sub header */}
+                  {comp.ingredients?.map((ing, index) => (
+                    // ingredient row
+                    <div
+                      key={ing.uid}
+                      className="flex w-full justify-between items-center bg-blue-50 border-b border-gray-400"
+                    >
+                      {/* 1st column */}
+                      <div className="flex w-15 min-w-15">
+                        {index !== comp.ingredients.length - 1 && (
+                          <div className="flex w-full justify-center items-center my-1 space-x-2">
+                            {(indexc !== 0 || index !== 0) && (
+                              <div className="flex ">
+                                <Button
+                                  className="p-0 w-6 h-7 bg-gray-100 text-gray-700 border border-gray-500 "
+                                  onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                                >
+                                  <FaAngleDoubleUp />
+                                </Button>
+                              </div>
+                            )}
+                            {(indexc !== recipeInfo?.components.length - 1 ||
+                              index !== comp.ingredients.length - 2) && (
+                              <div className="flex ">
+                                <Button
+                                  className="p-0 w-6 h-7 bg-gray-100 text-gray-700 border border-gray-500 "
+                                  onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
+                                >
+                                  <FaAngleDoubleDown />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex w-full items-center justify-between">
+                        {/* 2nd column - Sr No. */}
+                        <div className="flex w-10 p-1 bg-amber-100 h-6 justify-end items-center">
+                          {index + 1}
+                        </div>
+                        {/* 3rd column - ing name */}
+                        <div className="relative">
+                          <Input
+                            className="flex min-w-38 max-w-48 py-0.5 rounded placeholder:text-gray-500 lg:max-w-38"
+                            color="white"
+                            value={ing.name ?? ""}
+                            onFocus={(e) => {
+                              setActiveInputId(ing.uid);
+                              searchIng(e.target.value);
+                            }}
+                            onChange={(e) => {
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((i) =>
+                                          i.uid === ing.uid
+                                            ? {
+                                                ...i,
+                                                name: e.target.value,
+                                                displayQuantity: "",
+                                                displayUnit: "",
+                                                displayPrice: "",
+                                                ogBaseQuantity: "",
+                                                ogBaseUnit: "",
+                                                ogBasePrice: "",
+                                                ingredientSource: "",
+                                                ingredientId: "",
+                                                measuringUnits: [],
+                                                baseUnits: [],
+                                                unitId: "",
+                                                unitName: "",
+                                                unit: "",
+                                                quantity: "",
+                                              }
+                                            : i,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
+                              searchIng(e.target.value);
+                              addNewIngRow(comp.uid, index);
+                              if (!activeInputId) {
+                                setActiveInputId(ing.uid);
+                              }
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.name
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].name = "";
+                              }
+                            }}
+                            onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
+                            placeholder={"milk, blue cheese, etc.."}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name ?? ""
+                            }
+                            onBlur={() => {
+                              blurTimeout = setTimeout(() => {
+                                hideSuggestions(comp.uid, ing.uid);
+                              }, 100);
+                            }}
+                          />
+                        </div>
+                        {/* 4th column - Quantity */}
+                        <div className=" flex w-12">
+                          <Input
+                            className="flex w-full py-0.5 rounded placeholder:text-gray-500"
+                            value={ing?.quantity ?? ""}
+                            onChange={(e) => {
+                              updateQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].quantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.quantity ?? ""
+                            }
+                          />
+                        </div>
+                        {/* 5th column - Unit used */}
+                        <div className="flex w-18 items-center justify-center h-6">
+                          <Dropdown
+                            className="flex w-full rounded  text-sm h-7.5 pl-1 pr-7 py-0"
+                            options={ing?.measuringUnits}
+                            value={ing?.unitId}
+                            onChange={(e) => {
+                              updateUnit(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].unitId = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId ??
+                              ""
+                            }
+                            // style={{ maxHeight: "30px", overflow: "auto" }}
+                          />
+                        </div>
+                        {/* 6th column - Costs */}
+                        <div className="flex w-15 mr-2 justify-end items-center lg:pr-2">
+                          {ing?.cost ?? ""}
+                        </div>
+                      </div>
+                      {/* base values  colums in separate div */}
+                      <div className="hidden lg:flex lg:w-full lg:max-w-57 lg:justify-between  bg-amber-100">
+                        {/* 7th column - Base - Quantity */}
+                        <div className="flex max-w-15 items-center justify-center ">
+                          <Input
+                            className="flex w-full px-1 py-0  rounded "
+                            value={ing?.displayQuantity ?? ""}
+                            onChange={(e) => {
+                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                  ?.displayQuantity
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].displayQuantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.displayQuantity ?? ""
+                            }
+                          />
+                        </div>
+                        {/* 8th column - Base - Unit */}
+                        <div className="flex w-22 max-w-18 items-center justify-center ">
+                          <DropdownArray
+                            className="flex w-full rounded  text-sm h-6.5 pl-1 pr-7 py-0"
+                            options={ing?.baseUnits}
+                            value={ing?.displayUnit ?? ""}
+                            onChange={(e) => {
+                              updateBaseUnit(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                  ?.displayUnit
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].displayUnit = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.displayUnit ?? ""
+                            }
+                          />
+                        </div>
+                        {/* 9th column - Base - Price */}
+                        <div className="flex max-w-15 item-center justify-center ">
+                          <Input
+                            className="flex w-full px-1 py-0  rounded "
+                            value={ing?.displayPrice ?? ""}
+                            onChange={(e) => {
+                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                  ?.displayQuantity
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].displayQuantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.displayQuantity ?? ""
+                            }
+                          />
+                        </div>
+                      </div>
+                      {/* 10th column - Delete action */}
+                      <div className="flex ml-auto w-15 min-w-15 max-w-15 items-center justify-center">
+                        {index !== comp.ingredients.length - 1 && (
+                          <Button
+                            className="p-0 w-8 h-8 bg-gray-100 text-red-600 border border-gray-500 "
+                            onClick={() => deleteComponentHeader(comp.uid, indexc)}
+                          >
+                            <HiTrash className="h-full w-full py-1" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ))}
+            </div>
           </div>
           {/* button for adding new heading at the bottom */}
-          <div className="">
+          <div className="my-3">
             <Button
               className="cursor-pointer rounded-full"
               color="light"
@@ -1054,9 +1329,25 @@ function EditRecipe() {
             </Button>
           </div>
           {/* steps list */}
-          <div className=""></div>
+          <div className="flex flex-col">
+            {/* steps header row */}
+            <div className="flex w-full h-10 items-center border border-gray-500 rounded-t-2xl">
+              <div className="flex min-w-15 justify-center">Move</div>
+              <div className="flex min-w-10 justify-center">No.</div>
+              <div className="flex w-full pl-3">Steps</div>
+              <div className="flex min-w-15 justify-center">Action</div>
+            </div>
+            <div className=""></div>
+          </div>
           {/* button for save and cancel at the bottom */}
-          <div className="mt-1"></div>
+          <div className="flex items-center justify-between my-3">
+            <Button className="cursor-pointer" color={"dark"}>
+              Save
+            </Button>
+            <Button className="cursor-pointer" color={"alternative"}>
+              Canel
+            </Button>
+          </div>
         </div>
         {/* //////////////////////////////////////////////////////////////////////// */}
         <div>

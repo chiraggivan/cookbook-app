@@ -232,8 +232,9 @@ function AddIngredient() {
                 <div className="flex items-center space-x-1">
                   <p className="min-w-31">Ingredient Name: </p>
                   <TextInput
-                    className="grow border-gray-300 rounded-lg max-w-72"
+                    className="grow border-gray-300 rounded-lg max-w-72 "
                     value={ingData?.name ? ingData?.name : ""}
+                    placeholder=""
                     onChange={(e) => {
                       handleChange("name", e.target.value);
                       setIngData((prev) => ({
