@@ -158,6 +158,10 @@ function EditRecipe() {
             .filter((i) => i.component_display_order === u)
             .sort((a, b) => a.ingredient_display_order - b.ingredient_display_order);
 
+          // check if first component text is empty, then hide the "add top header" button
+          if (u === 0 && compIngs[0]?.component_text && compIngs[0]?.component_text !== "") {
+            setShowTopRow(true);
+          }
           const comp = {};
           comp.uid = "comp-" + (Date.now() + Math.floor(Math.random() * 1000));
           // getting the values of comp_text, recipeCompId and displayOrder from the first element of array
@@ -960,14 +964,21 @@ function EditRecipe() {
                   Portion size :
                 </div>
                 {/* input portion section */}
-                <div className="">
-                  {/* input */}
-                  <div className="w-full">
-                    <TextInput />
-                  </div>
-                  {/* error of portion size */}
-                  <div className="text-red-500 text-sm font-semibold"></div>
-                </div>
+                <Input
+                  className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
+                  value={recipeInfo?.recipe?.portion_size ?? ""}
+                  onChange={(e) => {
+                    setRecipeInfo({
+                      ...recipeInfo,
+                      recipe: { ...recipeInfo.recipe, portion_size: e.target.value },
+                    });
+                    if (checkFinalData?.recipe?.portion_size) {
+                      checkFinalData.recipe.portion_size = "";
+                    }
+                  }}
+                  placeholder={"eg. 2 person, 1kg, 750ml, etc."}
+                  error={checkFinalData?.recipe?.portion_size}
+                />
               </div>
               {/* recipe Privacy section */}
               <div className="flex max-w-md">
@@ -976,14 +987,21 @@ function EditRecipe() {
                   Privacy :
                 </div>
                 {/* Toggle for privacy*/}
-                <div className="">
-                  {/* input */}
-                  <div className="w-full">
-                    <TextInput />
-                  </div>
-                  {/* error of portion size */}
-                  <div className="text-red-500 text-sm font-semibold"></div>
-                </div>
+                <Toggle
+                  checked={isPrivate}
+                  onText=" Private"
+                  offText=" Public"
+                  onChange={(e) => {
+                    setIsPrivate(e.target.checked);
+                    setRecipeInfo({
+                      ...recipeInfo,
+                      recipe: {
+                        ...recipeInfo.recipe,
+                        privacy: e.target.checked === false ? "public" : "private",
+                      },
+                    });
+                  }}
+                />
               </div>
             </div>
             {/* image */}
@@ -995,7 +1013,21 @@ function EditRecipe() {
           <div className="flex flex-col mt-5">
             <div className="flex font-semibold justify-end w-26">Description :</div>
             <div className="mt-2">
-              {/* <Textarea className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg" /> */}
+              <Textarea
+                className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
+                value={recipeInfo?.recipe?.description ?? ""}
+                onChange={(e) => {
+                  setRecipeInfo({
+                    ...recipeInfo,
+                    recipe: { ...recipeInfo.recipe, description: e.target.value },
+                  });
+                  if (checkFinalData?.recipe?.description) {
+                    checkFinalData.recipe.description = "";
+                  }
+                }}
+                placeholder="description of your recipe..."
+                error={checkFinalData?.recipe?.description}
+              />
             </div>
             {/* error of Description */}
             <div className="text-red-500 text-sm font-semibold"></div>
@@ -1006,12 +1038,454 @@ function EditRecipe() {
               <Button
                 className="cursor-pointer rounded-full"
                 color="light"
-                onClick={() => navigate(`/recipe/edit/${id}`)}
+                onClick={() => setShowTopRow(true)}
               >
                 Add Top Header
               </Button>
             </div>
           )}
+
+          {/* ingredients  list - New */}
+          <div className="flex flex-col ">
+            {/* Ingredients table header */}
+            <div className="flex w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
+              <div className="flex min-w-10 items-center justify-center">No.</div>
+              <div className="flex min-w-15 items-center justify-center">Move</div>
+              <div className="flex flex-6 items-center justify-between ">
+                <div className="flex flex-8 justify-center ">Name</div>
+                <div className="flex flex-3 justify-center ">Qnty</div>
+                <div className="flex flex-4 justify-center ">Unit</div>
+                <div className="flex flex-3 justify-center ">Cost</div>
+              </div>
+              <div className=" hidden lg:flex lg:flex-4 lg:flex-col lg:w-full lg:min-w-58 lg:bg-gray-300  lg:rounded-t-xl">
+                <div className="text-sm  mx-auto ">Base</div>
+                <div className="grow border-t border-0.5 border-gray-500"></div>
+                <div className="flex text-sm">
+                  <div className="flex w-1/3 justify-center">Qty</div>
+                  <div className="flex w-1/3 justify-center">Unit</div>
+                  <div className="flex w-1/3 justify-center">Price</div>
+                </div>
+              </div>
+              <div className="flex min-w-15 lg:w-1">
+                <div className="flex justify-end items-center px-2">Action</div>
+              </div>
+            </div>
+            {/* Dynamic ingredient rows display */}
+            <div className="flex flex-col w-full border-x border-gray-500">
+              {recipeInfo?.components?.map((comp, indexc) => (
+                <>
+                  {/* displaying the sub header if condition matched*/}
+                  {(showTopRow || comp.componentText !== "" || indexc !== 0) && (
+                    <div
+                      key={comp.uid}
+                      className="flex w-full justify-between bg-gray-200 border-b border-gray-500"
+                    >
+                      <div className="flex-1 p-1 max-w-sm">
+                        <Input
+                          className="flex w-full py-1 rounded placeholder:text-gray-400"
+                          color="white"
+                          value={comp?.componentText ?? ""}
+                          placeholder={"Base, Dough, etc..."}
+                          onChange={(e) => {
+                            setRecipeInfo((prev) => ({
+                              ...prev,
+                              components: prev.components.map((component) =>
+                                component.uid === comp.uid
+                                  ? { ...component, componentText: e.target.value }
+                                  : component,
+                              ),
+                            }));
+                            if (checkFinalData?.components?.[indexc]?.text) {
+                              checkFinalData.components[indexc].text = "";
+                            }
+                          }}
+                          error={checkFinalData?.components?.[indexc]?.text}
+                        />
+                      </div>
+                      <div className="flex w-15 items-center justify-center">
+                        <div
+                          className=" text-red-400 hover:text-red-900 transition duration-300"
+                          onClick={() => deleteComponentHeader(comp.uid, indexc)}
+                        >
+                          <HiTrash className="cursor-pointer h-6 w-6 hover:scale-125 transition duration-300" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* displaying ingredients within sub header */}
+                  {comp.ingredients?.map((ing, index) => (
+                    // ingredient row
+                    <div
+                      key={ing.uid}
+                      className="flex flex-1 items-center bg-gray-50 border-b border-gray-400"
+                    >
+                      {/* 1st column - Sr No. */}
+                      <div className="flex w-10 p-1 h-10 justify-end items-center">
+                        {index + 1}.
+                      </div>
+
+                      {/* 2nd column - Move rows buttons */}
+                      <div className="flex w-15 p-1 items-center justify-center gap-x-1">
+                        {index !== comp.ingredients.length - 1 && (
+                          <>
+                            {(indexc !== 0 || index !== 0) && (
+                              <div
+                                className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
+                                hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
+                                onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                              >
+                                <FaAngleDoubleUp className="" />
+                              </div>
+                            )}
+                            {(indexc !== recipeInfo?.components.length - 1 ||
+                              index !== comp.ingredients.length - 2) && (
+                              <div
+                                className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
+                                hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
+                                onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
+                              >
+                                <FaAngleDoubleDown
+                                  className=""
+                                  // onClick={() => moveStep(step.uid, index, 1)}
+                                />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {/* col 3,4,5,6 in one div */}
+                      <div className="flex flex-6">
+                        {/* 3rd column - ing name */}
+                        <div className="flex flex-8 items-center justify-center ">
+                          <Input
+                            className="flex min-w-38 py-0.5 px-1 rounded placeholder:text-gray-500 lg:max-w-38"
+                            color="white"
+                            value={ing.name ?? ""}
+                            onFocus={(e) => {
+                              setActiveInputId(ing.uid);
+                              searchIng(e.target.value);
+                            }}
+                            onChange={(e) => {
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((i) =>
+                                          i.uid === ing.uid
+                                            ? {
+                                                ...i,
+                                                name: e.target.value,
+                                                displayQuantity: "",
+                                                displayUnit: "",
+                                                displayPrice: "",
+                                                ogBaseQuantity: "",
+                                                ogBaseUnit: "",
+                                                ogBasePrice: "",
+                                                ingredientSource: "",
+                                                ingredientId: "",
+                                                measuringUnits: [],
+                                                baseUnits: [],
+                                                unitId: "",
+                                                unitName: "",
+                                                unit: "",
+                                                quantity: "",
+                                              }
+                                            : i,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
+                              searchIng(e.target.value);
+                              addNewIngRow(comp.uid, index);
+                              if (!activeInputId) {
+                                setActiveInputId(ing.uid);
+                              }
+                              if (
+                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                  ing.uid
+                                ]?.name
+                              ) {
+                                const x = checkFinalData.errors.components[comp.uid];
+                                x.ingredients[ing.uid].name = "";
+                              }
+                            }}
+                            onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
+                            placeholder={"milk, blue cheese, etc.."}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name ?? ""
+                            }
+                            onBlur={() => {
+                              blurTimeout = setTimeout(() => {
+                                hideSuggestions(comp.uid, ing.uid);
+                              }, 100);
+                            }}
+                          />
+                        </div>
+                        {/* 4th column - quantity */}
+                        <div className="flex flex-3 p-1 justify-center ">
+                          <Input
+                            className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
+                            value={ing?.quantity ?? ""}
+                            onChange={(e) => {
+                              updateQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].quantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.quantity ?? ""
+                            }
+                          />
+                        </div>
+                        {/* 5th column */}
+                        <div className="flex flex-4 justify-center items-center ">
+                          <Dropdown
+                            className="flex rounded  text-sm h-7.5 pl-1 pr-7 py-0"
+                            options={ing?.measuringUnits}
+                            value={ing?.unitId}
+                            onChange={(e) => {
+                              updateUnit(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].unitId = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId ??
+                              ""
+                            }
+                            // style={{ maxHeight: "30px", overflow: "auto" }}
+                          />
+                        </div>
+                        {/* 6th column */}
+                        <div className="flex flex-3 justify-center items-center text-sm">
+                          {ing?.cost ?? ""}
+                        </div>
+                      </div>
+
+                      {/* col 7,8,9 in one div */}
+                      <div className="bg-gray-300 h-10 hidden lg:flex lg:flex-4 lg:justify-between">
+                        {/* 7th column - Base - Quantity */}
+                        <div className="flex flex-3 px-2 items-center justify-center">
+                          <Input
+                            className="flex w-full px-1 py-0 text-center  rounded "
+                            value={ing?.displayQuantity ?? ""}
+                            onChange={(e) => {
+                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                  ?.displayQuantity
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].displayQuantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.displayQuantity ?? ""
+                            }
+                          />
+                        </div>
+                        {/* 8th column - Base - Unit  */}
+                        <div className="flex flex-4 items-center justify-center">
+                          <DropdownArray
+                            className="flex w-full rounded text-sm h-6.5 py-0  pl-1"
+                            options={ing?.baseUnits}
+                            value={ing?.displayUnit ?? ""}
+                            onChange={(e) => {
+                              updateBaseUnit(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                  ?.displayUnit
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].displayUnit = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.displayUnit ?? ""
+                            }
+                          />
+                        </div>
+                        {/* 9th column - Base - Quantity */}
+                        <div className="flex flex-3 px-2 items-center justify-center ">
+                          <Input
+                            className="flex w-full pl-1 pr-3 py-0  rounded text-end "
+                            value={ing?.displayPrice ?? ""}
+                            onChange={(e) => {
+                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
+                              if (
+                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                  ?.displayQuantity
+                              ) {
+                                const x = checkFinalData.components[indexc];
+                                x.ingredients[index].displayQuantity = "";
+                              }
+                            }}
+                            error={
+                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                                ?.displayQuantity ?? ""
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* 10th Column - Delete ingredient */}
+                      <div className="flex w-15 text-center justify-center">
+                        {index !== comp.ingredients.length - 1 && (
+                          <div className=" text-red-400 hover:text-red-900 transition duration-300">
+                            <HiTrash
+                              className="cursor-pointer h-6 w-6 hover:scale-125 transition duration-300"
+                              onClick={() => deleteIngredient(comp.uid, ing.uid)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ))}
+            </div>
+          </div>
+
+          {/* button for adding new heading at the bottom */}
+          <div className="my-3">
+            <Button
+              className="cursor-pointer rounded-full"
+              color="light"
+              onClick={() => {
+                setRecipeInfo((prev) => ({
+                  ...prev,
+                  components: [...prev.components, emptyComponentData()],
+                }));
+              }}
+            >
+              Add New Header
+            </Button>
+          </div>
+
+          {/* steps list */}
+          <div className="flex flex-col">
+            {/* steps header row */}
+            <div className="flex w-full h-10 items-center border border-gray-500 rounded-t-2xl">
+              <div className="w-10 text-center">No.</div>
+              <div className="w-15 text-center">Move</div>
+
+              <div className="flex-1 pl-3">Steps</div>
+              <div className="w-15 texts-center">Action</div>
+            </div>
+            {/* steps from db rows */}
+            <div className="">
+              {recipeInfo?.steps?.map((step, index) => (
+                <>
+                  {/* step row basic CSS(height, background, borders, width , etc...)  */}
+                  <div
+                    className="flex items-center w-full h-20 bg-gray-100
+                              border-x border-b border-gray-500 "
+                    key={step.uid}
+                  >
+                    {/* Steps - 1st column - Sr No. */}
+                    <div className="flex w-10 pr-2 pt-2 justify-end">{index + 1}</div>
+
+                    {/* Steps - 2nd column - Move rows buttons */}
+                    <div className="flex w-15 items-center justify-center gap-x-1">
+                      {index !== recipeInfo.steps.length - 1 && (
+                        <>
+                          {index !== 0 && (
+                            <div
+                              className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
+                                      hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
+                              onClick={() => moveStep(step.uid, index, -1)}
+                            >
+                              <FaAngleDoubleUp
+                                className=""
+                                // onClick={() => moveStep(step.uid, index, -1)}
+                              />
+                            </div>
+                          )}
+                          {index !== recipeInfo.steps.length - 2 && (
+                            <div
+                              className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
+                                      hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
+                              onClick={() => moveStep(step.uid, index, 1)}
+                            >
+                              <FaAngleDoubleDown
+                                className=""
+                                // onClick={() => moveStep(step.uid, index, 1)}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Steps - 3rd column - step deails textarea */}
+                    <div className="flex-1 ml-3 min-w-40 mt-1 items-center">
+                      <Textarea
+                        className="w-full p-0 px-2 h-16  border border-gray-400 rounded-md 
+                              placeholder:text-gray-400 overflow-y-auto resize-none"
+                        value={recipeInfo?.steps[index]?.step_text ?? ""}
+                        onChange={(e) => {
+                          setRecipeInfo((prev) => ({
+                            ...prev,
+                            steps: prev.steps.map((s, index) =>
+                              s.uid === step.uid
+                                ? {
+                                    ...s,
+                                    step_text: e.target.value,
+                                  }
+                                : s,
+                            ),
+                          }));
+                          addNewStepRow(index);
+                        }}
+                        placeholder="Next step....."
+                        error={checkFinalData?.errors?.description}
+                        rows={1}
+                      />
+                    </div>
+
+                    {/* steps - 4th Column - Delete step */}
+                    <div className="flex w-15 text-center justify-center">
+                      {index !== recipeInfo.steps.length - 1 && (
+                        <div
+                          className=" text-red-400 hover:text-red-900 transition duration-300"
+                          onClick={() => deleteStep(step.uid)}
+                        >
+                          <HiTrash
+                            className="cursor-pointer h-6 w-6 hover:scale-125 transition duration-300"
+                            // onClick={() => deleteStep(step.uid)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ))}
+            </div>
+          </div>
+
+          {/* button for save and cancel at the bottom */}
+          <div className="flex items-center justify-between my-3">
+            <Button className="cursor-pointer" color={"dark"}>
+              Save
+            </Button>
+            <Button className="cursor-pointer" color={"alternative"}>
+              Canel
+            </Button>
+          </div>
+
           {/* ingredients list */}
           <div className="flex flex-col ">
             {/* Ingredients table header */}
@@ -1085,7 +1559,7 @@ function EditRecipe() {
                       key={ing.uid}
                       className="flex w-full justify-between items-center bg-blue-50 border-b border-gray-400"
                     >
-                      {/* 1st column */}
+                      {/* 1st column Move rows*/}
                       <div className="flex w-15 min-w-15">
                         {index !== comp.ingredients.length - 1 && (
                           <div className="flex w-full justify-center items-center my-1 space-x-2">
@@ -1318,36 +1792,6 @@ function EditRecipe() {
               ))}
             </div>
           </div>
-          {/* button for adding new heading at the bottom */}
-          <div className="my-3">
-            <Button
-              className="cursor-pointer rounded-full"
-              color="light"
-              onClick={() => navigate(`/recipe/edit/${id}`)}
-            >
-              Add New Header
-            </Button>
-          </div>
-          {/* steps list */}
-          <div className="flex flex-col">
-            {/* steps header row */}
-            <div className="flex w-full h-10 items-center border border-gray-500 rounded-t-2xl">
-              <div className="flex min-w-15 justify-center">Move</div>
-              <div className="flex min-w-10 justify-center">No.</div>
-              <div className="flex w-full pl-3">Steps</div>
-              <div className="flex min-w-15 justify-center">Action</div>
-            </div>
-            <div className=""></div>
-          </div>
-          {/* button for save and cancel at the bottom */}
-          <div className="flex items-center justify-between my-3">
-            <Button className="cursor-pointer" color={"dark"}>
-              Save
-            </Button>
-            <Button className="cursor-pointer" color={"alternative"}>
-              Canel
-            </Button>
-          </div>
         </div>
         {/* //////////////////////////////////////////////////////////////////////// */}
         <div>
@@ -1423,16 +1867,19 @@ function EditRecipe() {
             </h3>
           </div>
           <Button
+            className="bg-gray-500"
             children={"Save Recipe"}
             type="button"
             disabled={updateBtn}
             onClick={() => handleSubmit()}
           />
           <Button children={`Cancel`} onClick={() => navigate(-1)} />
+          {/* -----------------------ingredients section -------------------- */}
           <Card>
             <h2>Ingredients</h2>
             {!showTopRow && (
               <Button
+                className="bg-gray-200"
                 id={"add_top_header"}
                 children={"Add Top Header"}
                 type="button"
