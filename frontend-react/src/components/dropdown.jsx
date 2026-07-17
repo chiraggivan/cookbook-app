@@ -10,7 +10,7 @@ const Dropdown = ({ title, options, value, onChange, placeholder = "Select", err
           </option>
         ))}
       </select>
-      {error && <p style={{ color: "red" }}>{error} </p>}
+      {error && <p className="text-red-500 text-sm font-semibold px-2">{error} </p>}
     </div>
   );
 };

@@ -502,6 +502,7 @@ function EditIngredient() {
                   Update Ingredient
                 </Button>
               </div>
+
               {/* cancel button */}
               <div>
                 <Button className="cursor-pointer" color="dark" onClick={() => navigate(-1)}>

@@ -10,15 +10,17 @@ const DropdownArray = ({
   return (
     <div>
       {title && <label>{title}</label>}
-      <select value={value} onChange={onChange} {...props}>
-        <option value="">{placeholder}</option>
+      <select className="" value={value} onChange={onChange} {...props}>
+        <option className="" value="">
+          {placeholder}
+        </option>
         {options.map((option, index) => (
-          <option key={index} value={option}>
+          <option className="" key={index} value={option}>
             {option}
           </option>
         ))}
       </select>
-      {error && <p style={{ color: "red" }}>{error} </p>}
+      {error && <p className="text-red-500 text-sm font-semibold px-2">{error} </p>}
     </div>
   );
 };
