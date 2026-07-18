@@ -788,10 +788,21 @@ function EditRecipe() {
     // // ---------------------------------- check recipe data ----------------------------------
     if (!recipeInfo.recipe.name || recipeInfo.recipe.name.trim() === "") {
       isValid = false;
+      setRecipeInfo((prev) => ({
+        ...prev,
+        recipe: { ...prev.recipe, error_name: "Name Required" },
+      }));
       checkDataErrors.recipe.name = "Name required";
     }
     if (!recipeInfo.recipe.portion_size || recipeInfo.recipe.portion_size.trim() === "") {
       isValid = false;
+      setRecipeInfo((prev) => ({
+        ...prev,
+        recipe: {
+          ...prev.recipe,
+          error_portion_size: "Portion Size Required",
+        },
+      }));
       checkDataErrors.recipe.portion_size =
         "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
     }
@@ -976,14 +987,15 @@ function EditRecipe() {
                   onChange={(e) => {
                     setRecipeInfo({
                       ...recipeInfo,
-                      recipe: { ...recipeInfo.recipe, name: e.target.value },
+                      recipe: { ...recipeInfo.recipe, name: e.target.value, error_name: "" },
                     });
                     if (checkFinalData?.recipe?.name) {
                       checkFinalData.recipe.name = "";
                     }
                   }}
                   placeholder={"Name of the recipe...."}
-                  error={checkFinalData?.recipe?.name}
+                  // error={checkFinalData?.recipe?.name}
+                  error={recipeInfo?.recipe?.error_name}
                 />
               </div>
               {/* recipe portion size section */}
@@ -997,16 +1009,21 @@ function EditRecipe() {
                   className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
                   value={recipeInfo?.recipe?.portion_size ?? ""}
                   onChange={(e) => {
-                    setRecipeInfo({
-                      ...recipeInfo,
-                      recipe: { ...recipeInfo.recipe, portion_size: e.target.value },
-                    });
+                    setRecipeInfo((prev) => ({
+                      ...prev,
+                      recipe: {
+                        ...prev.recipe,
+                        portion_size: e.target.value,
+                        error_portion_size: "",
+                      },
+                    }));
                     if (checkFinalData?.recipe?.portion_size) {
                       checkFinalData.recipe.portion_size = "";
                     }
                   }}
                   placeholder={"eg. 2 person, 1kg, 750ml, etc."}
-                  error={checkFinalData?.recipe?.portion_size}
+                  // error={checkFinalData?.recipe?.portion_size}
+                  error={recipeInfo?.recipe?.error_portion_size}
                 />
               </div>
               {/* recipe Privacy section */}
