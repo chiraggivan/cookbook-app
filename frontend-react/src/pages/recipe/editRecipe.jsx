@@ -51,6 +51,7 @@ function EditRecipe() {
     displayQuantity: "",
     displayUnit: "",
     displayPrice: "",
+    errors: {},
   });
   const emptyComponentData = () => ({
     uid: "comp-" + (Date.now() + Math.floor(Math.random() * 1000)),
@@ -183,6 +184,7 @@ function EditRecipe() {
             ing.displayQuantity = Number(i.base_quantity);
             ing.displayUnit = i.unit;
             ing.displayPrice = Number(i.cost);
+            ing.errors = {};
 
             comp.ingredients.push(ing);
           }
@@ -422,6 +424,7 @@ function EditRecipe() {
             ? {
                 ...comp,
                 componentText: "",
+                errorText: "",
               }
             : comp,
         ),
@@ -786,14 +789,17 @@ function EditRecipe() {
     let isValid = true;
     setErrorMessage("");
     // // ---------------------------------- check recipe data ----------------------------------
+    // validate name of recipe
     if (!recipeInfo.recipe.name || recipeInfo.recipe.name.trim() === "") {
       isValid = false;
       setRecipeInfo((prev) => ({
         ...prev,
         recipe: { ...prev.recipe, error_name: "Name Required" },
       }));
-      checkDataErrors.recipe.name = "Name required";
+      // checkDataErrors.recipe.name = "Name required";
     }
+
+    // validate portion_size of recipe
     if (!recipeInfo.recipe.portion_size || recipeInfo.recipe.portion_size.trim() === "") {
       isValid = false;
       setRecipeInfo((prev) => ({
@@ -803,11 +809,25 @@ function EditRecipe() {
           error_portion_size: "Portion Size Required",
         },
       }));
-      checkDataErrors.recipe.portion_size =
-        "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+      // checkDataErrors.recipe.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
     }
+
+    // validate privacy : if no privacy data then make it default false
     if (!recipeInfo.recipe.privacy) {
-      recipeInfo.privacy = false;
+      recipeInfo.recipe.privacy = false;
+    }
+
+    // validate Description of recipe
+    if (recipeInfo.recipe.description.length >= 500) {
+      isValid = false;
+      setRecipeInfo((prev) => ({
+        ...prev,
+        recipe: {
+          ...prev.recipe,
+          error_description: "Description should be less than 500 characters",
+        },
+      }));
+      // checkDataErrors.recipe.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
     }
 
     // // ---------------------------- check components + ingredients data ---------------------------
@@ -821,13 +841,29 @@ function EditRecipe() {
 
       if (indexc === 0 && showTopRow && comp.componentText === "") {
         isValid = false;
-        checkDataErrors.components[indexc].uid = comp.uid;
-        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
+        setRecipeInfo((prev) => ({
+          ...prev,
+          components: prev.components.map((component) =>
+            component.uid === comp.uid
+              ? { ...component, errorText: "Text required or delete this header!" }
+              : component,
+          ),
+        }));
+        // checkDataErrors.components[indexc].uid = comp.uid;
+        // checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
       }
       if (indexc !== 0 && comp.componentText === "") {
         isValid = false;
-        checkDataErrors.components[indexc].uid = comp.uid;
-        checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
+        setRecipeInfo((prev) => ({
+          ...prev,
+          components: prev.components.map((component) =>
+            component.uid === comp.uid
+              ? { ...component, errorText: "Text required or delete this header!!!" }
+              : component,
+          ),
+        }));
+        // checkDataErrors.components[indexc].uid = comp.uid;
+        // checkDataErrors.components[indexc].text = "Text Required. Or delete this header";
       }
 
       comp.ingredients.forEach((ing, indexi) => {
@@ -847,17 +883,40 @@ function EditRecipe() {
           ing.displayPrice
         ) {
           [
-            { value: ing.ingredientId, name: "name" },
-            { value: ing.quantity, name: "quantity" },
-            { value: ing.unitId, name: "unitId" },
-            { value: ing.displayQuantity, name: "displayQuantity" },
-            { value: ing.displayUnit, name: "displayUnit" },
-            { value: ing.displayPrice, name: "displayPrice" },
+            { value: ing.ingredientId, name: "Name" },
+            { value: ing.quantity, name: "Quantity" },
+            { value: ing.unitId, name: "UnitId" },
+            { value: ing.displayQuantity, name: "DisplayQuantity" },
+            { value: ing.displayUnit, name: "DisplayUnit" },
+            { value: ing.displayPrice, name: "DisplayPrice" },
           ].forEach((i) => {
             if (!i.value) {
+              const field = "error" + i.name;
               isValid = false;
-              checkDataErrors.components[indexc].ingredients[indexi].uid = ing.uid;
-              checkDataErrors.components[indexc].ingredients[indexi][i.name] = "Require!!";
+              setRecipeInfo((prev) => ({
+                ...prev,
+                components: prev.components.map((component) =>
+                  component.uid === comp.uid
+                    ? {
+                        ...component,
+                        ingredients: component.ingredients.map((ingredient) =>
+                          ingredient.uid === ing.uid
+                            ? {
+                                ...ingredient,
+                                errors: {
+                                  ...ingredient.errors,
+                                  [field]: field === "errorName" ? "Name Require" : "Require",
+                                },
+                              }
+                            : ingredient,
+                        ),
+                      }
+                    : component,
+                ),
+              }));
+
+              // checkDataErrors.components[indexc].ingredients[indexi].uid = ing.uid;
+              // checkDataErrors.components[indexc].ingredients[indexi][i.name] = "Name Require!!";
             }
           });
         }
@@ -989,9 +1048,9 @@ function EditRecipe() {
                       ...recipeInfo,
                       recipe: { ...recipeInfo.recipe, name: e.target.value, error_name: "" },
                     });
-                    if (checkFinalData?.recipe?.name) {
-                      checkFinalData.recipe.name = "";
-                    }
+                    // if (checkFinalData?.recipe?.name) {
+                    //   checkFinalData.recipe.name = "";
+                    // }
                   }}
                   placeholder={"Name of the recipe...."}
                   // error={checkFinalData?.recipe?.name}
@@ -1017,9 +1076,9 @@ function EditRecipe() {
                         error_portion_size: "",
                       },
                     }));
-                    if (checkFinalData?.recipe?.portion_size) {
-                      checkFinalData.recipe.portion_size = "";
-                    }
+                    // if (checkFinalData?.recipe?.portion_size) {
+                    //   checkFinalData.recipe.portion_size = "";
+                    // }
                   }}
                   placeholder={"eg. 2 person, 1kg, 750ml, etc."}
                   // error={checkFinalData?.recipe?.portion_size}
@@ -1141,15 +1200,15 @@ function EditRecipe() {
                               ...prev,
                               components: prev.components.map((component) =>
                                 component.uid === comp.uid
-                                  ? { ...component, componentText: e.target.value }
+                                  ? { ...component, componentText: e.target.value, errorText: "" }
                                   : component,
                               ),
                             }));
-                            if (checkFinalData?.components?.[indexc]?.text) {
-                              checkFinalData.components[indexc].text = "";
-                            }
+                            // if (checkFinalData?.components?.[indexc]?.text) {
+                            //   checkFinalData.components[indexc].text = "";
+                            // }
                           }}
-                          error={checkFinalData?.components?.[indexc]?.text}
+                          error={comp.errorText ?? ""}
                         />
                       </div>
                       <div className="flex w-15 items-center justify-center">
@@ -1242,6 +1301,7 @@ function EditRecipe() {
                                                 unitName: "",
                                                 unit: "",
                                                 quantity: "",
+                                                errors: {},
                                               }
                                             : i,
                                         ),
@@ -1254,39 +1314,40 @@ function EditRecipe() {
                               if (!activeInputId) {
                                 setActiveInputId(ing.uid);
                               }
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].name = "";
-                              }
+                              // if (
+                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name
+                              // ) {
+                              //   const x = checkFinalData.components[indexc];
+                              //   x.ingredients[index].name = "";
+                              // }
 
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                  ?.displayQuantity
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].displayQuantity = "";
-                              }
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                  ?.displayUnit
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].displayUnit = "";
-                              }
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                  ?.displayPrice
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].displayPrice = "";
-                              }
+                              // if (
+                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                              //     ?.displayQuantity
+                              // ) {
+                              //   const x = checkFinalData.components[indexc];
+                              //   x.ingredients[index].displayQuantity = "";
+                              // }
+                              // if (
+                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                              //     ?.displayUnit
+                              // ) {
+                              //   const x = checkFinalData.components[indexc];
+                              //   x.ingredients[index].displayUnit = "";
+                              // }
+                              // if (
+                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]
+                              //     ?.displayPrice
+                              // ) {
+                              //   const x = checkFinalData.components[indexc];
+                              //   x.ingredients[index].displayPrice = "";
+                              // }
                             }}
                             onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
                             placeholder={"milk, blue cheese, etc.."}
                             error={
-                              checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name ?? ""
+                              ing?.errors?.errorName ?? ""
+                              // checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name ?? ""
                             }
                             onBlur={() => {
                               blurTimeout = setTimeout(() => {
@@ -1336,6 +1397,7 @@ function EditRecipe() {
                               </div>
                             )}
                         </div>
+
                         {/* 4th column - quantity */}
                         <div className="flex flex-3 p-1 justify-center ">
                           <Input
@@ -1343,19 +1405,41 @@ function EditRecipe() {
                             value={ing?.quantity ?? ""}
                             onChange={(e) => {
                               updateQuantity(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].quantity = "";
-                              }
+                              // if (
+                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity
+                              // ) {
+                              //   const x = checkFinalData.components[indexc];
+                              //   x.ingredients[index].quantity = "";
+                              // }
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorQuantity: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
                             }}
                             error={
-                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                ?.quantity ?? ""
+                              ing?.errors?.errorQuantity ?? ""
+                              // checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity ?? ""
                             }
                           />
                         </div>
+
                         {/* 5th column */}
                         <div className="flex flex-4 pt-1 items-start justify-center ">
                           <Dropdown
@@ -1364,20 +1448,41 @@ function EditRecipe() {
                             value={ing?.unitId}
                             onChange={(e) => {
                               updateUnit(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].unitId = "";
-                              }
+                              // if (
+                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId
+                              // ) {
+                              //   const x = checkFinalData.components[indexc];
+                              //   x.ingredients[index].unitId = "";
+                              // }
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorUnit: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
                             }}
                             error={
-                              checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId ??
-                              ""
+                              ing?.errors?.errorUnitId ?? ""
+                              // checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId ?? ""
                             }
-                            // style={{ maxHeight: "30px", overflow: "auto" }}
                           />
                         </div>
+
                         {/* 6th column */}
                         <div className="flex flex-3 justify-center items-center text-sm">
                           {ing?.cost ?? ""}
@@ -1393,20 +1498,32 @@ function EditRecipe() {
                             value={ing?.displayQuantity ?? ""}
                             onChange={(e) => {
                               updateBaseQuantity(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                  ?.displayQuantity
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].displayQuantity = "";
-                              }
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorDisplayQuantity: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
                             }}
-                            error={
-                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                ?.displayQuantity ?? ""
-                            }
+                            error={ing?.errors?.errorDisplayQuantity ?? ""}
                           />
                         </div>
+
                         {/* 8th column - Base - Unit  */}
                         <div className="flex flex-4 pt-2 items-start justify-center">
                           <DropdownArray
@@ -1415,20 +1532,32 @@ function EditRecipe() {
                             value={ing?.displayUnit ?? ""}
                             onChange={(e) => {
                               updateBaseUnit(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                  ?.displayUnit
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].displayUnit = "";
-                              }
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorDisplayUnit: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
                             }}
-                            error={
-                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                ?.displayUnit ?? ""
-                            }
+                            error={ing?.errors?.errorDisplayUnit ?? ""}
                           />
                         </div>
+
                         {/* 9th column - Base - Price */}
                         <div className="flex flex-3 px-2 pt-2 items-start justify-center ">
                           <Input
@@ -1436,18 +1565,29 @@ function EditRecipe() {
                             value={ing?.displayPrice ?? ""}
                             onChange={(e) => {
                               updateBasePrice(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                  ?.displayPrice
-                              ) {
-                                const x = checkFinalData.components[indexc];
-                                x.ingredients[index].displayPrice = "";
-                              }
+                              setRecipeInfo((prev) => ({
+                                ...prev,
+                                components: prev.components.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorDisplayPrice: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              }));
                             }}
-                            error={
-                              checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                                ?.displayPrice ?? ""
-                            }
+                            error={ing?.errors?.errorDisplayQuantity ?? ""}
                           />
                         </div>
                       </div>

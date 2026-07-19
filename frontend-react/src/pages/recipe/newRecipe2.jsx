@@ -47,12 +47,14 @@ function NewRecipe() {
     displayQuantity: "",
     displayUnit: "",
     displayPrice: "",
+    errors: {},
   });
 
   const emptySectionData = () => ({
     uid: "comp-" + (Date.now() + Math.random()),
     //   component_display_order: 0,
     componentText: "",
+    errorText: "",
     ingredients: [emptyIngRowData()],
   });
 
@@ -328,6 +330,7 @@ function NewRecipe() {
             ? {
                 ...section,
                 componentText: "",
+                errorText: "",
               }
             : section,
         ),
@@ -612,8 +615,8 @@ function NewRecipe() {
   };
 
   // ---------------------------- console to show recipe for every input ----------------------------------
-  const handlesubmit = () => {
-    // get recipe info
+  const handleSubmit = () => {
+    // console.log("recipeInfo", recipeInfo);
     // console.log("sections in handlesubmit:", sections);
 
     finalMainRecipe.name = recipeInfo?.name ?? "";
@@ -627,7 +630,7 @@ function NewRecipe() {
 
     sections.forEach((section, indexc) => {
       const comp = {};
-      comp.component_text = section.component_text ?? "";
+      comp.component_text = section.componentText ?? "";
       comp.component_display_order = indexc;
       comp.uid = section.uid;
       const ingredients = [];
@@ -689,18 +692,39 @@ function NewRecipe() {
     let isValid = true;
     setErrorMessage("");
 
+    // validate name of recipe
     if (!checkData.name || checkData.name.trim() === "") {
       isValid = false;
-      checkData.errors.name = "Name required";
+      setRecipeInfo((prev) => ({
+        ...prev,
+        error_name: "Name Required",
+      }));
     }
+
+    // validate portion_size of recipe
     if (!checkData.portion_size || checkData.portion_size.trim() === "") {
       isValid = false;
-      checkData.errors.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+      setRecipeInfo((prev) => ({
+        ...prev,
+        error_portion_size: "Portion Size Required",
+      }));
     }
+
+    // validate privacy : if no privacy data then make it default false
     if (!checkData.privacy) {
       recipeInfo.privacy = false;
     }
 
+    // validate Description
+    if (checkData.description.length >= 500) {
+      isValid = false;
+      setRecipeInfo((prev) => ({
+        ...prev,
+        error_description: "Description should be less than 500 characters",
+      }));
+    }
+
+    // validate sub headers and ingredients (from sections variable)
     checkData.components.forEach((comp, index) => {
       let ingCount = 0; //---------------> to count valid ingredients in each component
       if (!checkData.errors.components) {
@@ -710,13 +734,37 @@ function NewRecipe() {
         checkData.errors.components[comp.uid] = {};
       }
 
+      //  2 if conditions: first to top header which is hidden and second is for other added header
+      // console.log("comp outside :", comp, "index is :", index, " and showTopRow:", showTopRow);
       if (index === 0 && showTopRow && comp.component_text === "") {
+        console.log("entered top header and should have 8!");
         isValid = false;
-        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+        setSections((prev) =>
+          prev.map((component) =>
+            component.uid === comp.uid
+              ? {
+                  ...component,
+                  errorText: "Text required or delete this header!!!!!!!!",
+                }
+              : component,
+          ),
+        );
+        // checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
       }
       if (index !== 0 && comp.component_text === "") {
+        console.log("entered top header and should have 4!");
         isValid = false;
-        checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
+        setSections((prev) =>
+          prev.map((component) =>
+            component.uid === comp.uid
+              ? {
+                  ...component,
+                  errorText: "Text required or delete this header!!!!",
+                }
+              : component,
+          ),
+        );
+        // checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
       }
 
       comp.ingredients.forEach((ing) => {
@@ -738,30 +786,130 @@ function NewRecipe() {
           ingCount++;
           if (!ing.unit) {
             isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
+            setSections((prev) =>
+              prev.map((component) =>
+                component.uid === comp.uid
+                  ? {
+                      ...component,
+                      ingredients: component.ingredients.map((ingredient) =>
+                        ingredient.uid === ing.uid
+                          ? {
+                              ...ingredient,
+                              errors: { ...ingredient.errors, errorUnit: "Required" },
+                            }
+                          : ingredient,
+                      ),
+                    }
+                  : component,
+              ),
+            );
+            // checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
           }
           if (!ing.quantity) {
             isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
+            setSections((prev) =>
+              prev.map((component) =>
+                component.uid === comp.uid
+                  ? {
+                      ...component,
+                      ingredients: component.ingredients.map((ingredient) =>
+                        ingredient.uid === ing.uid
+                          ? {
+                              ...ingredient,
+                              errors: { ...ingredient.errors, errorQuantity: "Required" },
+                            }
+                          : ingredient,
+                      ),
+                    }
+                  : component,
+              ),
+            );
+            // checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
           }
           if (!ing.ingredient_id) {
             isValid = false;
-            checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
+            setSections((prev) =>
+              prev.map((component) =>
+                component.uid === comp.uid
+                  ? {
+                      ...component,
+                      ingredients: component.ingredients.map((ingredient) =>
+                        ingredient.uid === ing.uid
+                          ? {
+                              ...ingredient,
+                              errors: { ...ingredient.errors, errorName: "Name Required" },
+                            }
+                          : ingredient,
+                      ),
+                    }
+                  : component,
+              ),
+            );
+            // checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
           }
           if (ing.display_quantity || ing.display_unit || ing.display_price) {
             if (!ing.display_quantity) {
               isValid = false;
-              checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity =
-                "Reqiure!!";
+              setSections((prev) =>
+                prev.map((component) =>
+                  component.uid === comp.uid
+                    ? {
+                        ...component,
+                        ingredients: component.ingredients.map((ingredient) =>
+                          ingredient.uid === ing.uid
+                            ? {
+                                ...ingredient,
+                                errors: { ...ingredient.errors, errorDisplayQuantity: "Required" },
+                              }
+                            : ingredient,
+                        ),
+                      }
+                    : component,
+                ),
+              );
+              // checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity = "Reqiure!!";
             }
             if (!ing.display_unit) {
               isValid = false;
-              checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
+              setSections((prev) =>
+                prev.map((component) =>
+                  component.uid === comp.uid
+                    ? {
+                        ...component,
+                        ingredients: component.ingredients.map((ingredient) =>
+                          ingredient.uid === ing.uid
+                            ? {
+                                ...ingredient,
+                                errors: { ...ingredient.errors, errorDisplayUnit: "Required" },
+                              }
+                            : ingredient,
+                        ),
+                      }
+                    : component,
+                ),
+              );
+              // checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
             }
             if (!ing.display_price) {
               isValid = false;
-              checkData.errors.components[comp.uid].ingredients[ing.uid].display_price =
-                "Reqiure!!";
+              setSections((prev) =>
+                prev.map((component) =>
+                  component.uid === comp.uid
+                    ? {
+                        ...component,
+                        ingredients: component.ingredients.map((ingredient) =>
+                          ingredient.uid === ing.uid
+                            ? {
+                                ...ingredient,
+                                errors: { ...ingredient.errors, errorDisplayPrice: "Required" },
+                              }
+                            : ingredient,
+                        ),
+                      }
+                    : component,
+                ),
+              );
+              // checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
             }
           }
         }
@@ -774,15 +922,20 @@ function NewRecipe() {
       }
     });
 
+    // initial Input fields errors found then show on screen
+    if (!isValid) {
+      console.log("Input fields check done, errors found:", checkData);
+      setErrorMessage("Errors found above.");
+      return;
+    }
+
+    // validate if total ingredients are less than 2
     if (ing_display_order < 2) {
       isValid = false;
       setErrorMessage("Need atleast 2 ingredients to make a recipe");
-    }
-    setCheckFinalData(checkData);
-    console.log("data that is being sent to bckend:", checkData);
-    if (!isValid) {
       return;
     }
+    setCheckFinalData(checkData);
 
     // Call api and save the recipe in db
     const saveRecipe = async () => {
@@ -840,15 +993,16 @@ function NewRecipe() {
 
                 <Input
                   className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
-                  value={capitaliseWords(recipeInfo.name) ?? ""}
+                  value={capitaliseWords(recipeInfo?.name) ?? ""}
                   onChange={(e) => {
-                    setRecipeInfo({ ...recipeInfo, name: e.target.value });
-                    if (checkFinalData?.errors?.name) {
-                      checkFinalData.errors.name = "";
-                    }
+                    setRecipeInfo((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                      error_name: "",
+                    }));
                   }}
                   placeholder={"Name of the recipe...."}
-                  error={checkFinalData?.recipe?.name}
+                  error={recipeInfo?.error_name}
                 />
               </div>
 
@@ -861,14 +1015,16 @@ function NewRecipe() {
                 {/* input portion section */}
                 <Input
                   className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
+                  value={capitaliseWords(recipeInfo?.portion_size) ?? ""}
                   onChange={(e) => {
-                    setRecipeInfo({ ...recipeInfo, portion_size: e.target.value });
-                    if (checkFinalData?.errors?.portion_size) {
-                      checkFinalData.errors.portion_size = "";
-                    }
+                    setRecipeInfo((prev) => ({
+                      ...prev,
+                      portion_size: e.target.value,
+                      error_portion_size: "",
+                    }));
                   }}
                   placeholder={"eg. 2 person, 1kg, 750ml, etc."}
-                  error={checkFinalData?.errors?.portion_size}
+                  error={recipeInfo?.error_portion_size}
                 />
               </div>
 
@@ -979,15 +1135,18 @@ function NewRecipe() {
                             setSections((prev) =>
                               prev.map((section) =>
                                 section.uid === comp.uid
-                                  ? { ...section, componentText: e.target.value }
+                                  ? { ...section, componentText: e.target.value, errorText: "" }
                                   : section,
                               ),
                             );
-                            if (checkFinalData?.errors?.components[comp.uid]?.text) {
-                              checkFinalData.errors.components[comp.uid].text = "";
-                            }
+                            // if (checkFinalData?.errors?.components[comp.uid]?.text) {
+                            //   checkFinalData.errors.components[comp.uid].text = "";
+                            // }
                           }}
-                          error={checkFinalData?.errors?.components[comp.uid]?.text}
+                          error={
+                            comp?.errorText ?? ""
+                            // checkFinalData?.errors?.components[comp.uid]?.text
+                          }
                         />
                       </div>
                       <div className="flex w-15 items-center justify-center">
@@ -1076,6 +1235,7 @@ function NewRecipe() {
                                                 ogDisplayPrice: "",
                                                 ogDisplayQuantity: "",
                                                 ogDisplayUnit: "",
+                                                errors: {},
                                               }
                                             : i,
                                         ),
@@ -1088,20 +1248,20 @@ function NewRecipe() {
                               if (!activeInputId) {
                                 setActiveInputId(ing.uid);
                               }
-                              if (
-                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                  ing.uid
-                                ]?.name
-                              ) {
-                                const x = checkFinalData.errors.components[comp.uid];
-                                x.ingredients[ing.uid].name = "";
-                              }
+                              // if (
+                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                              //     ing.uid
+                              //   ]?.name
+                              // ) {
+                              //   const x = checkFinalData.errors.components[comp.uid];
+                              //   x.ingredients[ing.uid].name = "";
+                              // }
                             }}
                             onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
                             placeholder={"milk, blue cheese, etc.."}
                             error={
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.name ?? ""
+                              ing?.errors?.errorName ?? ""
+                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.name ?? ""
                             }
                             onBlur={() => {
                               blurTimeout = setTimeout(() => {
@@ -1146,18 +1306,38 @@ function NewRecipe() {
                             value={ing?.quantity ?? ""}
                             onChange={(e) => {
                               updateQuantity(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                  ing.uid
-                                ]?.quantity
-                              ) {
-                                const x = checkFinalData.errors.components[comp.uid];
-                                x.ingredients[ing.uid].quantity = "";
-                              }
+                              // if (
+                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                              //     ing.uid
+                              //   ]?.quantity
+                              // ) {
+                              //   const x = checkFinalData.errors.components[comp.uid];
+                              //   x.ingredients[ing.uid].quantity = "";
+                              // }
+                              setSections((prev) =>
+                                prev.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorQuantity: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              );
                             }}
                             error={
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.quantity ?? ""
+                              ing?.errors?.errorQuantity ?? ""
+                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.quantity ?? ""
                             }
                           />
                         </div>
@@ -1170,18 +1350,35 @@ function NewRecipe() {
                             value={ing?.unitId}
                             onChange={(e) => {
                               updateUnit(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                  ing.uid
-                                ]?.unit
-                              ) {
-                                const x = checkFinalData.errors.components[comp.uid];
-                                x.ingredients[ing.uid].unit = "";
-                              }
+                              // if (
+                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                              //     ing.uid
+                              //   ]?.unit
+                              // ) {
+                              //   const x = checkFinalData.errors.components[comp.uid];
+                              //   x.ingredients[ing.uid].unit = "";
+                              // }
+                              setSections((prev) =>
+                                prev.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: { ...ingredient.errors, errorUnit: "" },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              );
                             }}
                             error={
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.unit ?? ""
+                              ing?.errors?.errorUnit ?? ""
+                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.unit ?? ""
                             }
                           />
                         </div>
@@ -1201,18 +1398,38 @@ function NewRecipe() {
                             value={ing?.displayQuantity ?? ""}
                             onChange={(e) => {
                               updateBaseQuantity(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                  ing.uid
-                                ]?.display_quantity
-                              ) {
-                                const x = checkFinalData.errors.components[comp.uid];
-                                x.ingredients[ing.uid].display_quantity = "";
-                              }
+                              // if (
+                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                              //     ing.uid
+                              //   ]?.display_quantity
+                              // ) {
+                              //   const x = checkFinalData.errors.components[comp.uid];
+                              //   x.ingredients[ing.uid].display_quantity = "";
+                              // }
+                              setSections((prev) =>
+                                prev.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorDisplayQuantity: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              );
                             }}
                             error={
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.display_quantity ?? ""
+                              ing?.errors?.errorDisplayQuantity ?? ""
+                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.display_quantity ?? ""
                             }
                           />
                         </div>
@@ -1225,18 +1442,38 @@ function NewRecipe() {
                             value={ing?.displayUnit ?? ""}
                             onChange={(e) => {
                               updateBaseUnit(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                  ing.uid
-                                ]?.display_unit
-                              ) {
-                                const x = checkFinalData.errors.components[comp.uid];
-                                x.ingredients[ing.uid].display_unit = "";
-                              }
+                              // if (
+                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                              //     ing.uid
+                              //   ]?.display_unit
+                              // ) {
+                              //   const x = checkFinalData.errors.components[comp.uid];
+                              //   x.ingredients[ing.uid].display_unit = "";
+                              // }
+                              setSections((prev) =>
+                                prev.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorDisplayUnit: "",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              );
                             }}
                             error={
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.display_unit ?? ""
+                              ing?.errors?.errorDisplayUnit ?? ""
+                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.display_unit ?? ""
                             }
                           />
                         </div>
@@ -1248,18 +1485,38 @@ function NewRecipe() {
                             value={ing?.displayPrice ?? ""}
                             onChange={(e) => {
                               updateBasePrice(comp.uid, ing.uid, e.target.value);
-                              if (
-                                checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                  ing.uid
-                                ]?.display_price
-                              ) {
-                                const x = checkFinalData.errors.components[comp.uid];
-                                x.ingredients[ing.uid].display_price = "";
-                              }
+                              // if (
+                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                              //     ing.uid
+                              //   ]?.display_price
+                              // ) {
+                              //   const x = checkFinalData.errors.components[comp.uid];
+                              //   x.ingredients[ing.uid].display_price = "";
+                              // }
+                              setSections((prev) =>
+                                prev.map((component) =>
+                                  component.uid === comp.uid
+                                    ? {
+                                        ...component,
+                                        ingredients: component.ingredients.map((ingredient) =>
+                                          ingredient.uid === ing.uid
+                                            ? {
+                                                ...ingredient,
+                                                errors: {
+                                                  ...ingredient.errors,
+                                                  errorDisplayPrice: "Required",
+                                                },
+                                              }
+                                            : ingredient,
+                                        ),
+                                      }
+                                    : component,
+                                ),
+                              );
                             }}
                             error={
-                              checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]
-                                ?.display_price ?? ""
+                              ing?.errors?.errorDisplayPrice ?? ""
+                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.display_price ?? ""
                             }
                           />
                         </div>
@@ -1395,14 +1652,17 @@ function NewRecipe() {
             ))}
           </div>
 
-          {/* buttons for save and cancel at the bottom */}
-          <div className="flex items-center justify-between my-3">
-            <Button className="cursor-pointer" color={"dark"} onClick={handlesubmit}>
-              Save
-            </Button>
-            <Button className="cursor-pointer" color={"alternative"} onClick={() => navigate(-1)}>
-              Canel
-            </Button>
+          {/* button for save and cancel at the bottom  along with global errorMessage div */}
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between my-3">
+              <Button className="cursor-pointer" color={"dark"} onClick={handleSubmit}>
+                Save
+              </Button>
+              <Button className="cursor-pointer" color={"alternative"} onClick={() => navigate(-1)}>
+                Canel
+              </Button>
+            </div>
+            <div className="px-2 font-semibold text-red-500 text-sm">{errorMessage}</div>
           </div>
         </div>
 
