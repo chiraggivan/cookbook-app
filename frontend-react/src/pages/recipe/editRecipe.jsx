@@ -69,6 +69,7 @@ function EditRecipe() {
   const finalMainRecipe = {};
   const [checkFinalData, setCheckFinalData] = useState({});
   const [showTopRow, setShowTopRow] = useState(false);
+  let sameSubHeadIds = []; // ---> to save the list of same sub header text which will be used to clear the error onChange
   const [updateBtn, setUpdateBtn] = useState(true);
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const navigate = useNavigate();
@@ -782,12 +783,64 @@ function EditRecipe() {
     setUpdateBtn(btnDisabled);
   }, [recipeInfo]);
 
-  // ---------------------------- TEMP console to show recipe for every input ----------------------------------
+  // ---------------------- check duplicate text for sub headers(component) onBlur -------------------------------
+  const checkDuplicateText = (uid, value) => {
+    // console.log("uid :", uid, " and value is :", value);
+    if (
+      recipeInfo.components.some(
+        (item) =>
+          item.componentText !== "" &&
+          item.componentText.replace(/\s+/g, " ").toLowerCase().trim() ===
+            value.replace(/\s+/g, " ").toLowerCase().trim() &&
+          item.uid !== uid,
+      )
+    ) {
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: prev.components.map((component) =>
+          component.uid === uid
+            ? { ...component, errorText: "Sub header already use." }
+            : component,
+        ),
+      }));
+    }
+  };
+
+  // ---------------- create list of all the same text sub header (component) onFocus -----------------------------
+  const findSameTextComponent = (uid, value) => {
+    // console.log("uid :", uid, " and value is :", value);
+    sameSubHeadIds = recipeInfo.components
+      .filter(
+        (item) =>
+          item.uid !== uid &&
+          item.componentText.replace(/\s+/g, " ").toLowerCase().trim() ===
+            value.replace(/\s+/g, " ").toLowerCase().trim() &&
+          item.componentText !== "",
+      )
+      .map((item) => item.uid);
+    // console.log("sameTextComponent is :", sameSubHeadIds);
+  };
+
+  // ----- Remove error Text from subHeaders if only one same subheader (component)  onChange ----------------------
+  const removeErrorTextIfFound = () => {
+    // remove errorText if only one same subheader is there. If more than one, dont do anything
+    if (sameSubHeadIds.length === 1) {
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: prev.components.map((component) =>
+          component.uid === sameSubHeadIds[0] ? { ...component, errorText: "" } : component,
+        ),
+      }));
+    }
+  };
+
+  // ---------------------------- Handle sumbit button function  ----------------------------------
   const handleSubmit = () => {
-    const checkDataErrors = { recipe: {}, components: [], steps: [] };
+    // const checkDataErrors = { recipe: {}, components: [], steps: [] };
     // checkData.errors = {};
     let isValid = true;
     setErrorMessage("");
+
     // // ---------------------------------- check recipe data ----------------------------------
     // validate name of recipe
     if (!recipeInfo.recipe.name || recipeInfo.recipe.name.trim() === "") {
@@ -796,7 +849,6 @@ function EditRecipe() {
         ...prev,
         recipe: { ...prev.recipe, error_name: "Name Required" },
       }));
-      // checkDataErrors.recipe.name = "Name required";
     }
 
     // validate portion_size of recipe
@@ -809,7 +861,6 @@ function EditRecipe() {
           error_portion_size: "Portion Size Required",
         },
       }));
-      // checkDataErrors.recipe.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
     }
 
     // validate privacy : if no privacy data then make it default false
@@ -827,17 +878,18 @@ function EditRecipe() {
           error_description: "Description should be less than 500 characters",
         },
       }));
-      // checkDataErrors.recipe.portion_size = "Portion size require. Eg: 1 person, 2 people, 1.5kg, etc";
+    }
+
+    // check if any error fields found in subheading (component) text (like duplicate text)
+    if (recipeInfo.components.some((item) => item.errorText?.trim())) {
+      isValid = false;
+      setErrorMessage("Errors found above in header section.");
+      return;
     }
 
     // // ---------------------------- check components + ingredients data ---------------------------
     recipeInfo.components.forEach((comp, indexc) => {
-      if (!checkDataErrors.components) {
-        checkDataErrors.components = [];
-      }
-      if (!checkDataErrors.components[indexc]) {
-        checkDataErrors.components[indexc] = {};
-      }
+      let ingCount = 0; //---------------> to count valid ingredients in each component
 
       if (indexc === 0 && showTopRow && comp.componentText === "") {
         isValid = false;
@@ -867,13 +919,6 @@ function EditRecipe() {
       }
 
       comp.ingredients.forEach((ing, indexi) => {
-        if (!checkDataErrors?.components[indexc]?.ingredients) {
-          checkDataErrors.components[indexc].ingredients = [];
-        }
-        if (!checkDataErrors.components[indexc].ingredients[indexi]) {
-          checkDataErrors.components[indexc].ingredients[indexi] = {};
-        }
-
         if (
           ing.ingredientId ||
           ing.quantity ||
@@ -882,6 +927,7 @@ function EditRecipe() {
           ing.displayUnit ||
           ing.displayPrice
         ) {
+          ingCount++;
           [
             { value: ing.ingredientId, name: "Name" },
             { value: ing.quantity, name: "Quantity" },
@@ -921,35 +967,46 @@ function EditRecipe() {
           });
         }
       });
+
+      // make sure every component(subheading) has alteast one ingredient except index 0 if not visible
+      if ((showTopRow && ingCount === 0) || (!showTopRow && indexc !== 0 && ingCount === 0)) {
+        isValid = false;
+        setErrorMessage("Need atleast one ingredient within sub heading");
+        return;
+      }
     });
 
     // check if the data is valid and if NOT then return back to screen
-    setCheckFinalData(checkDataErrors);
+    // (cant exit the function from forEach return as done above. It only stops forEach and comes out)
     if (!isValid) {
+      setErrorMessage("Errors found above.");
       return;
     }
 
-    console.log("everything passed till here with no errors found. were there any errors");
-    return;
     // // ------------ get the display order of components and ingredient updated from recipeInfo --------------------
+    // while assigning new display order, we 1st filter the components, if top header is hidden and
+    // no ingredients within top header given. so the the header which is after the empty ing row
+    // will become header 0(index 0)
     let ing_display_order = 1;
-    const newComponentsData = recipeInfo.components.map((comp, indexc) => ({
-      ...comp,
-      componentDisplayOrder: indexc,
-      ingredients: comp.ingredients
-        .filter((i) => i.ingredientId)
-        .map((ing, indexi) => ({
-          ...ing,
-          componentDisplayOrder: indexc,
-          recipeComponentId: comp.recipeComponentId ?? "",
-          ingredientDisplayOrder: ing_display_order++,
-        })),
-    }));
+    const newComponentsData = recipeInfo.components
+      .filter((item) => item.componentText !== "" || item.ingredients.length !== 1)
+      .map((comp, indexc) => ({
+        ...comp,
+        componentDisplayOrder: indexc,
+        ingredients: comp.ingredients
+          .filter((i) => i.ingredientId)
+          .map((ing, indexi) => ({
+            ...ing,
+            componentDisplayOrder: indexc,
+            recipeComponentId: comp.recipeComponentId ?? "",
+            ingredientDisplayOrder: ing_display_order++,
+          })),
+      }));
 
     // // ------------------------ get the display order of Steps updated from recipeInfo -----------------------------
     let step_display_order = 1;
     const newStepsData = recipeInfo.steps
-      .filter((s) => s.step_text)
+      .filter((s) => s.step_text.trim())
       .map((step, indexs) => ({
         ...step,
         step_order: step_display_order++,
@@ -962,9 +1019,14 @@ function EditRecipe() {
       steps: newStepsData,
     };
 
+    // console.log("newRecipeInfo :", newRecipeInfo);
+    // return;
+
     // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
     const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
     console.log("finalData :", finalData);
+    console.log("About to call api to save the edit the recipe.");
+    // return;
 
     // // ----------------------------------- call the bakend api to update recipe -----------------------------------
     const url = `${serverURL}/recipe/api/update/${id}`;
@@ -976,9 +1038,9 @@ function EditRecipe() {
         setFetchLoading(true);
         // call api
         const res = await axios[method](url, body, config);
-        // console.log("res :", res);
-        const x = res.data.data;
-        x.recipe.name = x.recipe.name + " (updated)";
+        console.log("res :", res);
+        const x = res.data.data.data;
+        // x.recipe.name = x.recipe.name + " (updated)";
         setRecipeDetails(
           recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
         );
@@ -1009,9 +1071,9 @@ function EditRecipe() {
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
-  console.log("recipeInfo :", recipeInfo);
+  // console.log("recipeInfo :", recipeInfo);
   // console.log("OgData :", OgData);
-  console.log("checkFinalData :", checkFinalData);
+  // console.log("checkFinalData :", checkFinalData);
 
   // ------------------------------  initial page loading screen -------------------------------------------
   if (fetchLoading) {
@@ -1037,7 +1099,7 @@ function EditRecipe() {
               {/* recipe name section */}
               <div className="flex max-w-md">
                 {/* title of recipe name */}
-                <div className="flex px-1 items-center font-semibold justify-end w-26">Name :</div>
+                <div className="flex px-1 items-center font-semibold justify-end w-36">Name :</div>
                 {/* input name section */}
 
                 <Input
@@ -1060,7 +1122,7 @@ function EditRecipe() {
               {/* recipe portion size section */}
               <div className="flex max-w-md">
                 {/* title of portion size*/}
-                <div className="flex px-1 items-center font-semibold justify-end w-26">
+                <div className="flex px-1 items-center font-semibold justify-end w-36">
                   Portion size :
                 </div>
                 {/* input portion section */}
@@ -1195,6 +1257,7 @@ function EditRecipe() {
                           color="white"
                           value={comp?.componentText ?? ""}
                           placeholder={"Base, Dough, etc..."}
+                          onFocus={(e) => findSameTextComponent(comp.uid, e.target.value)}
                           onChange={(e) => {
                             setRecipeInfo((prev) => ({
                               ...prev,
@@ -1204,11 +1267,10 @@ function EditRecipe() {
                                   : component,
                               ),
                             }));
-                            // if (checkFinalData?.components?.[indexc]?.text) {
-                            //   checkFinalData.components[indexc].text = "";
-                            // }
+                            removeErrorTextIfFound();
                           }}
                           error={comp.errorText ?? ""}
+                          onBlur={(e) => checkDuplicateText(comp.uid, e.target.value)}
                         />
                       </div>
                       <div className="flex w-15 items-center justify-center">
@@ -1485,7 +1547,7 @@ function EditRecipe() {
 
                         {/* 6th column */}
                         <div className="flex flex-3 justify-center items-center text-sm">
-                          {ing?.cost ?? ""}
+                          {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
                         </div>
                       </div>
 
@@ -1587,7 +1649,7 @@ function EditRecipe() {
                                 ),
                               }));
                             }}
-                            error={ing?.errors?.errorDisplayQuantity ?? ""}
+                            error={ing?.errors?.errorDisplayPrice ?? ""}
                           />
                         </div>
                       </div>
@@ -1727,6 +1789,7 @@ function EditRecipe() {
 
           {/* button for save and cancel at the bottom  along with global errorMessage div */}
           <div className="flex flex-col">
+            <div className="px-1 mt-2 h-6 font-semibold text-red-500 text-sm">{errorMessage}</div>
             <div className="flex items-center justify-between my-3">
               <Button className="cursor-pointer" color={"dark"} onClick={handleSubmit}>
                 Save
@@ -1735,7 +1798,6 @@ function EditRecipe() {
                 Canel
               </Button>
             </div>
-            <div className="px-2 pt-5 text-red-600 text-sm">{errorMessage}</div>
           </div>
 
           {/* ingredients list */}
@@ -1778,6 +1840,7 @@ function EditRecipe() {
                           color="white"
                           value={comp?.componentText ?? ""}
                           placeholder={"Base, Dough, etc..."}
+                          onFocus={(e) => findSameTextComponent(comp.uid, e.target.value)}
                           onChange={(e) => {
                             setRecipeInfo((prev) => ({
                               ...prev,
@@ -1790,8 +1853,10 @@ function EditRecipe() {
                             if (checkFinalData?.components?.[indexc]?.text) {
                               checkFinalData.components[indexc].text = "";
                             }
+                            removeErrorTextIfFound();
                           }}
                           error={checkFinalData?.components?.[indexc]?.text}
+                          onBlur={(e) => checkDuplicateText(comp.uid, e.target.value)}
                         />
                       </div>
                       <div className="flex w-15 items-center justify-center">

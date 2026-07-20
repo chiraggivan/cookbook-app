@@ -76,6 +76,7 @@ function NewRecipe() {
   const finalMainRecipe = {};
   const [checkFinalData, setCheckFinalData] = useState({});
   const [showTopRow, setShowTopRow] = useState(false);
+  let sameSubHeadIds = []; // ---> to save the list of same sub header text which will be used to clear the error onChange
 
   let blurTimeout;
   // config -
@@ -614,6 +615,53 @@ function NewRecipe() {
     );
   };
 
+  // ---------------------- check duplicate text for sub headers(component) onBlur -------------------------------
+  const checkDuplicateText = (uid, value) => {
+    // console.log("uid :", uid, " and value is :", value);
+    if (
+      sections.some(
+        (item) =>
+          item.componentText !== "" &&
+          item.componentText.replace(/\s+/g, " ").toLowerCase().trim() ===
+            value.replace(/\s+/g, " ").toLowerCase().trim() &&
+          item.uid !== uid,
+      )
+    ) {
+      setSections((prev) =>
+        prev.map((section) =>
+          section.uid === uid ? { ...section, errorText: "Sub header already use." } : section,
+        ),
+      );
+    }
+  };
+
+  // ---------------- find list of all the same text sub header (component) onFocus -----------------------------
+  const findSameTextComponent = (uid, value) => {
+    // console.log("uid :", uid, " and value is :", value);
+    sameSubHeadIds = sections
+      .filter(
+        (item) =>
+          item.uid !== uid &&
+          item.componentText.replace(/\s+/g, " ").toLowerCase().trim() ===
+            value.replace(/\s+/g, " ").toLowerCase().trim() &&
+          item.componentText !== "",
+      )
+      .map((item) => item.uid);
+    // console.log("sameTextComponent is :", sameSubHeadIds);
+  };
+
+  // ----- Remove error Text from subHeaders if only one same subheader (component)  onChange ----------------------
+  const removeErrorTextIfFound = () => {
+    // remove errorText if only one same subheader is there. If more than one, dont do anything
+    if (sameSubHeadIds.length === 1) {
+      setSections((prev) =>
+        prev.map((section) =>
+          section.uid === sameSubHeadIds[0] ? { ...section, errorText: "" } : section,
+        ),
+      );
+    }
+  };
+
   // ---------------------------- console to show recipe for every input ----------------------------------
   const handleSubmit = () => {
     // console.log("recipeInfo", recipeInfo);
@@ -628,6 +676,7 @@ function NewRecipe() {
     const components = [];
     let ing_display_order = 0;
 
+    // creating new variable having all info and compatible with backend naming  convention
     sections.forEach((section, indexc) => {
       const comp = {};
       comp.component_text = section.componentText ?? "";
@@ -670,6 +719,7 @@ function NewRecipe() {
       comp.ingredients = ingredients;
       components.push(comp);
     });
+
     finalMainRecipe.components = components;
     // finalMainRecipe.steps = recipeInfo.steps;
 
@@ -677,18 +727,17 @@ function NewRecipe() {
     const steps = [];
     let step_display_order = 0;
     recipeInfo.steps.forEach((s) => {
-      if (s.step_text) {
+      if (s.step_text.trim()) {
         step_display_order++;
         const step = {};
         step.step_order = step_display_order;
-        step.step_text = s.step_text;
+        step.step_text = s.step_text.trim();
         steps.push(step);
       }
     });
 
     // checking data for any errors like incomplete data or missing fields, heading ,,etc
     const checkData = { ...finalMainRecipe, steps: steps };
-    checkData.errors = {};
     let isValid = true;
     setErrorMessage("");
 
@@ -724,20 +773,20 @@ function NewRecipe() {
       }));
     }
 
+    // check if any error fields found in subheading (component) text (like duplicate text)
+    if (sections.some((item) => item.errorText !== "")) {
+      isValid = false;
+      setErrorMessage("Errors found above in sub headers.");
+      return;
+    }
+
     // validate sub headers and ingredients (from sections variable)
     checkData.components.forEach((comp, index) => {
       let ingCount = 0; //---------------> to count valid ingredients in each component
-      if (!checkData.errors.components) {
-        checkData.errors.components = {};
-      }
-      if (!checkData.errors.components[comp.uid]) {
-        checkData.errors.components[comp.uid] = {};
-      }
 
-      //  2 if conditions: first to top header which is hidden and second is for other added header
+      //  Two if conditions: first to top header which is hidden and second is for other added header
       // console.log("comp outside :", comp, "index is :", index, " and showTopRow:", showTopRow);
       if (index === 0 && showTopRow && comp.component_text === "") {
-        console.log("entered top header and should have 8!");
         isValid = false;
         setSections((prev) =>
           prev.map((component) =>
@@ -749,10 +798,8 @@ function NewRecipe() {
               : component,
           ),
         );
-        // checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
       }
       if (index !== 0 && comp.component_text === "") {
-        console.log("entered top header and should have 4!");
         isValid = false;
         setSections((prev) =>
           prev.map((component) =>
@@ -764,17 +811,9 @@ function NewRecipe() {
               : component,
           ),
         );
-        // checkData.errors.components[comp.uid].text = "Text Required. Or delete this header";
       }
 
       comp.ingredients.forEach((ing) => {
-        if (!checkData?.errors?.components[comp.uid]?.ingredients) {
-          checkData.errors.components[comp.uid].ingredients = {};
-        }
-        if (!checkData.errors.components[comp.uid].ingredients[ing.uid]) {
-          checkData.errors.components[comp.uid].ingredients[ing.uid] = {};
-        }
-
         if (
           ing.ingredient_id ||
           ing.quantity ||
@@ -784,6 +823,7 @@ function NewRecipe() {
           ing.display_price
         ) {
           ingCount++;
+
           if (!ing.unit) {
             isValid = false;
             setSections((prev) =>
@@ -803,7 +843,6 @@ function NewRecipe() {
                   : component,
               ),
             );
-            // checkData.errors.components[comp.uid].ingredients[ing.uid].unit = "Unit Req";
           }
           if (!ing.quantity) {
             isValid = false;
@@ -824,7 +863,6 @@ function NewRecipe() {
                   : component,
               ),
             );
-            // checkData.errors.components[comp.uid].ingredients[ing.uid].quantity = "Quantity Req";
           }
           if (!ing.ingredient_id) {
             isValid = false;
@@ -845,7 +883,6 @@ function NewRecipe() {
                   : component,
               ),
             );
-            // checkData.errors.components[comp.uid].ingredients[ing.uid].name = "Name Reqiure";
           }
           if (ing.display_quantity || ing.display_unit || ing.display_price) {
             if (!ing.display_quantity) {
@@ -859,7 +896,10 @@ function NewRecipe() {
                           ingredient.uid === ing.uid
                             ? {
                                 ...ingredient,
-                                errors: { ...ingredient.errors, errorDisplayQuantity: "Required" },
+                                errors: {
+                                  ...ingredient.errors,
+                                  errorDisplayQuantity: "Required",
+                                },
                               }
                             : ingredient,
                         ),
@@ -867,7 +907,6 @@ function NewRecipe() {
                     : component,
                 ),
               );
-              // checkData.errors.components[comp.uid].ingredients[ing.uid].display_quantity = "Reqiure!!";
             }
             if (!ing.display_unit) {
               isValid = false;
@@ -888,7 +927,6 @@ function NewRecipe() {
                     : component,
                 ),
               );
-              // checkData.errors.components[comp.uid].ingredients[ing.uid].display_unit = "Reqiure!!";
             }
             if (!ing.display_price) {
               isValid = false;
@@ -909,22 +947,22 @@ function NewRecipe() {
                     : component,
                 ),
               );
-              // checkData.errors.components[comp.uid].ingredients[ing.uid].display_price = "Reqiure!!";
             }
           }
         }
       });
 
-      // make sure every component(subheading) has alteast one ingredient
-      if (ingCount === 0) {
-        checkData.errors.components[comp.uid].text =
-          "Need atleast one ingredient within this section";
+      // make sure every component(subheading) has alteast one ingredient except index 0 if not visible
+      if ((showTopRow && ingCount === 0) || (!showTopRow && index !== 0 && ingCount === 0)) {
+        isValid = false;
+        setErrorMessage("Need atleast one ingredient within sub heading");
+        return;
       }
     });
 
-    // initial Input fields errors found then show on screen
+    // if no ingredients are found in sub headers then return
+    // (cant exit the function from forEach return as done above. It only stops forEach and comes out)
     if (!isValid) {
-      console.log("Input fields check done, errors found:", checkData);
       setErrorMessage("Errors found above.");
       return;
     }
@@ -935,14 +973,46 @@ function NewRecipe() {
       setErrorMessage("Need atleast 2 ingredients to make a recipe");
       return;
     }
+
+    // initial Input fields errors found then show on screen
+    if (!isValid) {
+      console.log("Input fields check done, errors found:", checkData);
+      setErrorMessage("Errors found above.");
+      return;
+    }
+
     setCheckFinalData(checkData);
 
-    // Call api and save the recipe in db
+    // before sending data at backend checking if sub header 0 and its ingredient are empty
+    //  if they are empty then discard them and re arrange the other sub header from 0 onwards
+    const dataToSend = {};
+    dataToSend.name = checkData.name;
+    dataToSend.portion_size = checkData.portion_size;
+    dataToSend.privacy = checkData.privacy;
+    dataToSend.description = checkData.description;
+    dataToSend.steps = checkData.steps;
+
+    if (
+      checkData.components[0].component_text === "" &&
+      checkData.components[0].ingredients.length === 0
+    ) {
+      dataToSend.components = checkData.components
+        .filter((c) => c.component_text !== "")
+        .map((item) => ({ ...item, component_display_order: item.component_display_order - 1 }));
+    } else {
+      dataToSend.components = checkData.components;
+    }
+
+    console.log("everything passed till here with no errors found. were there any errors");
+    console.log("dataToSend is:", dataToSend);
+    return;
+
+    // function to call api and save the recipe in db
     const saveRecipe = async () => {
       try {
         const url = `${serverURL}/recipe/api/new`;
         const method = "post";
-        const body = checkData;
+        const body = dataToSend;
 
         const res = await axios[method](url, body, config);
         console.log("res: ", res);
@@ -960,7 +1030,7 @@ function NewRecipe() {
     saveRecipe();
   };
 
-  console.log("sections :", sections);
+  // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
   // console.log("recipeInfo :", recipeInfo);
@@ -988,7 +1058,7 @@ function NewRecipe() {
               {/* recipe name section */}
               <div className="flex max-w-md">
                 {/* title of recipe name */}
-                <div className="flex px-1 items-center font-semibold justify-end w-26">Name :</div>
+                <div className="flex px-1 items-center font-semibold justify-end w-36">Name :</div>
                 {/* input section */}
 
                 <Input
@@ -1009,7 +1079,7 @@ function NewRecipe() {
               {/* recipe portion size section */}
               <div className="flex max-w-md">
                 {/* title of portion size*/}
-                <div className="flex px-1 items-center font-semibold justify-end w-26">
+                <div className="flex px-1 items-center font-semibold justify-end w-36">
                   Portion size :
                 </div>
                 {/* input portion section */}
@@ -1131,6 +1201,7 @@ function NewRecipe() {
                           color="white"
                           value={comp?.componentText ?? ""}
                           placeholder={"Base, Dough, etc..."}
+                          onFocus={(e) => findSameTextComponent(comp.uid, e.target.value)}
                           onChange={(e) => {
                             setSections((prev) =>
                               prev.map((section) =>
@@ -1139,6 +1210,7 @@ function NewRecipe() {
                                   : section,
                               ),
                             );
+                            removeErrorTextIfFound();
                             // if (checkFinalData?.errors?.components[comp.uid]?.text) {
                             //   checkFinalData.errors.components[comp.uid].text = "";
                             // }
@@ -1147,6 +1219,7 @@ function NewRecipe() {
                             comp?.errorText ?? ""
                             // checkFinalData?.errors?.components[comp.uid]?.text
                           }
+                          onBlur={(e) => checkDuplicateText(comp.uid, e.target.value)}
                         />
                       </div>
                       <div className="flex w-15 items-center justify-center">
@@ -1164,7 +1237,7 @@ function NewRecipe() {
                   {comp.ingredients?.map((ing, index) => (
                     <div
                       key={ing.uid}
-                      className="flex flex-1 items-center bg-gray-50 border-b border-gray-400"
+                      className="flex flex-1  items-stretch bg-gray-50 border-b border-gray-400"
                     >
                       {/* 1st column - Sr No. */}
                       <div className="flex w-10 p-1 h-10 justify-end items-center">
@@ -1179,7 +1252,7 @@ function NewRecipe() {
                               <div
                                 className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
                                 hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
-                                // onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
+                                onClick={() => move(comp.uid, ing.uid, index, indexc, -1)}
                               >
                                 <FaAngleDoubleUp className="" />
                               </div>
@@ -1189,7 +1262,7 @@ function NewRecipe() {
                               <div
                                 className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
                                 hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
-                                // onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
+                                onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
                               >
                                 <FaAngleDoubleDown
                                   className=""
@@ -1204,7 +1277,7 @@ function NewRecipe() {
                       {/* col 3,4,5,6 in one div */}
                       <div className="flex flex-6">
                         {/* 3rd column - ing name */}
-                        <div className="relative flex flex-8 items-center justify-start ">
+                        <div className="relative flex flex-8 p-1 items-start justify-start ">
                           <Input
                             className="flex w-full min-w-38 py-0.5 px-1 rounded placeholder:text-gray-500"
                             value={ing.name ?? ""}
@@ -1300,7 +1373,7 @@ function NewRecipe() {
                         </div>
 
                         {/* 4th column - quantity */}
-                        <div className="flex flex-3 p-1 justify-center ">
+                        <div className="flex flex-3 py-1 items-start justify-center ">
                           <Input
                             className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
                             value={ing?.quantity ?? ""}
@@ -1343,7 +1416,7 @@ function NewRecipe() {
                         </div>
 
                         {/* 5th column */}
-                        <div className="flex flex-4 justify-center items-center ">
+                        <div className="flex flex-4 p-1 justify-center items-start ">
                           <Dropdown
                             className="flex rounded  text-sm h-7.5 pl-1 pr-7 py-0"
                             options={ing?.measuringUnits}
@@ -1385,14 +1458,14 @@ function NewRecipe() {
 
                         {/* 6th column */}
                         <div className="flex flex-3 justify-center items-center text-sm">
-                          {ing?.cost ?? ""}
+                          {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
                         </div>
                       </div>
 
                       {/* col 7,8,9 in one div */}
-                      <div className="bg-gray-300 h-10 hidden lg:flex lg:flex-4 lg:justify-between">
+                      <div className="bg-gray-300 item-stretch hidden lg:flex lg:flex-4 lg:justify-between">
                         {/* 7th column - Base - Quantity */}
-                        <div className="flex flex-3 px-2 items-center justify-center">
+                        <div className="flex flex-3 px-2 pt-2 items-start justify-center">
                           <Input
                             className="flex w-full px-1 py-0 text-center  rounded "
                             value={ing?.displayQuantity ?? ""}
@@ -1435,21 +1508,13 @@ function NewRecipe() {
                         </div>
 
                         {/* 8th column - Base - Unit  */}
-                        <div className="flex flex-4 items-center justify-center">
+                        <div className="flex flex-4 pt-2 items-start justify-center">
                           <DropdownArray
                             className="flex w-full justify-end rounded text-sm h-6.5 py-0  pl-1"
                             options={ing?.baseUnits}
                             value={ing?.displayUnit ?? ""}
                             onChange={(e) => {
                               updateBaseUnit(comp.uid, ing.uid, e.target.value);
-                              // if (
-                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                              //     ing.uid
-                              //   ]?.display_unit
-                              // ) {
-                              //   const x = checkFinalData.errors.components[comp.uid];
-                              //   x.ingredients[ing.uid].display_unit = "";
-                              // }
                               setSections((prev) =>
                                 prev.map((component) =>
                                   component.uid === comp.uid
@@ -1479,7 +1544,7 @@ function NewRecipe() {
                         </div>
 
                         {/* 9th column - Base - price */}
-                        <div className="flex flex-3 px-2 items-center justify-center ">
+                        <div className="flex flex-3 px-2 pt-2 items-start justify-center ">
                           <Input
                             className="flex w-full pl-1 pr-3 py-0  rounded text-end "
                             value={ing?.displayPrice ?? ""}
@@ -1523,7 +1588,7 @@ function NewRecipe() {
                       </div>
 
                       {/* 10th Column - Delete ingredient */}
-                      <div className="flex w-15 text-center justify-center">
+                      <div className="flex w-15 text-center items-center justify-center">
                         {index !== comp.ingredients.length - 1 && (
                           <div className=" text-red-400 hover:text-red-900 transition duration-300">
                             <HiTrash
@@ -1654,7 +1719,8 @@ function NewRecipe() {
 
           {/* button for save and cancel at the bottom  along with global errorMessage div */}
           <div className="flex flex-col">
-            <div className="flex items-center justify-between my-3">
+            <div className="px-1 mt-2 h-6 font-semibold text-red-500 text-sm">{errorMessage}</div>
+            <div className="flex items-center justify-between my-2">
               <Button className="cursor-pointer" color={"dark"} onClick={handleSubmit}>
                 Save
               </Button>
@@ -1662,7 +1728,6 @@ function NewRecipe() {
                 Canel
               </Button>
             </div>
-            <div className="px-2 font-semibold text-red-500 text-sm">{errorMessage}</div>
           </div>
         </div>
 

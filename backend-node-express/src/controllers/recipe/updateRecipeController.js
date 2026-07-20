@@ -775,7 +775,7 @@ exports.update_recipe = async (req, res) => {
     const [countSteps] = await db.query(countStepsQuery, [recipeId]);
     const dbStepsLength = countSteps[0].total;
 
-    console.log("data is : ", data);
+    // console.log("data is : ", data);
     // Calculate maxStepDisplayOrder
     const addSteps = data.add_steps || [];
     const maxStepDisplayOrder = dbStepsLength + addSteps.length - removeSteps.length;
@@ -839,15 +839,15 @@ exports.update_recipe = async (req, res) => {
       }
     }
 
-    console.log("every ingredient check and data ready to to be inserted for update");
+    // console.log("every ingredient check and data ready to to be inserted for update");
 
     const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
-    return res.json({
-      success: updatedRecipeDetails.success,
-      message: updatedRecipeDetails.message,
-      data: updatedRecipeDetails.data,
-    });
-    return;
+    // return res.json({
+    //   success: updatedRecipeDetails.success,
+    //   message: updatedRecipeDetails.message,
+    //   data: updatedRecipeDetails.data,
+    // });
+    // return;
     // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
 
     const conn = await db.getConnection();
