@@ -457,7 +457,7 @@ exports.update_recipe = async (req, res) => {
 
         // Preserve old values if not provided (for updates)
         if (component.component_text === null || component.component_text === undefined) {
-          component.component_text = oldComponentText;
+          component.component_text = "";
         }
         if (
           component.component_display_order === null ||
@@ -841,7 +841,7 @@ exports.update_recipe = async (req, res) => {
 
     // console.log("every ingredient check and data ready to to be inserted for update");
 
-    const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
+    // const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id); // just for testing before any db updates
     // return res.json({
     //   success: updatedRecipeDetails.success,
     //   message: updatedRecipeDetails.message,
@@ -1169,19 +1169,21 @@ exports.update_recipe = async (req, res) => {
           // if base unit doesnt match with original base unit then convert custom price and unit. eg:  if main unit is kg and
           // supplied base_unit in g, oz, or lbs then convert it into kg. similar for litre for ml, fl.oz and pint
           // but leave pc and bunch as it is.
+          console.log("ing is :", ing);
           if (ing.base_price) {
-            let defaultPrice, actualBaseUnit;
+            let defaultPrice, actualBaseUnit, displayQuantity;
 
             // get the default_price and base_unit from ingredients TABLE when ing_source is MAIN
             if (ing.ingredient_source === "main") {
               const ingredientQuery = `
-                SELECT default_price, base_unit FROM ingredients 
+                SELECT display_price, display_unit, display_quantity FROM ingredients 
                 WHERE ingredient_id = ? 
                 LIMIT 1
               `;
               const ingredientValues = [ing.ingredient_id];
               const [ingredientResult] = await conn.query(ingredientQuery, ingredientValues);
 
+              // this should never run unless coming from postman
               if (ingredientResult.length === 0) {
                 return res.status(400).json({
                   error: `Ingredient ${ing.ingredient_id} not found or not approved`,
@@ -1189,8 +1191,9 @@ exports.update_recipe = async (req, res) => {
                 });
               }
 
-              defaultPrice = ingredientResult[0].default_price;
-              actualBaseUnit = ingredientResult[0].base_unit;
+              defaultPrice = ingredientResult[0].display_price;
+              actualBaseUnit = ingredientResult[0].display_unit;
+              displayQuantity = ingredientResult[0].display_quantity;
 
               // Check for user's custom price if the ing_source is MAIN  as
               // the customer price wont have any updated price of user_ingredients table.
@@ -1227,50 +1230,50 @@ exports.update_recipe = async (req, res) => {
 
             // Only proceed with price update if values differ from defaults
             if (
-              ing.base_quantity !== 1 ||
+              ing.base_quantity !== displayQuantity ||
               ing.base_unit !== actualBaseUnit ||
               ing.base_price !== defaultPrice
             ) {
-              let basePrice, baseQuantity, baseUnit;
+              let calPrice, calQuantity, calUnit;
 
               // Normalize quantity to 1 if needed
               if (ing.base_quantity !== 1) {
-                basePrice = ing.base_price / ing.base_quantity;
-                baseQuantity = 1;
+                calPrice = ing.base_price / ing.base_quantity;
+                calQuantity = 1;
               } else {
-                basePrice = ing.base_price;
-                baseQuantity = ing.base_quantity;
+                calPrice = ing.base_price;
+                calQuantity = ing.base_quantity;
               }
 
               // Convert to standard units (kg for weight, l for volume)
               if (ing.base_unit === "kg") {
-                baseUnit = "kg";
+                calUnit = "kg";
               } else if (ing.base_unit === "g") {
-                basePrice = basePrice * 1000;
-                baseUnit = "kg";
+                calPrice = calPrice * 1000;
+                calUnit = "kg";
               } else if (ing.base_unit === "oz") {
-                basePrice = basePrice * 35.274;
-                baseUnit = "kg";
+                calPrice = calPrice * 35.274;
+                calUnit = "kg";
               } else if (ing.base_unit === "lbs") {
-                basePrice = basePrice * 2.205;
-                baseUnit = "kg";
+                calPrice = calPrice * 2.205;
+                calUnit = "kg";
               } else if (ing.base_unit === "l") {
-                baseUnit = "l";
+                calUnit = "l";
               } else if (ing.base_unit === "ml") {
-                basePrice = basePrice * 1000;
-                baseUnit = "l";
+                calPrice = calPrice * 1000;
+                calUnit = "l";
               } else if (ing.base_unit === "fl.oz") {
-                basePrice = basePrice * 35.1951;
-                baseUnit = "l";
+                calPrice = calPrice * 35.1951;
+                calUnit = "l";
               } else if (ing.base_unit === "pint") {
-                basePrice = basePrice * 1.75975;
-                baseUnit = "l";
+                calPrice = calPrice * 1.75975;
+                calUnit = "l";
               } else if (ing.base_unit === "pc") {
-                baseUnit = "pc";
+                calUnit = "pc";
               } else if (ing.base_unit === "bunch") {
-                baseUnit = "bunch";
+                calUnit = "bunch";
               } else {
-                baseUnit = ing.base_unit; // fallback
+                calUnit = ing.base_unit; // fallback
               }
 
               // Handle optional place field
@@ -1278,23 +1281,23 @@ exports.update_recipe = async (req, res) => {
 
               // Call stored procedure to update/insert user price
               const callQuery = `
-                CALL update_insert_user_price(?, ?, ?, ?, ?, ?)
+                CALL update_insert_user_price(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `;
               const callValues = [
                 user.id,
                 ing.ingredient_id,
                 ing.ingredient_source,
-                basePrice,
-                baseQuantity,
-                baseUnit,
+                calPrice,
+                calQuantity,
+                calUnit,
                 place,
-                ing.display_price,
-                ing.display_quantity,
-                ing.display_unit,
+                ing.base_price,
+                ing.base_quantity,
+                ing.base_unit,
               ];
               const [result] = await conn.query(callQuery, callValues);
 
-              // optional : Check if any row was actually updated as during call procedure ti might not
+              // optional : Check if any row was actually updated as during call procedure it might not
               // update as values might be same so no need to raise error
               // if (result.affectedRows === 0) {
               //   console.error(`No update happend in user_prices table.`);
@@ -1428,12 +1431,13 @@ exports.update_recipe = async (req, res) => {
       conn.release();
     }
     //  ---------------------- call express function get_recipe_details to send the recipe details back -----------------
-    // const updatedRecipeDetails = getRecipeDetailsById(recipeId, user.id);
+    const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
+    // console.log("updatedRecipeDetails :", updatedRecipeDetails);
     // response the data----------------------- X X X --------------------------------------------------
     res.json({
-      success: true,
-      message: `Recipe updated.`,
-      data: updatedRecipeDetails,
+      success: updatedRecipeDetails.success,
+      message: updatedRecipeDetails.message,
+      data: updatedRecipeDetails.data,
     });
   } catch (err) {
     console.error("Error in updateRecipeController - update_recipe :", err);

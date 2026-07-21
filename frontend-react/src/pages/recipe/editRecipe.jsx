@@ -137,7 +137,7 @@ function EditRecipe() {
         // if (token) {
         const res = await axios[method](url, config);
         const tempRecipe = res?.data?.data;
-        // console.log("tempRecipe :", tempRecipe);
+        // console.log("Data from the backend of recipe :", tempRecipe);
         tempRecipe?.recipe?.privacy === "private" ? setIsPrivate(true) : setIsPrivate(false);
         const recipeData = { ...tempRecipe.recipe };
         setRecipeInfo((prev) => ({ ...prev, recipe: { ...tempRecipe.recipe } }));
@@ -589,6 +589,50 @@ function EditRecipe() {
     }));
   };
 
+  // ------------------------ function to validate INPUT for number Allowing [0123456789.] ----------------------
+  function validateInput(field, value, maxDecimals, maxLength, cid, iid) {
+    // Define a regex for one optional decimal with up to maxDecimals digits
+    const regex = new RegExp(`^\\d+(\\.\\d{0,${maxDecimals}})?$`);
+    const errorField = "error" + capitaliseWords(field.slice(0, 1)) + field.slice(1);
+
+    // Check the length
+    if ((regex.test(value) || value.length === 0) && value.length <= maxLength + 1) {
+      // get the input field
+      const inputField = recipeInfo.components
+        .find((item) => item.uid === cid)
+        .ingredients.find((item) => item.uid === iid).quantity;
+      // console.log("input field value is :", inputField);
+
+      // dis allow continous zeros
+      if (inputField === "0" && value === "00") {
+        return;
+      }
+      // update ingData value
+      setRecipeInfo((prev) => ({
+        ...prev,
+        components: prev.components.map((component) =>
+          component.uid === cid
+            ? {
+                ...component,
+                ingredients: component.ingredients.map((ingredient) =>
+                  ingredient.uid === iid
+                    ? {
+                        ...ingredient,
+                        [field]: value,
+                        errors: {
+                          ...ingredient.errors,
+                          [errorField]: "",
+                        },
+                      }
+                    : ingredient,
+                ),
+              }
+            : component,
+        ),
+      }));
+    }
+  }
+
   // ---------------------------------- To calculate the individual ing cost / total cost of recipe ----------------------------------------------
   let totalCost = 0;
   recipeInfo?.components?.forEach((component) => {
@@ -799,7 +843,7 @@ function EditRecipe() {
         ...prev,
         components: prev.components.map((component) =>
           component.uid === uid
-            ? { ...component, errorText: "Sub header already use." }
+            ? { ...component, errorText: "Sub header already used" }
             : component,
         ),
       }));
@@ -839,6 +883,7 @@ function EditRecipe() {
     // const checkDataErrors = { recipe: {}, components: [], steps: [] };
     // checkData.errors = {};
     let isValid = true;
+    let isErrMsg; // --> used to check if specialised error message to be shown
     setErrorMessage("");
 
     // // ---------------------------------- check recipe data ----------------------------------
@@ -971,15 +1016,19 @@ function EditRecipe() {
       // make sure every component(subheading) has alteast one ingredient except index 0 if not visible
       if ((showTopRow && ingCount === 0) || (!showTopRow && indexc !== 0 && ingCount === 0)) {
         isValid = false;
-        setErrorMessage("Need atleast one ingredient within sub heading");
+        isErrMsg = "Need atleast one ingredient within sub heading";
         return;
       }
     });
 
     // check if the data is valid and if NOT then return back to screen
-    // (cant exit the function from forEach return as done above. It only stops forEach and comes out)
+    // (cant exit the function from "forEach return" as done above. It only stops forEach and comes out)
     if (!isValid) {
-      setErrorMessage("Errors found above.");
+      if (isErrMsg) {
+        setErrorMessage(isErrMsg);
+      } else {
+        setErrorMessage("Errors found above.");
+      }
       return;
     }
 
@@ -1025,7 +1074,7 @@ function EditRecipe() {
     // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
     const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
     console.log("finalData :", finalData);
-    console.log("About to call api to save the edit the recipe.");
+    // console.log("About to call api to save the edit the recipe.");
     // return;
 
     // // ----------------------------------- call the bakend api to update recipe -----------------------------------
@@ -1038,9 +1087,8 @@ function EditRecipe() {
         setFetchLoading(true);
         // call api
         const res = await axios[method](url, body, config);
-        console.log("res :", res);
-        const x = res.data.data.data;
-        // x.recipe.name = x.recipe.name + " (updated)";
+        // console.log("res :", res);
+        const x = res.data.data;
         setRecipeDetails(
           recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
         );
@@ -1074,6 +1122,7 @@ function EditRecipe() {
   // console.log("recipeInfo :", recipeInfo);
   // console.log("OgData :", OgData);
   // console.log("checkFinalData :", checkFinalData);
+  // console.log("total cost is :", totalCost);
 
   // ------------------------------  initial page loading screen -------------------------------------------
   if (fetchLoading) {
@@ -1088,10 +1137,12 @@ function EditRecipe() {
 
         <div className="flex flex-col w-full max-w-3xl  mx-auto my-5">
           <div className="text-xl font-bold mt-8 mb-4"> Edit Recipe Details</div>
+
           {/* Line Separator */}
           <div className="flex items-center mb-2">
             <div className="grow border-t border-gray-300"></div>
           </div>
+
           {/* recipe details and image */}
           <div className="flex flex-col-reverse w-full gap-3 md:flex-row md:justify-between">
             {/* recipe details */}
@@ -1202,18 +1253,27 @@ function EditRecipe() {
             <div className="text-red-500 text-sm font-semibold"></div>
           </div>
 
-          {/* button to add first heading */}
-          {!showTopRow && (
-            <div className="mt-1">
-              <Button
-                className="cursor-pointer rounded-full"
-                color="light"
-                onClick={() => setShowTopRow(true)}
-              >
-                Add Top Header
-              </Button>
+          {/* button to add first heading and Total cost of recipe*/}
+          <div className="flex items-center justify-between h-10">
+            <div>
+              {!showTopRow && (
+                <div className="">
+                  <Button
+                    className="cursor-pointer rounded-full"
+                    color="light"
+                    onClick={() => setShowTopRow(true)}
+                  >
+                    Add Top Header
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+            {/* cost of recipe */}
+            <div className="flex space-x-2 text-lg ">
+              <div className="font-semibold">Costing :</div>
+              <p className="">£ {totalCost.toFixed(2)}</p>
+            </div>
+          </div>
 
           {/* ingredients  list - New */}
           <div className="flex flex-col ">
@@ -1376,34 +1436,6 @@ function EditRecipe() {
                               if (!activeInputId) {
                                 setActiveInputId(ing.uid);
                               }
-                              // if (
-                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name
-                              // ) {
-                              //   const x = checkFinalData.components[indexc];
-                              //   x.ingredients[index].name = "";
-                              // }
-
-                              // if (
-                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                              //     ?.displayQuantity
-                              // ) {
-                              //   const x = checkFinalData.components[indexc];
-                              //   x.ingredients[index].displayQuantity = "";
-                              // }
-                              // if (
-                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                              //     ?.displayUnit
-                              // ) {
-                              //   const x = checkFinalData.components[indexc];
-                              //   x.ingredients[index].displayUnit = "";
-                              // }
-                              // if (
-                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]
-                              //     ?.displayPrice
-                              // ) {
-                              //   const x = checkFinalData.components[indexc];
-                              //   x.ingredients[index].displayPrice = "";
-                              // }
                             }}
                             onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
                             placeholder={"milk, blue cheese, etc.."}
@@ -1466,35 +1498,9 @@ function EditRecipe() {
                             className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
                             value={ing?.quantity ?? ""}
                             onChange={(e) => {
-                              updateQuantity(comp.uid, ing.uid, e.target.value);
-                              // if (
-                              //   checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity
-                              // ) {
-                              //   const x = checkFinalData.components[indexc];
-                              //   x.ingredients[index].quantity = "";
-                              // }
-                              setRecipeInfo((prev) => ({
-                                ...prev,
-                                components: prev.components.map((component) =>
-                                  component.uid === comp.uid
-                                    ? {
-                                        ...component,
-                                        ingredients: component.ingredients.map((ingredient) =>
-                                          ingredient.uid === ing.uid
-                                            ? {
-                                                ...ingredient,
-                                                errors: {
-                                                  ...ingredient.errors,
-                                                  errorQuantity: "",
-                                                },
-                                              }
-                                            : ingredient,
-                                        ),
-                                      }
-                                    : component,
-                                ),
-                              }));
+                              validateInput("quantity", e.target.value, 3, 5, comp.uid, ing.uid);
                             }}
+                            onBlur={(e) => updateQuantity(comp.uid, ing.uid, e.target.value)}
                             error={
                               ing?.errors?.errorQuantity ?? ""
                               // checkFinalData?.components?.[indexc]?.ingredients?.[index]?.quantity ?? ""
@@ -1528,7 +1534,7 @@ function EditRecipe() {
                                                 ...ingredient,
                                                 errors: {
                                                   ...ingredient.errors,
-                                                  errorUnit: "",
+                                                  errorUnitId: "",
                                                 },
                                               }
                                             : ingredient,
@@ -1559,29 +1565,37 @@ function EditRecipe() {
                             className="flex w-full px-1 py-0 text-center  rounded "
                             value={ing?.displayQuantity ?? ""}
                             onChange={(e) => {
-                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
-                              setRecipeInfo((prev) => ({
-                                ...prev,
-                                components: prev.components.map((component) =>
-                                  component.uid === comp.uid
-                                    ? {
-                                        ...component,
-                                        ingredients: component.ingredients.map((ingredient) =>
-                                          ingredient.uid === ing.uid
-                                            ? {
-                                                ...ingredient,
-                                                errors: {
-                                                  ...ingredient.errors,
-                                                  errorDisplayQuantity: "",
-                                                },
-                                              }
-                                            : ingredient,
-                                        ),
-                                      }
-                                    : component,
-                                ),
-                              }));
+                              validateInput(
+                                "displayQuantity",
+                                e.target.value,
+                                3,
+                                5,
+                                comp.uid,
+                                ing.uid,
+                              );
+                              // setRecipeInfo((prev) => ({
+                              //   ...prev,
+                              //   components: prev.components.map((component) =>
+                              //     component.uid === comp.uid
+                              //       ? {
+                              //           ...component,
+                              //           ingredients: component.ingredients.map((ingredient) =>
+                              //             ingredient.uid === ing.uid
+                              //               ? {
+                              //                   ...ingredient,
+                              //                   errors: {
+                              //                     ...ingredient.errors,
+                              //                     errorDisplayQuantity: "",
+                              //                   },
+                              //                 }
+                              //               : ingredient,
+                              //           ),
+                              //         }
+                              //       : component,
+                              //   ),
+                              // }));
                             }}
+                            onBlur={(e) => updateBaseQuantity(comp.uid, ing.uid, e.target.value)}
                             error={ing?.errors?.errorDisplayQuantity ?? ""}
                           />
                         </div>
@@ -1626,29 +1640,37 @@ function EditRecipe() {
                             className="flex w-full pl-1 pr-3 py-0  rounded text-end "
                             value={ing?.displayPrice ?? ""}
                             onChange={(e) => {
-                              updateBasePrice(comp.uid, ing.uid, e.target.value);
-                              setRecipeInfo((prev) => ({
-                                ...prev,
-                                components: prev.components.map((component) =>
-                                  component.uid === comp.uid
-                                    ? {
-                                        ...component,
-                                        ingredients: component.ingredients.map((ingredient) =>
-                                          ingredient.uid === ing.uid
-                                            ? {
-                                                ...ingredient,
-                                                errors: {
-                                                  ...ingredient.errors,
-                                                  errorDisplayPrice: "",
-                                                },
-                                              }
-                                            : ingredient,
-                                        ),
-                                      }
-                                    : component,
-                                ),
-                              }));
+                              validateInput(
+                                "displayPrice",
+                                e.target.value,
+                                2,
+                                5,
+                                comp.uid,
+                                ing.uid,
+                              );
+                              // setRecipeInfo((prev) => ({
+                              //   ...prev,
+                              //   components: prev.components.map((component) =>
+                              //     component.uid === comp.uid
+                              //       ? {
+                              //           ...component,
+                              //           ingredients: component.ingredients.map((ingredient) =>
+                              //             ingredient.uid === ing.uid
+                              //               ? {
+                              //                   ...ingredient,
+                              //                   errors: {
+                              //                     ...ingredient.errors,
+                              //                     errorDisplayPrice: "",
+                              //                   },
+                              //                 }
+                              //               : ingredient,
+                              //           ),
+                              //         }
+                              //       : component,
+                              //   ),
+                              // }));
                             }}
+                            onBlur={(e) => updateBasePrice(comp.uid, ing.uid, e.target.value)}
                             error={ing?.errors?.errorDisplayPrice ?? ""}
                           />
                         </div>

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
@@ -24,6 +24,7 @@ import ToggleSwitchC from "../../components/toggleSwitch";
 function RecipeDetails() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
+  // const { state } = useLocation(); // ---> used while updating recipeDetails (not required now)
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const [isPrivate, setIsPrivate] = useState(false);
@@ -169,7 +170,7 @@ function RecipeDetails() {
           // call api to get recipe details
           const res = await axios[method](url, config);
           const tempRecipe = res?.data?.data;
-
+          // console.log("data from backend :", tempRecipe);
           // save the new recipe details in recipeDetails Context variable
           setRecipeDetails((prev) => [...prev, tempRecipe]);
         } catch (err) {
@@ -185,7 +186,7 @@ function RecipeDetails() {
     setFetchLoading(false);
   }, []);
 
-  // ----------------------- check if user is the owner of the recipe --------------------------------
+  // ----------------------- check if user is the owner of the recipe (helps to show buttons for edit/delete )--------------------------------
   useEffect(() => {
     // this below is done to make sure there is no flicker of recipe by for owner
     if (!foundRecipeDetails) {
@@ -198,6 +199,7 @@ function RecipeDetails() {
       setIsRecipeOwner(false);
     }
   }, [foundRecipeDetails]);
+
   // ------------------------------------  change privacy in recipe details ----------------------------
   //  only option available to edit in read recipe for quick update.
 
@@ -309,8 +311,7 @@ function RecipeDetails() {
             </td>
             <td className="px-5 text-end min-w-25">£ {Number(i.price.toFixed(3))}</td>
             <td className="px-1 text-sm text-end text-gray-400" colSpan={4}>
-              £ {i.cost}/ {i.base_quantity}
-              {i.unit}
+              £ {i.cost}/ {i.base_quantity} {i.unit}
             </td>
             {/* <td className="px-1">{i.unit}</td>
             <td className="px-1">{i.cost}</td> 
@@ -343,7 +344,7 @@ function RecipeDetails() {
   // console.log("myRecipes :", myRecipes);
   // console.log("isDishModalOpen : ", isDishModalOpen);
   // console.log("isRecipeOwner :", isRecipeOwner);
-
+  // console.log("recipeData : ", state?.recipeData);
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>
@@ -370,6 +371,7 @@ function RecipeDetails() {
                 </div>
               )}
             </div>
+
             {/* Recipe Details and image */}
             <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
               <div
@@ -498,6 +500,7 @@ function RecipeDetails() {
                 {foundRecipeDetails?.recipe.description}
               </div>
             </div>
+
             {/* tabs option of flowbite for smaller screen below xl */}
             <Tabs className="flex xl:hidden" aria-label="Tabs with icons" variant="fullWidth">
               {/* Ingredients */}

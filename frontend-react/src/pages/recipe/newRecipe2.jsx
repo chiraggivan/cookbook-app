@@ -144,7 +144,7 @@ function NewRecipe() {
       const checkIng = async () => {
         try {
           const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
-          // console.log("ingredients found are : ", res.data);
+          console.log("ingredients found are : ", res.data);
           setSuggestedIng(res.data.rows);
         } catch (err) {
           // setExistIngs("");
@@ -252,6 +252,7 @@ function NewRecipe() {
 
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedIng = (cid, iid, ing) => {
+    console.log("ing selected is :", ing);
     // //--------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
@@ -461,6 +462,49 @@ function NewRecipe() {
       steps: newStepsList,
     }));
   };
+
+  // ------------------------ function to validate INPUT for number Allowing [0123456789.] ----------------------
+  function validateInput(field, value, maxDecimals, maxLength, cid, iid) {
+    // Define a regex for one optional decimal with up to maxDecimals digits
+    const regex = new RegExp(`^\\d+(\\.\\d{0,${maxDecimals}})?$`);
+    const errorField = "error" + capitaliseWords(field.slice(0, 1)) + field.slice(1);
+
+    // Check the length
+    if ((regex.test(value) || value.length === 0) && value.length <= maxLength + 1) {
+      // get the input field
+      const inputField = sections
+        .find((item) => item.uid === cid)
+        .ingredients.find((item) => item.uid === iid).quantity;
+      // console.log("input field value is :", inputField);
+
+      // dis allow continous zeros
+      if (inputField === "0" && value === "00") {
+        return;
+      }
+      // update ingData value
+      setSections((prev) =>
+        prev.map((component) =>
+          component.uid === cid
+            ? {
+                ...component,
+                ingredients: component.ingredients.map((ingredient) =>
+                  ingredient.uid === iid
+                    ? {
+                        ...ingredient,
+                        [field]: value,
+                        errors: {
+                          ...ingredient.errors,
+                          [errorField]: "",
+                        },
+                      }
+                    : ingredient,
+                ),
+              }
+            : component,
+        ),
+      );
+    }
+  }
 
   // ---------------------------------- To calculate the individual ing cost / total cost of recipe ----------------------------------------------
   let totalCost = 0;
@@ -739,6 +783,7 @@ function NewRecipe() {
     // checking data for any errors like incomplete data or missing fields, heading ,,etc
     const checkData = { ...finalMainRecipe, steps: steps };
     let isValid = true;
+    let isErrMsg; // --> used to check if specialised error message to be shown
     setErrorMessage("");
 
     // validate name of recipe
@@ -955,7 +1000,7 @@ function NewRecipe() {
       // make sure every component(subheading) has alteast one ingredient except index 0 if not visible
       if ((showTopRow && ingCount === 0) || (!showTopRow && index !== 0 && ingCount === 0)) {
         isValid = false;
-        setErrorMessage("Need atleast one ingredient within sub heading");
+        isErrMsg = "Need atleast one ingredient within sub heading";
         return;
       }
     });
@@ -963,7 +1008,11 @@ function NewRecipe() {
     // if no ingredients are found in sub headers then return
     // (cant exit the function from forEach return as done above. It only stops forEach and comes out)
     if (!isValid) {
-      setErrorMessage("Errors found above.");
+      if (isErrMsg) {
+        setErrorMessage(isErrMsg);
+      } else {
+        setErrorMessage("Errors found above.");
+      }
       return;
     }
 
@@ -1378,36 +1427,9 @@ function NewRecipe() {
                             className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
                             value={ing?.quantity ?? ""}
                             onChange={(e) => {
-                              updateQuantity(comp.uid, ing.uid, e.target.value);
-                              // if (
-                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                              //     ing.uid
-                              //   ]?.quantity
-                              // ) {
-                              //   const x = checkFinalData.errors.components[comp.uid];
-                              //   x.ingredients[ing.uid].quantity = "";
-                              // }
-                              setSections((prev) =>
-                                prev.map((component) =>
-                                  component.uid === comp.uid
-                                    ? {
-                                        ...component,
-                                        ingredients: component.ingredients.map((ingredient) =>
-                                          ingredient.uid === ing.uid
-                                            ? {
-                                                ...ingredient,
-                                                errors: {
-                                                  ...ingredient.errors,
-                                                  errorQuantity: "",
-                                                },
-                                              }
-                                            : ingredient,
-                                        ),
-                                      }
-                                    : component,
-                                ),
-                              );
+                              validateInput("quantity", e.target.value, 3, 5, comp.uid, ing.uid);
                             }}
+                            onBlur={(e) => updateQuantity(comp.uid, ing.uid, e.target.value)}
                             error={
                               ing?.errors?.errorQuantity ?? ""
                               // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.quantity ?? ""
@@ -1470,40 +1492,17 @@ function NewRecipe() {
                             className="flex w-full px-1 py-0 text-center  rounded "
                             value={ing?.displayQuantity ?? ""}
                             onChange={(e) => {
-                              updateBaseQuantity(comp.uid, ing.uid, e.target.value);
-                              // if (
-                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                              //     ing.uid
-                              //   ]?.display_quantity
-                              // ) {
-                              //   const x = checkFinalData.errors.components[comp.uid];
-                              //   x.ingredients[ing.uid].display_quantity = "";
-                              // }
-                              setSections((prev) =>
-                                prev.map((component) =>
-                                  component.uid === comp.uid
-                                    ? {
-                                        ...component,
-                                        ingredients: component.ingredients.map((ingredient) =>
-                                          ingredient.uid === ing.uid
-                                            ? {
-                                                ...ingredient,
-                                                errors: {
-                                                  ...ingredient.errors,
-                                                  errorDisplayQuantity: "",
-                                                },
-                                              }
-                                            : ingredient,
-                                        ),
-                                      }
-                                    : component,
-                                ),
+                              validateInput(
+                                "displayQuantity",
+                                e.target.value,
+                                3,
+                                5,
+                                comp.uid,
+                                ing.uid,
                               );
                             }}
-                            error={
-                              ing?.errors?.errorDisplayQuantity ?? ""
-                              // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.display_quantity ?? ""
-                            }
+                            onBlur={(e) => updateBaseQuantity(comp.uid, ing.uid, e.target.value)}
+                            error={ing?.errors?.errorDisplayQuantity ?? ""}
                           />
                         </div>
 
@@ -1549,36 +1548,16 @@ function NewRecipe() {
                             className="flex w-full pl-1 pr-3 py-0  rounded text-end "
                             value={ing?.displayPrice ?? ""}
                             onChange={(e) => {
-                              updateBasePrice(comp.uid, ing.uid, e.target.value);
-                              // if (
-                              //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                              //     ing.uid
-                              //   ]?.display_price
-                              // ) {
-                              //   const x = checkFinalData.errors.components[comp.uid];
-                              //   x.ingredients[ing.uid].display_price = "";
-                              // }
-                              setSections((prev) =>
-                                prev.map((component) =>
-                                  component.uid === comp.uid
-                                    ? {
-                                        ...component,
-                                        ingredients: component.ingredients.map((ingredient) =>
-                                          ingredient.uid === ing.uid
-                                            ? {
-                                                ...ingredient,
-                                                errors: {
-                                                  ...ingredient.errors,
-                                                  errorDisplayPrice: "Required",
-                                                },
-                                              }
-                                            : ingredient,
-                                        ),
-                                      }
-                                    : component,
-                                ),
+                              validateInput(
+                                "displayPrice",
+                                e.target.value,
+                                2,
+                                5,
+                                comp.uid,
+                                ing.uid,
                               );
                             }}
+                            onBlur={(e) => updateBasePrice(comp.uid, ing.uid, e.target.value)}
                             error={
                               ing?.errors?.errorDisplayPrice ?? ""
                               // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.display_price ?? ""

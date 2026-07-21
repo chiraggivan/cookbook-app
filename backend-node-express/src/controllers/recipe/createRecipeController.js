@@ -29,7 +29,7 @@ exports.search_ingredients = async (req, res) => {
         FROM user_ingredients
         WHERE submitted_by = ? AND LOWER(name) LIKE ? AND  is_active = 1
         UNION ALL
-        SELECT i.ingredient_id, i.name, COALESCE(up.custom_price , i.default_price) as price, i.base_unit, 1 as display_quantity, 'main' as ingredient_source
+        SELECT i.ingredient_id, i.name, COALESCE(up.display_price , i.display_price) as price, COALESCE(up.display_unit , i.display_unit) as display_unit, COALESCE(up.display_quantity , i.display_quantity) as display_quantity, 'main' as ingredient_source
         FROM ingredients i 
         LEFT JOIN user_prices up ON i.ingredient_id = up.ingredient_id AND up.user_id = ? AND up.is_active = 1
         WHERE LOWER(i.name) LIKE ?
