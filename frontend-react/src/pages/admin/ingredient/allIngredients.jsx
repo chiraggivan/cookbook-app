@@ -7,6 +7,7 @@ import Navbar from "../../../components/navbarOld";
 import Button from "../../../components/button";
 import AllIngsSection from "./-allIngredientsPage";
 import { serverURL } from "../../../utils/appUtils";
+import AdminTopBar from "../../../components/adminTopBar";
 
 function AdminAllIngredients() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -16,13 +17,14 @@ function AdminAllIngredients() {
   // Redirect effect
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
-      navigate(`/login?expired=true&msg=${"Token not found. login again"}`);
+      navigate(`/login?expired=true&errMsg=${"Token not found. login again"}`);
+      return;
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
   // For this page role should be Admin
   if (role && role !== "admin") {
     localStorage.removeItem("token");
-    navigate(`/login?expired=true&msg=${"Not authorised. login with admin credientials"}`);
+    navigate(`/login?expired=true&errMsg=${"Not authorised. login with admin credientials"}`);
   }
 
   const method = "get";
@@ -38,10 +40,11 @@ function AdminAllIngredients() {
   if (loading) {
     return <h1> Page Loading .............</h1>;
   }
-  //   console.log("data before return html : ", data);
+  console.log("data before return html : ", data);
   return (
     <>
-      <Navbar />
+      <AdminTopBar />
+      {/* <Navbar /> */}
       <AllIngsSection navigate={navigate} data={data} />
     </>
   );

@@ -280,10 +280,13 @@ function validateRecipeIngredient(data) {
 }
 
 function normalize_unit(price, quantity, unit) {
+  let calPrice = price;
+  let calQuantity = quantity;
+
   // normalize quantity first
   if (quantity !== 1) {
-    price = Number((price / quantity).toFixed(6));
-    quantity = 1;
+    calPrice = Number((price / quantity).toFixed(6));
+    calQuantity = 1;
   }
 
   //  conversion factors to a standard unit
@@ -297,9 +300,9 @@ function normalize_unit(price, quantity, unit) {
     pint: [1.75975, "l"],
   };
 
-  const [factor, newUnit] = conversions[unit] || [1, unit];
+  const [factor, newUnit] = conversions[unit] ?? [1, unit];
 
-  return [price * factor, quantity, newUnit];
+  return [calPrice * factor, calQuantity, newUnit];
 }
 
 module.exports = { normalizeRecipeIngredientData, validateRecipeIngredient, normalize_unit };

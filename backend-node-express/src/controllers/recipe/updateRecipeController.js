@@ -1,4 +1,5 @@
 const db = require("../../config/database");
+const { normalize_unit } = require("../../utils/recipesUtils");
 const { readRecipeDetailsQ } = require("./utils/mysqlQueries");
 const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 const {
@@ -1234,47 +1235,51 @@ exports.update_recipe = async (req, res) => {
               ing.base_unit !== actualBaseUnit ||
               ing.base_price !== defaultPrice
             ) {
-              let calPrice, calQuantity, calUnit;
+              const [calPrice, calQuantity, calUnit] = normalize_unit(
+                ing.base_price,
+                ing.base_quantity,
+                ing.base_unit,
+              );
 
-              // Normalize quantity to 1 if needed
-              if (ing.base_quantity !== 1) {
-                calPrice = ing.base_price / ing.base_quantity;
-                calQuantity = 1;
-              } else {
-                calPrice = ing.base_price;
-                calQuantity = ing.base_quantity;
-              }
+              // // Normalize quantity to 1 if needed
+              // if (ing.base_quantity !== 1) {
+              //   calPrice = ing.base_price / ing.base_quantity;
+              //   calQuantity = 1;
+              // } else {
+              //   calPrice = ing.base_price;
+              //   calQuantity = ing.base_quantity;
+              // }
 
-              // Convert to standard units (kg for weight, l for volume)
-              if (ing.base_unit === "kg") {
-                calUnit = "kg";
-              } else if (ing.base_unit === "g") {
-                calPrice = calPrice * 1000;
-                calUnit = "kg";
-              } else if (ing.base_unit === "oz") {
-                calPrice = calPrice * 35.274;
-                calUnit = "kg";
-              } else if (ing.base_unit === "lbs") {
-                calPrice = calPrice * 2.205;
-                calUnit = "kg";
-              } else if (ing.base_unit === "l") {
-                calUnit = "l";
-              } else if (ing.base_unit === "ml") {
-                calPrice = calPrice * 1000;
-                calUnit = "l";
-              } else if (ing.base_unit === "fl.oz") {
-                calPrice = calPrice * 35.1951;
-                calUnit = "l";
-              } else if (ing.base_unit === "pint") {
-                calPrice = calPrice * 1.75975;
-                calUnit = "l";
-              } else if (ing.base_unit === "pc") {
-                calUnit = "pc";
-              } else if (ing.base_unit === "bunch") {
-                calUnit = "bunch";
-              } else {
-                calUnit = ing.base_unit; // fallback
-              }
+              // // Convert to standard units (kg for weight, l for volume)
+              // if (ing.base_unit === "kg") {
+              //   calUnit = "kg";
+              // } else if (ing.base_unit === "g") {
+              //   calPrice = calPrice * 1000;
+              //   calUnit = "kg";
+              // } else if (ing.base_unit === "oz") {
+              //   calPrice = calPrice * 35.274;
+              //   calUnit = "kg";
+              // } else if (ing.base_unit === "lbs") {
+              //   calPrice = calPrice * 2.205;
+              //   calUnit = "kg";
+              // } else if (ing.base_unit === "l") {
+              //   calUnit = "l";
+              // } else if (ing.base_unit === "ml") {
+              //   calPrice = calPrice * 1000;
+              //   calUnit = "l";
+              // } else if (ing.base_unit === "fl.oz") {
+              //   calPrice = calPrice * 35.1951;
+              //   calUnit = "l";
+              // } else if (ing.base_unit === "pint") {
+              //   calPrice = calPrice * 1.75975;
+              //   calUnit = "l";
+              // } else if (ing.base_unit === "pc") {
+              //   calUnit = "pc";
+              // } else if (ing.base_unit === "bunch") {
+              //   calUnit = "bunch";
+              // } else {
+              //   calUnit = ing.base_unit; // fallback
+              // }
 
               // Handle optional place field
               const place = ing.place || "";

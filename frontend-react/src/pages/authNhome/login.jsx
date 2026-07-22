@@ -10,7 +10,8 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const expired = searchParams.get("expired");
-  const errorMessage = searchParams.get("msg");
+  const errorMessage = searchParams.get("errMsg");
+  console.log("errorMessage :", errorMessage);
   const [successMsg, setSuccessMsg] = useState("");
   if (searchParams.get("successMsg") !== successMsg) {
     setSuccessMsg(searchParams.get("successMsg"));
@@ -20,6 +21,12 @@ function Login() {
   const [userMsg, setUserMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
 
+  // run only once
+  useEffect(() => {
+    if (errorMessage) {
+      setErrMessage(errorMessage);
+    }
+  }, []);
   // submit button function
   const handleSubmit = async (e) => {
     e.preventDefault();

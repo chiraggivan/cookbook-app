@@ -1151,8 +1151,8 @@ function EditRecipe() {
               <div className="flex max-w-md">
                 {/* title of recipe name */}
                 <div className="flex px-1 items-center font-semibold justify-end w-36">Name :</div>
-                {/* input name section */}
 
+                {/* input name section */}
                 <Input
                   className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
                   value={capitaliseWords(recipeInfo?.recipe?.name) ?? ""}
@@ -1170,6 +1170,7 @@ function EditRecipe() {
                   error={recipeInfo?.recipe?.error_name}
                 />
               </div>
+
               {/* recipe portion size section */}
               <div className="flex max-w-md">
                 {/* title of portion size*/}
@@ -1198,12 +1199,14 @@ function EditRecipe() {
                   error={recipeInfo?.recipe?.error_portion_size}
                 />
               </div>
+
               {/* recipe Privacy section */}
               <div className="flex max-w-md">
                 {/* title of privacy*/}
                 <div className="flex px-1 items-center font-semibold justify-end w-26">
                   Privacy :
                 </div>
+
                 {/* Toggle for privacy*/}
                 <Toggle
                   checked={isPrivate}
@@ -1268,6 +1271,7 @@ function EditRecipe() {
                 </div>
               )}
             </div>
+
             {/* cost of recipe */}
             <div className="flex space-x-2 text-lg ">
               <div className="font-semibold">Costing :</div>

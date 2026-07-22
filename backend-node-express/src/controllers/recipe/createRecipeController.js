@@ -5,7 +5,7 @@ const {
   validateRecipeIngredient,
   normalize_unit,
 } = require("../../utils/recipesUtils");
-const readRecipeDetailsById = require("./utils/readRecipeDetailsById");
+const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 
 exports.search_ingredients = async (req, res) => {
   try {
@@ -266,28 +266,28 @@ exports.create_recipe = async (req, res) => {
           );
 
           // Update user_prices if display_unit/display_price/display_quantity is provided
-          if (ingredient.display_unit) {
-            const [base_price, base_quantity, base_unit] = normalize_unit(
+          if (ingredient.display_quantity) {
+            const [calPrice, calQuantity, calUnit] = normalize_unit(
               ingredient.display_price,
               ingredient.display_quantity,
               ingredient.display_unit,
             );
 
-            if (ingredient.ingredient_source === "main") {
-              await db.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?)", [
-                user.id,
-                ingredient.ingredient_id,
-                ingredient.ingredient_source,
-                base_price,
-                base_quantity,
-                base_unit,
-                ingredient.location,
-                ingredient.display_price,
-                ingredient.display_quantity,
-                ingredient.display_unit,
-              ]);
-            } else if (ingredient.ingredient_source === "user") {
-            }
+            // if (ingredient.ingredient_source === "main") {
+            await conn.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?,?)", [
+              user.id,
+              ingredient.ingredient_id,
+              ingredient.ingredient_source,
+              calPrice,
+              calQuantity,
+              calUnit,
+              ingredient.location,
+              ingredient.display_price,
+              ingredient.display_quantity,
+              ingredient.display_unit,
+            ]);
+            // } else if (ingredient.ingredient_source === "user") {
+            // }
           }
         }
       }
@@ -320,13 +320,14 @@ exports.create_recipe = async (req, res) => {
     }
 
     //-----------  new recipe details data that we saved recently to be sent with res
-    const newData = readRecipeDetailsById(recipeId, user.id);
-
+    console.log("recipeId :", recipeId, " and user id :", user.id);
+    const { success, message, data: newRecipeData } = await getRecipeDetailsById(recipeId, user.id);
+    console.log("new recipe data to be sent with res:", newRecipeData);
     // ----- response the data back
     res.json({
       success: true,
       message: `${name} : Recipe created successfully!!!!!`,
-      data: newData,
+      data: newRecipeData,
     });
   } catch (error) {
     console.error("Error in createRecipeController - create_recipe");

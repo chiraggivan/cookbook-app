@@ -25,7 +25,7 @@ exports.get_all_ingredients = async (req, res) => {
     const [result] = await db.query(
       `SELECT ingredient_id, name, base_unit, default_price, is_active, submitted_by, 
             approved_by, approval_status, approval_date, end_date, created_at, notes,
-            display_quantity, display_unit, display_price
+            display_quantity, display_unit, display_price, cup_weight, cup_unit
         FROM ingredients LIMIT ? OFFSET ?`,
       [per_page, offset],
     );

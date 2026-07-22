@@ -144,7 +144,6 @@ function NewRecipe() {
       const checkIng = async () => {
         try {
           const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
-          console.log("ingredients found are : ", res.data);
           setSuggestedIng(res.data.rows);
         } catch (err) {
           // setExistIngs("");
@@ -252,7 +251,6 @@ function NewRecipe() {
 
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedIng = (cid, iid, ing) => {
-    console.log("ing selected is :", ing);
     // //--------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
@@ -1052,10 +1050,11 @@ function NewRecipe() {
       dataToSend.components = checkData.components;
     }
 
-    console.log("everything passed till here with no errors found. were there any errors");
-    console.log("dataToSend is:", dataToSend);
-    return;
+    // console.log("everything passed till here with no errors found. were there any errors");
+    // console.log("dataToSend is:", dataToSend);
+    // return;
 
+    // ---------------------------- final call to API to create recipe ---------------------------------
     // function to call api and save the recipe in db
     const saveRecipe = async () => {
       try {
@@ -1070,7 +1069,8 @@ function NewRecipe() {
           setRecipeDetails((prev) => [...prev, newData]);
           setMyRecipes((prev) => [newData.recipe, ...prev]);
         }
-        navigate(`/recipe/${res.data.recipeId}`);
+        console.log("about to navigate");
+        navigate(`/recipe/${newData.recipe.recipe_id}`);
       } catch (err) {
         console.log("err found during saving new recipe api: ", err.response.data);
         return;
@@ -1195,18 +1195,28 @@ function NewRecipe() {
             />
           </div>
 
-          {/* button to add first heading */}
-          {!showTopRow && (
-            <div className="mt-1">
-              <Button
-                className="cursor-pointer rounded-full"
-                color="light"
-                onClick={() => setShowTopRow(true)}
-              >
-                Add Top Header
-              </Button>
+          {/* button to add first heading and Total cost of recipe*/}
+          <div className="flex items-center justify-between h-10">
+            <div>
+              {!showTopRow && (
+                <div className="">
+                  <Button
+                    className="cursor-pointer rounded-full"
+                    color="light"
+                    onClick={() => setShowTopRow(true)}
+                  >
+                    Add Top Header
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* cost of recipe */}
+            <div className="flex space-x-2 text-lg ">
+              <div className="font-semibold">Costing :</div>
+              <p className="">£ {totalCost.toFixed(2)}</p>
+            </div>
+          </div>
 
           {/* ingredients list */}
           <div className="flex flex-col">
