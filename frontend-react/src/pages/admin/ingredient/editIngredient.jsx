@@ -12,6 +12,7 @@ import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbarOld";
 import EditIngPage from "./-editIngredientPage";
 import { serverURL } from "../../../utils/appUtils";
+import AdminTopBar from "../../../components/adminTopBar";
 
 function EditIngredient() {
   const role = JSON.parse(localStorage.getItem("user")).role;
@@ -50,13 +51,6 @@ function EditIngredient() {
     navigate(`/login?expired=true&msg=${"Not authorised. login with admin credientials"}`);
   }
 
-  // ----------------------- function to check the change in fields ----------------------
-  const handleChange = (field, value) => {
-    setIngData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
   // console.log("ingData :", ingData);
   // ------ get data from backend for ing to be edited with the help of useFetch Hook ----
   const method = "get";
@@ -129,11 +123,68 @@ function EditIngredient() {
     };
   }, [ingName]);
 
+  // ----------------------- function to check the change in fields ----------------------
+  const handleChange = (field, value) => {
+    // update ingData value
+    if (ingData?.errors) {
+      setIngData((prev) => ({
+        ...prev,
+        [field]: value,
+        errors: { ...prev.errors, [field]: "" },
+      }));
+    } else {
+      setIngData((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  // ------------------------ function to validate INPUT for number Allowing [0123456789.] ----------------------
+  function validateInput(field, value, maxDecimals, maxLength) {
+    // Define a regex for one optional decimal with up to maxDecimals digits
+    const regex = new RegExp(`^\\d+(\\.\\d{0,${maxDecimals}})?$`);
+
+    // const errorField = "error" + capitaliseWords(field.slice(0, 1)) + field.slice(1);
+
+    // Check the length
+    if ((regex.test(value) || value.length === 0) && value.length <= maxLength + 1) {
+      // get the input field
+      const inputField = ingData[field];
+      // console.log("input field value is :", inputField);
+
+      // dis allow continous zeros
+      if (inputField === "0" && value === "00") {
+        return;
+      }
+      // update ingData value
+      if (ingData?.errors) {
+        setIngData((prev) => ({
+          ...prev,
+          [field]: value,
+          errors: { ...prev.errors, [field]: "" },
+        }));
+      } else {
+        setIngData((prev) => ({ ...prev, [field]: value }));
+      }
+    }
+  }
+
+  // ------------------- function to check onBlur input values and convert if number not in proper format -------------------
+  function validateNumber(field) {
+    if (ingData[field] === "null") {
+      ingData[field] = "";
+    }
+    const value = ingData[field] ? ingData[field] : "";
+    setIngData((prev) => ({
+      ...prev,
+      [field]: Number(value),
+    }));
+  }
+
   // ---------------------- submit button function  ---------------------------------------
   const handlesubmit = async () => {
     const checkData = { ...ingData };
     checkData.errors = {};
     let isValid = true;
+    let isErrMsg; // --> used to check if specialised error message to be shown
     setErrorMessage("");
 
     if (!checkData.name || checkData.name.trim() === "") {
@@ -142,30 +193,34 @@ function EditIngredient() {
     }
     if (!checkData.display_quantity || checkData.display_quantity <= 0) {
       isValid = false;
-      checkData.errors.reference_quantity = "Quantity can't be empty. Should be positive number";
+      checkData.errors.display_quantity = "Require";
     }
     if (!checkData.display_price || checkData.display_price <= 0) {
       isValid = false;
-      checkData.errors.default_price = "Price can't be empty. Should be positive number";
+      checkData.errors.display_price = "Require";
     }
     if (!checkData.display_unit || !mainUnits.includes(checkData.display_unit)) {
       isValid = false;
-      checkData.errors.base_unit = `Unit required and should be one of these : ${mainUnits}`;
+      checkData.errors.display_unit = `Require`;
     }
     if (checkData.cup_weight || checkData.cup_unit) {
       if (!checkData.cup_weight || checkData.cup_weight <= 0) {
         isValid = false;
-        checkData.errors.cup_weight = `Weight required and  should be positive number If cup unit select`;
+        isErrMsg = `Weight required and  should be positive number If cup unit selected`;
       }
       if (!checkData.cup_unit || !cupUnits.includes(checkData.cup_unit)) {
         isValid = false;
-        checkData.errors.cup_unit = `Cup weight given - Unit required and should be one of these : ["kg","g","oz","lbs"]`;
+        isErrMsg = `Cup weight given - Cup Unit required`;
       }
     }
 
     setIngData(checkData);
     if (!isValid) {
-      console.log("Error found while checking during submit", checkData);
+      if (isErrMsg) {
+        setErrorMessage(isErrMsg);
+      } else {
+        setErrorMessage("Errors found above.");
+      }
       return;
     }
 
@@ -182,8 +237,8 @@ function EditIngredient() {
 
     const body = sendData;
 
-    // console.log("data about to be sent :", body);
-    // return;
+    console.log("data about to be sent :", body);
+    return;
 
     const method = "put";
     const url = `${serverURL}/ingredient/api/edit/${id}`;
@@ -225,9 +280,11 @@ function EditIngredient() {
     }
   }, [ingData]);
 
+  // console.log("ingData :", ingData);
   return (
     <>
-      <Navbar />
+      <AdminTopBar />
+      {/* <Navbar /> */}
       <EditIngPage
         ingData={ingData}
         handleChange={handleChange}
@@ -236,92 +293,14 @@ function EditIngredient() {
         setSelectedMainUnit={setSelectedMainUnit}
         selectedCupUnit={selectedCupUnit}
         setSelectedCupUnit={setSelectedCupUnit}
+        validateInput={validateInput}
+        validateNumber={validateNumber}
         existIngs={existIngs}
         updateBtn={updateBtn}
         handlesubmit={handlesubmit}
         errorMessage={errorMessage}
         navigate={navigate}
       />
-      {/* <h1>Edit Ingredient</h1>
-      <Input
-        label={"Name : "}
-        type={"text"}
-        value={ingData?.name ? ingData?.name : ""}
-        onChange={(e) => {
-          handleChange("name", e.target.value);
-          setIngName(e.target.value);
-        }}
-        error={ingData?.errors?.name}
-      />
-      <Input
-        label={"Quantity :"}
-        type={"number"}
-        value={refQ}
-        onChange={(e) => {
-          setRefQ(e.target.value);
-          handleChange("ref_quantity", Number(e.target.value));
-        }}
-        error={ingData?.errors?.reference_quantity}
-      />
-      <Dropdown
-        title={"Unit :"}
-        options={mainUnits}
-        value={selectedMainUnit ? selectedMainUnit : ""}
-        onChange={(e) => {
-          handleChange("base_unit", e.target.value);
-          setSelectedMainUnit(e.target.value);
-        }}
-        error={ingData?.errors?.reference_unit}
-      />
-      <Input
-        label={"Price :"}
-        type={"number"}
-        value={ingData?.default_price ? ingData?.default_price : 0}
-        placeholder={"0.00"}
-        onChange={(e) => handleChange("default_price", Number(e.target.value))}
-        error={ingData?.errors?.default_price}
-      />
-      <Input
-        label={"Cup Weight :"}
-        type={"number"}
-        value={ingData?.cup_weight ? ingData?.cup_weight : ""}
-        onChange={(e) => handleChange("cup_weight", Number(e.target.value))}
-        error={ingData?.errors?.cup_equivalent_weight}
-      />
-      <Dropdown
-        title={"Cup Unit :"}
-        options={cupUnits}
-        value={selectedCupUnit ? selectedCupUnit : ""}
-        onChange={(e) => {
-          handleChange("cup_unit", e.target.value);
-          setSelectedCupUnit(e.target.value);
-        }}
-        error={ingData?.errors?.cup_unit}
-      />
-
-      <Textarea
-        label={"Notes :"}
-        placeholder=""
-        rows={4}
-        value={ingData?.notes ? ingData?.notes : ""}
-        onChange={(e) => handleChange("notes", e.target.value)}
-        error={ingData?.errors?.notes}
-      />
-      <Textarea
-        title={"Existing Ingredients :"}
-        value={existIngs}
-        placeholder=""
-        rows={4}
-        readOnly
-      />
-      <Button
-        children={"Update Ingredient"}
-        type="button"
-        disabled={updateBtn}
-        onClick={handlesubmit}
-      />
-      <Button children={`Cancel`} onClick={() => navigate(-1)} />
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>} */}
     </>
   );
 }

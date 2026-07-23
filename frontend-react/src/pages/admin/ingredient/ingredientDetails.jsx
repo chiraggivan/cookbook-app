@@ -7,6 +7,7 @@ import Button from "../../../components/button";
 import Navbar from "../../../components/navbarOld";
 import IngDetailsPage from "./-ingredientDetailsPage";
 import { serverURL } from "../../../utils/appUtils";
+import AdminTopBar from "../../../components/adminTopBar";
 
 function AdminIngredientDetails() {
   const { id } = useParams();
@@ -48,7 +49,8 @@ function AdminIngredientDetails() {
   //   console.log("data before return html : ", ingDetail);
   return (
     <>
-      <Navbar />
+      <AdminTopBar />
+      {/* <Navbar /> */}
       <IngDetailsPage id={id} ingDetail={ingDetail} navigate={navigate} />
       {/* <p>Ingredient Details</p>
       <h1>{ingDetail?.name}</h1>

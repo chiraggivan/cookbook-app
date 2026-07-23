@@ -37,19 +37,19 @@ function AllIngsSection({ navigate, data, ...pros }) {
             <thead className="text-sm font-semibold">
               <tr className="">
                 <th className="px-2">
-                  <div className="py-3 text-end">Sr No.</div>
+                  <div className="py-5 text-end">No.</div>
                 </th>
-                <th className="px-2">name</th>
+                <th className="px-2 text-start">Name</th>
                 <th className="px-2">Calc Qnty</th>
                 <th className="px-2">Calc Unit</th>
                 <th className="px-2">Calc Price</th>
                 <th className="px-2">Cup weight</th>
                 <th className="px-2">Cup Unit</th>
-                <th className="px-2">display Quantity</th>
+                <th className="px-2">Display Quantity</th>
                 <th className="px-2">Display Unit</th>
                 <th className="px-2">Display Price</th>
-                <th className="px-2">submitted by</th>
-                <th className="px-2">Approved by</th>
+                <th className="px-2">submitted By</th>
+                <th className="px-2">Approved By</th>
                 <th className="px-2">Approval Date</th>
                 <th className="px-2">Note</th>
                 <th className="px-2">End Date</th>
@@ -59,9 +59,10 @@ function AllIngsSection({ navigate, data, ...pros }) {
             <tbody>
               {data?.ingredients.map((i, index) => (
                 <tr className={index % 2 === 0 ? "bg-gray-50" : ""} key={i.ingredient_id}>
-                  <td className="px-2 text-right">{index + 1}</td>
+                  <td className="px-2 text-right min-w-10">{index + 1}</td>
                   <td
-                    className="px-2  min-w-sm max-w-sm"
+                    className="px-2 min-w-sm max-w-sm text-gray-700
+                            hover:text-gray-900 hover:text-lg hover:font-semibold hover:cursor-pointer"
                     onClick={() => navigate(`/admin/ingredient-details/${i.ingredient_id}`)}
                   >
                     {i.name}
