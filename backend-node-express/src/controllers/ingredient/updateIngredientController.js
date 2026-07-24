@@ -109,201 +109,200 @@ exports.update_ingredient = async (req, res) => {
         message: `Error while validating ingredient details : ${error} .`,
       });
     }
+
     // ----------------- Checking with db ------------------------
 
     // check with db if user is still admin and active as token might be old and not updated
-    const [userResult] = await db.query(
-      `SELECT role FROM users WHERE user_id = ? AND is_active =1`,
-      [user.id],
-    );
-    if (userResult[0].role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Not Authorised to update ingredients.",
-      });
-    }
+    // const [userResult] = await db.query(
+    //   `SELECT role FROM users WHERE user_id = ? AND is_active =1`,
+    //   [user.id],
+    // );
+    // if (userResult[0].role !== "admin") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Not Authorised to update ingredients.",
+    //   });
+    // }
 
     // get the list of all the ingredients having the searched text but not same ingId
-    const [rows] = await db.query(
-      `SELECT  i.name
-        FROM ingredients i 
-        WHERE LOWER(i.name) LIKE ? AND ingredient_id != ?
-        LIMIT 20`,
-      [data.name, ingId],
-    );
-    if (rows.length !== 0) {
-      return res.status(409).json({
-        success: false,
-        message: `${data.name} - already exists. Give another name.`,
-      });
-    }
+    // const [rows] = await db.query(
+    //   `SELECT  i.name
+    //     FROM ingredients i
+    //     WHERE LOWER(i.name) LIKE ? AND ingredient_id != ?
+    //     LIMIT 20`,
+    //   [data.name, ingId],
+    // );
+    // if (rows.length !== 0) {
+    //   return res.status(409).json({
+    //     success: false,
+    //     message: `${data.name} - already exists. Give another name.`,
+    //   });
+    // }
 
     // check if ingredient id exists and get all the data of ingredients
-    const [ingRow] = await db.query(
-      `SELECT name, base_unit, default_price, cup_weight, cup_unit, notes, display_quantity, display_unit, display_price
-      FROM ingredients 
-      WHERE ingredient_id = ? `,
-      [ingId],
-    );
-    if (ingRow.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: `${ingId} -  does not exists.`,
-      });
-    }
-    const previous_ingredient = ingRow[0];
+    // const [ingRow] = await db.query(
+    //   `SELECT name, base_unit, default_price, cup_weight, cup_unit, notes, display_quantity, display_unit, display_price
+    //   FROM ingredients
+    //   WHERE ingredient_id = ? `,
+    //   [ingId],
+    // );
+    // if (ingRow.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: `${ingId} -  does not exists.`,
+    //   });
+    // }
+    // const previous_ingredient = ingRow[0];
 
-    const previous_data = {};
-    previous_data.name = previous_ingredient?.name;
-    previous_data.reference_unit = previous_ingredient?.base_unit;
-    previous_data.default_price = Number(previous_ingredient?.default_price);
-    previous_data.cup_weight = Number(previous_ingredient?.cup_weight);
-    previous_data.cup_unit = previous_ingredient?.cup_unit;
-    previous_data.display_quantity = Number(previous_ingredient?.display_quantity);
-    previous_data.display_unit = previous_ingredient?.display_unit;
-    previous_data.display_price = Number(previous_ingredient?.display_price);
-    previous_data.notes = previous_ingredient?.notes;
+    // const previous_data = {};
+    // previous_data.name = previous_ingredient?.name;
+    // previous_data.display_quantity = Number(previous_ingredient?.display_quantity);
+    // previous_data.display_unit = previous_ingredient?.display_unit;
+    // previous_data.display_price = Number(previous_ingredient?.display_price);
+    // previous_data.cup_weight = Number(previous_ingredient?.cup_weight);
+    // previous_data.cup_unit = previous_ingredient?.cup_unit;
+    // previous_data.notes = previous_ingredient?.notes;
+    // console.log("previous_data :", previous_data);
+    // // normalise new reference unit for comparison
+    // let new_ref_unit;
+    // let new_def_price;
 
-    // normalise new reference unit for comparison
-    let new_ref_unit;
-    let new_def_price;
+    // // convert ref unit to basic (kg, l, pc, or bunch) units depending on submitted ref unit
+    // switch (data?.reference_unit) {
+    //   case "l":
+    //     new_ref_unit = "l";
+    //     new_def_price = data?.display_price / data?.display_quantity;
+    //     break;
+    //   case "ml":
+    //     new_ref_unit = "l";
+    //     new_def_price = (data?.display_price / data?.display_quantity) * 1000;
+    //     break;
+    //   case "fl.oz":
+    //     new_ref_unit = "l";
+    //     new_def_price = (data?.display_price / data?.display_quantity) * 35.1951;
+    //     break;
+    //   case "pint":
+    //     new_ref_unit = "l";
+    //     new_def_price = (data?.display_price / data?.display_quantity) * 1.75975;
+    //     break;
+    //   case "kg":
+    //     new_ref_unit = "kg";
+    //     new_def_price = data?.display_price / data?.display_quantity;
+    //     break;
+    //   case "g":
+    //     new_ref_unit = "kg";
+    //     new_def_price = (data?.display_price / data?.display_quantity) * 1000;
+    //     break;
+    //   case "oz":
+    //     new_ref_unit = "kg";
+    //     new_def_price = (data?.display_price / data?.display_quantity) * 35.274;
+    //     break;
+    //   case "lbs":
+    //     new_ref_unit = "kg";
+    //     new_def_price = (data?.display_price / data?.display_quantity) * 2.20462;
+    //     break;
+    //   case "pc":
+    //     new_ref_unit = "pc";
+    //     new_def_price = data?.display_price / data?.display_quantity;
+    //     break;
+    //   case "bunch":
+    //     new_ref_unit = "bunch";
+    //     new_def_price = data?.display_price / data?.display_quantity;
+    //     break;
+    //   default:
+    //     throw new Error(`Unsupported reference unit: ${data?.reference_unit}`);
+    // }
 
-    // convert ref unit to basic (kg, l, pc, or bunch) units depending on submitted ref unit
-    switch (data?.reference_unit) {
-      case "l":
-        new_ref_unit = "l";
-        new_def_price = data?.display_price / data?.display_quantity;
-        break;
-      case "ml":
-        new_ref_unit = "l";
-        new_def_price = (data?.display_price / data?.display_quantity) * 1000;
-        break;
-      case "fl.oz":
-        new_ref_unit = "l";
-        new_def_price = (data?.display_price / data?.display_quantity) * 35.1951;
-        break;
-      case "pint":
-        new_ref_unit = "l";
-        new_def_price = (data?.display_price / data?.display_quantity) * 1.75975;
-        break;
-      case "kg":
-        new_ref_unit = "kg";
-        new_def_price = data?.display_price / data?.display_quantity;
-        break;
-      case "g":
-        new_ref_unit = "kg";
-        new_def_price = (data?.display_price / data?.display_quantity) * 1000;
-        break;
-      case "oz":
-        new_ref_unit = "kg";
-        new_def_price = (data?.display_price / data?.display_quantity) * 35.274;
-        break;
-      case "lbs":
-        new_ref_unit = "kg";
-        new_def_price = (data?.display_price / data?.display_quantity) * 2.20462;
-        break;
-      case "pc":
-        new_ref_unit = "pc";
-        new_def_price = data?.display_price / data?.display_quantity;
-        break;
-      case "bunch":
-        new_ref_unit = "bunch";
-        new_def_price = data?.display_price / data?.display_quantity;
-        break;
-      default:
-        throw new Error(`Unsupported reference unit: ${data?.reference_unit}`);
-    }
+    // // ------------------------------ Now insert the data thru procedure ------------------------------------------
 
-    // ------------------------------ Now insert the data thru procedure ------------------------------------------
+    // //make sure the new data is different from old data before calling procedure
+    // const oldNotes = previous_data?.notes ?? "";
+    // const newNotes = data?.notes ?? "";
 
-    //make sure the new data is different from old data before calling procedure
-    const oldNotes = previous_data?.notes ?? "";
-    const newNotes = data?.notes ?? "";
+    // const oldCupWeight = previous_data?.cup_weight ?? null;
+    // const newCupWeight = data?.cup_equivalent_weight ?? null;
 
-    const oldCupWeight = previous_data?.cup_weight ?? null;
-    const newCupWeight = data?.cup_equivalent_weight ?? null;
+    // const oldCupUnit = previous_data?.cup_unit ?? null;
+    // const newCupUnit = data?.cup_equivalent_unit ?? null;
 
-    const oldCupUnit = previous_data?.cup_unit ?? null;
-    const newCupUnit = data?.cup_equivalent_unit ?? null;
+    // const oldPrice = Number(previous_data?.default_price);
+    // const newPrice = Number(new_def_price.toFixed(4));
 
-    const oldPrice = Number(previous_data?.default_price);
-    const newPrice = Number(new_def_price.toFixed(4));
+    // const oldDisplayQuantity = Number(previous_data?.display_quantity);
+    // const newDisplayQuantity = Number(data?.display_quantity);
 
-    const oldDisplayQuantity = Number(previous_data?.display_quantity);
-    const newDisplayQuantity = Number(data?.display_quantity);
+    // const oldDisplayUnit = previous_data?.display_unit;
+    // const newDisplayUnit = data?.display_unit;
 
-    const oldDisplayUnit = previous_data?.display_unit;
-    const newDisplayUnit = data?.display_unit;
+    // const oldDisplayPrice = Number(previous_data?.display_price);
+    // const newDisplayPrice = Number(data?.display_price);
 
-    const oldDisplayPrice = Number(previous_data?.display_price);
-    const newDisplayPrice = Number(data?.display_price);
+    // // helper function
+    // const isDifferent = (a, b) => a !== b;
+    // const numDifferent = (a, b) => Number(a) !== Number(b);
 
-    // helper function
-    const isDifferent = (a, b) => a !== b;
-    const numDifferent = (a, b) => Number(a) !== Number(b);
+    // // console.log("previous data :", previous_data);
+    // // console.log("data :", data);
+    // const shouldUpdate =
+    //   isDifferent(previous_data?.name, data?.name) ||
+    //   isDifferent(previous_data?.reference_unit, new_ref_unit) ||
+    //   numDifferent(oldPrice, newPrice) ||
+    //   isDifferent(oldNotes, newNotes) ||
+    //   numDifferent(oldCupWeight, newCupWeight) ||
+    //   isDifferent(oldCupUnit, newCupUnit) ||
+    //   numDifferent(oldDisplayQuantity, newDisplayQuantity) ||
+    //   isDifferent(oldDisplayUnit, newDisplayUnit) ||
+    //   numDifferent(oldDisplayPrice, newDisplayPrice);
 
-    // console.log("previous data :", previous_data);
-    // console.log("data :", data);
-    const shouldUpdate =
-      isDifferent(previous_data?.name, data?.name) ||
-      isDifferent(previous_data?.reference_unit, new_ref_unit) ||
-      numDifferent(oldPrice, newPrice) ||
-      isDifferent(oldNotes, newNotes) ||
-      numDifferent(oldCupWeight, newCupWeight) ||
-      isDifferent(oldCupUnit, newCupUnit) ||
-      numDifferent(oldDisplayQuantity, newDisplayQuantity) ||
-      isDifferent(oldDisplayUnit, newDisplayUnit) ||
-      numDifferent(oldDisplayPrice, newDisplayPrice);
+    // // if both - new and old - data are mismatch then call procedure
+    // if (shouldUpdate) {
+    //   // console.log("data is NOT same. so we need to update ingredients table.");
 
-    // if both - new and old - data are mismatch then call procedure
-    if (shouldUpdate) {
-      // console.log("data is NOT same. so we need to update ingredients table.");
-      const conn = await db.getConnection();
-      try {
-        await conn.beginTransaction();
-        const [result] = await conn.query(
-          `CALL update_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-          [
-            ingId,
-            data?.name,
-            data?.reference_quantity,
-            data?.reference_unit,
-            data?.default_price,
-            data?.cup_equivalent_weight,
-            data?.cup_equivalent_unit,
-            data?.notes,
-            user.id,
-            role,
-            data?.display_quantity,
-            data?.display_unit,
-            data?.display_price,
-          ],
-        );
-        await conn.commit();
-      } catch (err) {
-        // Rollback EVERYTHING if anything fails
-        await conn.rollback();
-        console.error("Error in updateIngredientController- (update_ingredient):", err);
+    console.log("data that is sent to procedure :", data);
 
-        return res.status(500).json({
-          success: false,
-          message: "Error while updating ingredient in db",
+    const conn = await db.getConnection();
+    let isSameData = "";
+    try {
+      await conn.beginTransaction();
+      const [result] = await conn.query(`CALL update_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?)`, [
+        ingId,
+        data?.name,
+        data?.cup_equivalent_weight,
+        data?.cup_equivalent_unit,
+        data?.notes,
+        user.id,
+        user.role,
+        data?.display_quantity,
+        data?.display_unit,
+        data?.display_price,
+      ]);
+      isSameData = result[0][0].message;
+      await conn.commit();
+      if (isSameData === "No changes detected") {
+        res.json({
+          success: true,
+          message: isSameData,
+          // data: rows,
         });
-      } finally {
-        conn.release();
       }
-    } else {
-      return res.status(200).json({
-        success: true,
-        message: `Data is same. No need to call db`,
+    } catch (err) {
+      // Rollback EVERYTHING if anything fails
+      await conn.rollback();
+      console.error("Error in updateIngredientController- (update_ingredient):", err);
+
+      return res.status(500).json({
+        success: false,
+        message: err.sqlMessage,
       });
+    } finally {
+      conn.release();
     }
 
     // FINAL response
     res.json({
       success: true,
       message: `ingredient (${ingId}) Updated.`,
-      data: rows,
+      // data: rows,
     });
   } catch (err) {
     console.error("Error in updateIngredientController -(update_ingredient)  is : ", err);

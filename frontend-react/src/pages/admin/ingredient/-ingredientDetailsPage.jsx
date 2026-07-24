@@ -7,13 +7,13 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
     <>
       {/* header */}
       <div className=" bg-gray-200">
-        <div className="flex text-3xl font-semibold mt-10 mx-25 h-12 items-center">
+        <div className="flex text-3xl font-semibold mt-10 mx-auto max-w-300 h-12 items-center">
           Ingredient Details
         </div>
       </div>
 
       {/* ingredient Details */}
-      <div className="flex flex-col mt-4 mx-25">
+      <div className="flex flex-col max-w-270  mt-4 mx-auto">
         {/* Name and ID */}
         <div className="flex p-2 my-2 font-semibold">
           <div className="flex-1 text-2xl">
@@ -27,8 +27,10 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
         {/* Calculated Details */}
         <div className="flex flex-col p-2 my-2 rounded-xl bg-gray-100 font-semibold">
           {/* header for calc details */}
-          <div className="font-normal text-lg">
-            Details of calcuated values which are used as reference to generate different units
+          <div className="font-normal text-lg max-w-190">
+            The values below act as the base reference and are derived from calculating display
+            quantity, price and unit. Prices for all other units are derived from these values
+            automatically.
           </div>
 
           {/* line divider */}
@@ -108,7 +110,11 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
         {/* buttons -Back -Edit */}
         <div className="flex justify-between ">
           <div className="">
-            <Button className="hover:cursor-pointer" color={"alternative"}>
+            <Button
+              className="hover:cursor-pointer"
+              color={"alternative"}
+              onClick={() => navigate(-1)}
+            >
               {" "}
               Cancel
             </Button>
@@ -125,7 +131,7 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
         </div>
 
         {/* Record details */}
-        <div className="flex flex-col p-2 mt-2 rounded-xl bg-gray-100">
+        <div className="flex flex-col p-2 mt-2 mb-5 rounded-xl bg-gray-100">
           {/* header */}
           <div className="text-lg font-semibold">Record Details</div>
 
@@ -163,24 +169,6 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
           </div>
         </div>
       </div>
-
-      <p>Ingredient Details</p>
-      <h1>{ingDetail?.name}</h1>
-      <h3>Quantity: {Number(ingDetail?.display_quantity)}</h3>
-      <h3>Unit: {ingDetail?.display_unit}</h3>
-      <h3>Cost : £ {Number(ingDetail?.display_price)}</h3>
-      <h3>Submitted by: {ingDetail?.submitted_by}</h3>
-      <h3>Approved by: {ingDetail?.approved_by}</h3>
-      <h3>Approval date:{ingDetail?.approval_date} </h3>
-      <h3>Note: {ingDetail?.notes}</h3>
-      <h3>Cup Weight: {ingDetail?.cup_weight}</h3>
-      <h3>Cup Unit: {ingDetail?.cup_unit}</h3>
-
-      <Button children={`Back`} onClick={() => navigate(-1)} />
-      <Button
-        children={`Edit Ingredient`}
-        onClick={() => navigate(`/admin/ingredients/edit/${id}`)}
-      />
     </>
   );
 }

@@ -90,42 +90,22 @@ exports.create_ingredient = async (req, res) => {
         message: `Error while validating ingredient details : ${error} .`,
       });
     }
-    // ----------------- Checking with db ------------------------
 
-    // check with db if user is still admin and active as token might be old and not updated
-    const [userRow] = await db.query(`SELECT role FROM users WHERE user_id = ? AND is_active =1`, [
-      user.id,
-    ]);
-    if (userRow[0].role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Not Authorised to search.",
-      });
-    }
+    //  ----------------- send directly to procedure and it checks all the conditions
+    // ------------------ thereby making single call to db and then checking,
+    // ------------------ validating and finally inserting in db
 
-    // validate if ingredient name already present in db
-    const [ingRows] = await db.query(`SELECT 1 FROM ingredients WHERE name = ?`, [data.name]);
-    if (ingRows.length !== 0) {
-      return res.status(409).json({
-        success: false,
-        message: "Ingredient name already exists.",
-      });
-    }
-    // Temporary code need to be removed
-    res.json({
-      success: true,
-      message: `About to call procedure - for ingredient added.`,
-    });
-    // ---------- Now insert the data thru procedure -------------------------
+    // ---------- check, validate and insert via procedure -------------------------
+    console.log("data to be used in procedure", data);
     const conn = await db.getConnection();
 
     try {
       await conn.beginTransaction();
       const [result] = await conn.query(`CALL insert_ingredient_plus_units(?,?,?,?,?,?,?,?,?)`, [
         data.name,
-        data.reference_quantity,
-        data.reference_unit,
-        data.default_price,
+        data.display_quantity,
+        data.display_unit,
+        data.display_price,
         data.cup_equivalent_weight,
         data.cup_equivalent_unit,
         data.notes,
@@ -137,11 +117,11 @@ exports.create_ingredient = async (req, res) => {
     } catch (err) {
       // Rollback EVERYTHING if anything fails
       await conn.rollback();
-      console.error("Error in createIngredientController- (create_ingredient):", err);
+      console.error("Error in createIngredientController- (create_ingredient): ", err.sqlMessage);
 
       return res.status(500).json({
         success: false,
-        message: "Error while inserting ingredient in db",
+        message: err.sqlMessage,
       });
     } finally {
       conn.release();

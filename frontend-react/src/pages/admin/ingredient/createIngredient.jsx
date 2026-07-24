@@ -11,6 +11,7 @@ import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
 import Navbar from "../../../components/navbarOld";
 import CreateIngPage from "./-createIngredientPage";
 import { serverURL } from "../../../utils/appUtils";
+import AdminTopBar from "../../../components/adminTopBar";
 
 function AddNewIngredient() {
   const { token, loading, isAuthenticated } = useAuth();
@@ -85,50 +86,102 @@ function AddNewIngredient() {
     };
   }, [ingName]);
 
+  // ------------------------ function to validate INPUT for number Allowing [0123456789.] ----------------------
+  function validateInput(field, value, maxDecimals, maxLength) {
+    // Define a regex for one optional decimal with up to maxDecimals digits
+    const regex = new RegExp(`^\\d+(\\.\\d{0,${maxDecimals}})?$`);
+
+    // const errorField = "error" + capitaliseWords(field.slice(0, 1)) + field.slice(1);
+
+    // Check the length
+    if ((regex.test(value) || value.length === 0) && value.length <= maxLength + 1) {
+      // get the input field
+      const inputField = ingData[field];
+      // console.log("input field value is :", inputField);
+
+      // dis allow continous zeros
+      if (inputField === "0" && value === "00") {
+        return;
+      }
+      // update ingData value
+      if (ingData?.errors) {
+        setIngData((prev) => ({
+          ...prev,
+          [field]: value,
+          errors: { ...prev.errors, [field]: "" },
+        }));
+      } else {
+        setIngData((prev) => ({ ...prev, [field]: value }));
+      }
+    }
+  }
+
+  // ------------------- function to check onBlur input values and convert if number not in proper format -------------------
+  function validateNumber(field) {
+    if (ingData[field] === "null") {
+      ingData[field] = "";
+    }
+    const value = ingData[field] ? ingData[field] : "";
+    setIngData((prev) => ({
+      ...prev,
+      [field]: Number(value),
+    }));
+  }
+
   // ----------------- submit button function -------------------------  ------------
   const handlesubmit = async () => {
     const checkData = { ...ingData };
+
     checkData.errors = {};
     let isValid = true;
+    let isErrMsg = ""; // --> used to check if specialised error message to be shown
     setErrorMessage("");
 
     if (!checkData.name || checkData.name.trim() === "") {
       isValid = false;
       checkData.errors.name = "Name required";
     }
-    if (!checkData.reference_quantity || checkData.reference_quantity <= 0) {
+    if (!checkData.display_quantity || checkData.display_quantity <= 0) {
       isValid = false;
-      checkData.errors.reference_quantity = "Quantity can't be empty. Should be positive number";
+      checkData.errors.display_quantity = "Require";
     }
-    if (!checkData.default_price || checkData.default_price <= 0) {
+    if (!checkData.display_price || checkData.display_price <= 0) {
       isValid = false;
-      checkData.errors.default_price = "Price can't be empty. Should be positive number";
+      checkData.errors.display_price = "Require";
     }
-    if (!checkData.reference_unit || !mainUnits.includes(checkData.reference_unit)) {
+    if (!checkData.display_unit || !mainUnits.includes(checkData.display_unit)) {
       isValid = false;
-      checkData.errors.reference_unit = `Unit required and should be one of these : ${mainUnits}`;
+      checkData.errors.display_unit = `Require`;
     }
     if (checkData.cup_equivalent_weight || checkData.cup_equivalent_unit) {
       if (!checkData.cup_equivalent_weight || checkData.cup_equivalent_weight <= 0) {
         isValid = false;
-        checkData.errors.cup_equivalent_weight = `Weight required and  should be positive number If cup unit select`;
+        isErrMsg = `Weight required and  should be positive number If cup unit selected`;
       }
       if (!checkData.cup_equivalent_unit || !cupUnits.includes(checkData.cup_equivalent_unit)) {
         isValid = false;
-        checkData.errors.cup_equivalent_unit = `Cup weight given - Unit required and should be one of these : ["kg","g","oz","lbs"]`;
+        isErrMsg = `Cup weight given - Cup Unit required`;
       }
     }
 
     setIngData(checkData);
-    console.log("isValid data:", isValid);
     if (!isValid) {
-      console.log("Error found while checking during submit", checkData);
+      if (isErrMsg) {
+        setErrorMessage(isErrMsg);
+      } else {
+        setErrorMessage("Errors found above.");
+      }
       return;
     }
-    console.log("About to call backend");
+
+    // remove 'errors' property before sending to backend
+    const { errors, ...finalData } = ingData;
+    console.log("About to call backend with :", finalData);
+
+    // return;
     const method = "post";
     const url = `${serverURL}/ingredient/api/new`;
-    const body = ingData;
+    const body = finalData;
 
     try {
       const res = await axios.post(url, body, {
@@ -137,8 +190,8 @@ function AddNewIngredient() {
           Authorization: `Bearer ${token}`,
         },
       });
-
       console.log("response is :", res);
+      // navigate("/admin/ingredients/all");
     } catch (err) {
       console.log("Error found in createIngredient while creating :", err.response?.data);
       setErrorMessage(err.response?.data.message);
@@ -160,7 +213,8 @@ function AddNewIngredient() {
   // console.log("ingData before return html : ", ingData);
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
+      <AdminTopBar />
       <CreateIngPage
         ingName={ingName}
         ingData={ingData}
@@ -173,8 +227,11 @@ function AddNewIngredient() {
         existIngs={existIngs}
         createBtn={createBtn}
         errorMessage={errorMessage}
+        setErrorMessage={setErrorMessage}
         handlesubmit={handlesubmit}
         navigate={navigate}
+        validateInput={validateInput}
+        validateNumber={validateNumber}
       />
     </>
   );

@@ -30,7 +30,7 @@ function EditIngPage({
   return (
     <>
       {/* header */}
-      <div className=" bg-gray-200">
+      <div className=" bg-red-400">
         <div className="flex text-3xl font-semibold mt-2 mx-25 h-12 items-center">
           Edit Ingredient
         </div>
@@ -40,7 +40,7 @@ function EditIngPage({
       <div className="flex flex-col mt-4 mx-25">
         {/* Name and ID */}
         <div className="flex p-2 my-2 font-semibold">
-          <div className="flex-1 text-2xl items-center">
+          <div className="flex-1 text-lg items-center">
             <div className="flex items-center">
               <p>Name: </p>
               <div className="ml-2">
@@ -222,13 +222,19 @@ function EditIngPage({
           />
         </div>
 
-        <div className="px-2 h-6 items-center">
+        {/* global error message above buttons */}
+        <div className="px-2 h-6 items-center text-end">
           {errorMessage && <p className="text-sm font-semibold text-red-500">{errorMessage}</p>}
         </div>
+
         {/* buttons -Back -Edit */}
         <div className="flex justify-between ">
           <div className="">
-            <Button className="hover:cursor-pointer" color={"alternative"}>
+            <Button
+              className="hover:cursor-pointer"
+              color={"alternative"}
+              onClick={() => navigate(-1)}
+            >
               {" "}
               Cancel
             </Button>

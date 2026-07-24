@@ -5,15 +5,13 @@ function normaliseIngredientData(data) {
   // String fields: trim, collapse multiple spaces, convert to lowercase
   const fields = [
     "name",
-    "reference_quantity",
-    "reference_unit",
-    "default_price",
-    "cup_equivalent_weight",
-    "cup_equivalent_unit",
-    "notes",
+    "ingredient_id",
     "display_quantity",
     "display_unit",
     "display_price",
+    "cup_equivalent_weight",
+    "cup_equivalent_unit",
+    "notes",
   ];
   // ingredient_dict = data[0]
 
@@ -34,22 +32,20 @@ function normaliseIngredientData(data) {
 }
 
 // ----------------------------- validate ingredient ---------------------------
-function validateIngredient(data) {
+function validateIngredient(data, operation) {
   //print(data)
+
+  // for update check ingredient_id
+  if (operation === "update") {
+    const ingredient_id = data.ingredient_id;
+    if (!ingredient_id) {
+      return `Invalid ingredient_id: (${ingredient_id}) : to update, need ingredient id`;
+    }
+  }
   // --- name ---
   const name = data.name;
   if (!name || typeof name !== "string" || name.length > 30) {
     return `Invalid name: (${name}) must be a non-empty string ≤ 30 chars`;
-  }
-
-  // --- reference_quantity ---
-  const reference_quantity = data.reference_quantity;
-  if (
-    !reference_quantity ||
-    typeof reference_quantity !== "number" ||
-    !(0 < reference_quantity && reference_quantity < 10000000)
-  ) {
-    return `Invalid reference_quantity: (${reference_quantity}) must be a number > 0 and less than 10000000 `;
   }
 
   // --- display_quantity ---
@@ -62,16 +58,6 @@ function validateIngredient(data) {
     return `Invalid display_quantity: (${display_quantity}) must be a number > 0 and less than 10000000 `;
   }
 
-  // --- reference_unit ---
-  const reference_unit = data.reference_unit;
-  if (
-    !reference_unit ||
-    typeof reference_unit !== "string" ||
-    !["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"].includes(reference_unit)
-  ) {
-    return `Invalid reference_unit: (${reference_unit}) must be a non-empty string and within ('kg','g','oz','lbs','l','ml','fl.oz','pint','pc','bunch') `;
-  }
-
   // --- display_unit ---
   const display_unit = data.display_unit;
   if (
@@ -80,16 +66,6 @@ function validateIngredient(data) {
     !["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"].includes(display_unit)
   ) {
     return `Invalid display_unit: (${display_unit}) must be a non-empty string and within ('kg','g','oz','lbs','l','ml','fl.oz','pint','pc','bunch') `;
-  }
-
-  // --- default_price ---
-  const default_price = data.default_price;
-  if (
-    !default_price ||
-    typeof default_price !== "number" ||
-    !(0 < default_price && default_price < 100000000)
-  ) {
-    return `Invalid default_price: (${default_price}) must be a number > 0 and less than 100000000 `;
   }
 
   // --- display_price ---
@@ -122,7 +98,7 @@ function validateIngredient(data) {
   }
 
   // --- cup_equivalent_weight --- if present
-  if (cup_equivalent_weight !== null && cup_equivalent_weight !== "") {
+  if (cup_equivalent_weight && cup_equivalent_weight !== 0) {
     // only validate if value is present
     if (
       typeof cup_equivalent_weight !== "number" ||
@@ -144,7 +120,7 @@ function validateIngredient(data) {
   }
 
   // --- notes ---
-  const notes = data.notes;
+  const notes = data.notes ?? "";
   if (typeof notes !== "string" || notes.length > 100) {
     return "Invalid notes: must be a string ≤ 100 chars";
   }

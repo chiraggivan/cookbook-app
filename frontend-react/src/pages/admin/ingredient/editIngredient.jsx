@@ -224,21 +224,20 @@ function EditIngredient() {
       return;
     }
 
+    // console.log("ingData :", ingData);
+    sendData.ingredient_id = ingData.ingredient_id;
     sendData.name = ingName ? ingName : ingData.name;
-    sendData.reference_quantity = Number(checkData.display_quantity);
-    sendData.reference_unit = ingData.base_unit;
-    sendData.default_price = Number(ingData.default_price);
-    sendData.cup_equivalent_weight = Number(ingData.cup_weight);
-    sendData.cup_equivalent_unit = ingData.cup_unit;
     sendData.display_quantity = ingData.display_quantity;
     sendData.display_unit = ingData.display_unit;
     sendData.display_price = Number(ingData.display_price);
-    sendData.notes = ingData.notes;
+    sendData.cup_equivalent_weight = Number(ingData.cup_weight);
+    sendData.cup_equivalent_unit = ingData.cup_unit ?? "";
+    sendData.notes = ingData.notes ?? "";
 
     const body = sendData;
 
-    console.log("data about to be sent :", body);
-    return;
+    // console.log("updated data about to be sent :", body);
+    // return;
 
     const method = "put";
     const url = `${serverURL}/ingredient/api/edit/${id}`;
@@ -249,9 +248,12 @@ function EditIngredient() {
           Authorization: `Bearer ${token}`,
         },
       });
-
       // console.log("response is :", res);
-      alert("Ingredient updated successfully");
+
+      // if (res?.data.message === "No changes detected") {
+      //   setErrorMessage(res?.data.message);
+      //   return;
+      // }
       navigate("/admin/ingredients/all");
     } catch (err) {
       console.log("Error found in createIngredient while creating :", err.response?.data);
