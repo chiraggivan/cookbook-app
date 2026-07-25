@@ -31,20 +31,13 @@ function EditIngredient() {
   const [updateBtn, setUpdateBtn] = useState(true);
   const [refQ, setRefQ] = useState(1);
 
-  // const [FSuccess, setFSuccess] = useState(false);
-  // const [FMessage, setFMessage] = useState("");
-  // const [FData, setFData] = useState({});
-  // const [FError, setFError] = useState("");
-
-  // const mainUnits = ["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"];
-  // const cupUnits = ["kg", "g", "oz", "lbs"];
-
   //--------------- Redirect effect  ----------------------------------------------------
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate(`/login?expired=true&msg=${"Token not found. login again"}`);
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
+
   // For this page role should be Admin
   if (role && role !== "admin") {
     localStorage.removeItem("token");

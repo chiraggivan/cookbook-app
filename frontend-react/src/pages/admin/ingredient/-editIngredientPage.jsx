@@ -41,9 +41,10 @@ function EditIngPage({
         {/* Name and ID */}
         <div className="flex p-2 my-2 font-semibold">
           <div className="flex-1 text-lg items-center">
-            <div className="flex items-center">
-              <p>Name: </p>
-              <div className="ml-2">
+            <div className="flex items-end">
+              {/* <p>Name: </p> */}
+              <p className="italic font-thin text-4xl pl-2 mb-px">{ingData?.name}</p>
+              {/* <div className="ml-2">
                 <Input
                   className="rounded-xl border-gray-400 bg-gray-50 focus:bg-white"
                   value={ingData?.name ? ingData?.name : ""}
@@ -53,7 +54,7 @@ function EditIngPage({
                   }}
                   error={ingData?.errors?.name}
                 />
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="flex-1 text-2xl">
