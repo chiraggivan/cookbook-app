@@ -16,8 +16,7 @@ function AdminIngredientDetails() {
   const role = JSON.parse(localStorage.getItem("user")).role;
   let ingDetail = {};
 
-  // Redirect effect
-  // check if token is available
+  // Redirect effect check if token is available
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate(`/login?expired=true&msg=${"Token not found. login again"}`);

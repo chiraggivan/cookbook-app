@@ -7,6 +7,7 @@ exports.get_all_ingredients = async (req, res) => {
 
     const page = parseInt(req.query.page) || 1;
     const per_page = parseInt(req.query.per_page) || 20;
+    const searchIng = "%" + req.query.searchIng + "%";
     const offset = (page - 1) * per_page;
 
     //  check is user has admin privilege
@@ -18,7 +19,10 @@ exports.get_all_ingredients = async (req, res) => {
     }
 
     // Get total count
-    const [totalIng] = await db.query(`SELECT COUNT(*) as total FROM ingredients`, []);
+    const [totalIng] = await db.query(
+      `SELECT COUNT(*) as total FROM ingredients WHERE name like ?`,
+      [searchIng],
+    );
     const totalIngredient = totalIng[0].total;
 
     // Get all ingredients details
@@ -26,11 +30,11 @@ exports.get_all_ingredients = async (req, res) => {
       `SELECT ingredient_id, name, base_unit, default_price, is_active, submitted_by, 
             approved_by, approval_status, approval_date, end_date, created_at, notes,
             display_quantity, display_unit, display_price, cup_weight, cup_unit
-        FROM ingredients LIMIT ? OFFSET ?`,
-      [per_page, offset],
+        FROM ingredients WHERE name like ? ORDER BY ingredient_id DESC LIMIT ? OFFSET ?`,
+      [searchIng, per_page, offset],
     );
 
-    const total_pages = Math.ceil(totalIngredient / per_page);
+    const total_pages = Math.ceil((totalIngredient || 1) / per_page);
 
     res.json({
       success: true,

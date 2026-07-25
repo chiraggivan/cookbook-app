@@ -19,15 +19,15 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
           <div className="flex-1 text-2xl">
             <span className=" italic font-thin text-4xl">{ingDetail?.name}</span>
           </div>
-          <div className="flex-1 text-2xl">
-            Ingredient ID: <span className=" font-normal">{ingDetail?.ingredient_id}</span>
+          <div className="flex flex-1 items-end text-lg">
+            Ingredient ID: <span className="font-normal px-1"> {ingDetail?.ingredient_id}</span>
           </div>
         </div>
 
         {/* Calculated Details */}
         <div className="flex flex-col p-2 my-2 rounded-xl bg-gray-100 font-semibold">
           {/* header for calc details */}
-          <div className="font-normal text-lg max-w-190">
+          <div className="font-normal text-sm max-w-150">
             The values below act as the base reference and are derived from calculating display
             quantity, price and unit. Prices for all other units are derived from these values
             automatically.

@@ -21,7 +21,7 @@ function AdminAllIngredients() {
   const role = JSON.parse(localStorage.getItem("user"))?.role;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
+  const [searchIng, setSearchIng] = useState("");
   const perPage = 20;
   const onPageChange = (page) => setCurrentPage(page);
 
@@ -40,7 +40,7 @@ function AdminAllIngredients() {
   }
 
   const method = "get";
-  const url = `${serverURL}/ingredient/api/all?page=${currentPage}&per_page${perPage}`;
+  const url = `${serverURL}/ingredient/api/all?page=${currentPage}&per_page=${perPage}&searchIng=${searchIng}`;
   const config = {
     headers: { Authorization: `Bearer ${token}` },
   };
@@ -62,7 +62,7 @@ function AdminAllIngredients() {
       }
     };
     fetchIngredients();
-  }, [currentPage, token]);
+  }, [currentPage, token, searchIng]);
 
   // whenever data fetched(1st time) or changes again, it will re-save the value of totalPages coming from backend.
   useEffect(() => {
@@ -86,6 +86,8 @@ function AdminAllIngredients() {
         currentPage={currentPage}
         totalPages={totalPages}
         perPage={perPage}
+        setSearchIng={setSearchIng}
+        searchIng={searchIng}
       />
     </>
   );

@@ -10,6 +10,8 @@ function AllIngsSection({
   perPage,
   onPageChange,
   totalPages,
+  setSearchIng,
+  searchIng,
   ...pros
 }) {
   // console.log("data in allIngsSection :", data);
@@ -23,12 +25,17 @@ function AllIngsSection({
 
           {/* search ingredient */}
           <div>
-            <SearchBar placeholder={"ingredient name......."} />
+            <SearchBar
+              value={searchIng}
+              placeholder={"ingredient name......."}
+              onChange={(e) => setSearchIng(e.target.value)}
+            />
           </div>
 
           {/* add new ingredient button */}
           <div className="px-15">
             <Button
+              className="hover:cursor-pointer"
               color="dark"
               onClick={() => {
                 navigate("/admin/ingredients/new");
