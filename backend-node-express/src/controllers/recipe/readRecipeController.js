@@ -6,6 +6,7 @@ const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 exports.get_recipes = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const searchString = "%" + (req.query.q || "").trim().toLowerCase() + "%";
 
     const [result] = await db.query(
       `
@@ -13,9 +14,10 @@ exports.get_recipes = async (req, res) => {
         FROM recipes r JOIN users u ON r.user_id = u.user_id
         WHERE r.is_active = TRUE
         AND (r.user_id = ? OR r.privacy = 'public') 
+        AND (LOWER(r.name) LIKE ? OR LOWER(r.description) LIKE ?)
         ORDER BY r.created_at DESC
         `,
-      [user.id],
+      [user.id, searchString, searchString],
     );
 
     res.json({

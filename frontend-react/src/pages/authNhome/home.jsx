@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
@@ -12,9 +12,16 @@ import Navbar from "../../components/navbarOld";
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchRecipe = searchParams.get("q");
 
   const method = "get";
-  const url = `${serverURL}/recipe/api/all`;
+  let url;
+  if (searchRecipe) {
+    url = `${serverURL}/recipe/api/all/?q=${searchRecipe}`;
+  } else {
+    url = `${serverURL}/recipe/api/all`;
+  }
 
   // Redirect effects
   useEffect(() => {
@@ -42,6 +49,7 @@ function Home() {
   //   return "CH";
   // };
 
+  // console.log("searchRecipe is :", searchRecipe);
   if (loading) {
     return <h1> Page Loading .............</h1>;
   }

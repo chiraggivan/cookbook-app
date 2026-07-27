@@ -7,6 +7,7 @@ import Navbar from "../../components/navbarOld";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { serverURL } from "../../utils/appUtils";
 import Button from "../../components/button";
+import Input from "../../components/input";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
@@ -19,6 +20,8 @@ function MyRecipes() {
   const navigate = useNavigate();
   const { myRecipes, setMyRecipes, fetchedOnce, setFetchedOnce } = useContext(MyRecipeContext);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [searchRecipe, setSearchRecipe] = useState("");
+  const [displayRecipes, setDisplayRecipes] = useState();
 
   //-------------------------------- Redirect to home if token not found -----------------------------------
   useEffect(() => {
@@ -64,12 +67,51 @@ function MyRecipes() {
     setFetchLoading(false);
   }, []);
 
+  // ----------------------------- update the displayDishes list if searchDish has text --------------------
+  // As currently we have useContext and all the dishes are stored and accessed later onwards, we will fetch the
+  // searchIng list from the context variable itself.
+  useEffect(() => {
+    const string = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
+    if (!string) {
+      setDisplayRecipes(myRecipes);
+    } else {
+      setDisplayRecipes(
+        myRecipes.filter(
+          (item) =>
+            item.name.toLowerCase().includes(string) ||
+            item.description?.toLowerCase().includes(string) ||
+            item.portion_size?.toLowerCase().includes(string),
+        ),
+      );
+    }
+  }, [searchRecipe, myRecipes]);
+
+  // -------------------------- using search button for dishes --------------------------------------------
+  // currently the dishes are auto searched when typed, if search button should only give result,
+  // then remove the "searchDish" variable from the above useEffect
+  const searchRecipeButton = () => {
+    const string = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
+    if (!string) {
+      setDisplayRecipes(myRecipes);
+    } else {
+      setDisplayRecipes(
+        myRecipes.filter(
+          (item) =>
+            item.name.toLowerCase().includes(string) ||
+            item.description?.toLowerCase().includes(string) ||
+            item.portion_size?.toLowerCase().includes(string),
+        ),
+      );
+    }
+  };
+
   // ------------------------------------------- loading screen ----------------------------------------------
   if (fetchLoading) {
     return <h1> Page Loading .............</h1>;
   }
   // console.log("data before return html : ", data);
   // console.log("myRecipes before return html :", myRecipes);
+  // console.log("searchRecipe", searchRecipe);
   return (
     <>
       {/* <TopBar />
@@ -99,11 +141,16 @@ function MyRecipes() {
             <div>
               <div className="flex mt-4 lg:mt-0 lg:pr-88 lg:justify-end">Search Your Recipe </div>
               <div className="flex items-end justify-end w-full py-2">
-                <input
+                <Input
                   className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                           focus:ring-2 focus:ring-green-300 h-10 w-full lg:w-100 px-2 pb-1"
+                  onChange={(e) => setSearchRecipe(e.target.value)}
                 />
-                <button className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 hover:ring-2 hover:ring-gray-600">
+                <button
+                  className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
+                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
+                  onClick={searchRecipeButton}
+                >
                   search
                 </button>
               </div>
@@ -116,7 +163,7 @@ function MyRecipes() {
         </div>
         {/* recipe list */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 xl:gap-6  my-4">
-          {myRecipes?.map((i) => (
+          {displayRecipes?.map((i) => (
             <div
               key={i.recipe_id}
               className="flex aspect-5/2 rounded-r-2xl  md:sm:aspect-5/1.5 lg:aspect-5/2 xl:sm:aspect-5/1.5 shadow

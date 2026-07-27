@@ -81,14 +81,15 @@ exports.search_user_and_mmain_ings_names = async (req, res) => {
 exports.read_user_ings = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const searchString = "%" + (req.query.q || "").trim().toLowerCase() + "%";
 
     // Query all the ingredients of the user in user_ingredients table
     const [rows] = await db.query(
       `SELECT user_ingredient_id, name, display_unit, display_price, display_quantity, cup_weight, cup_unit, notes
         FROM user_ingredients
-        WHERE submitted_by = ? AND is_active = 1
+        WHERE LOWER(name) LIKE ? AND submitted_by = ? AND is_active = 1
         ORDER BY created_at DESC`,
-      [user.id],
+      [searchString, user.id],
     );
     if (rows.length > 0) {
       for (const row of rows) {

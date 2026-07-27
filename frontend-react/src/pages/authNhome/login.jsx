@@ -11,7 +11,6 @@ function Login() {
   const [searchParams] = useSearchParams();
   const expired = searchParams.get("expired");
   const errorMessage = searchParams.get("errMsg");
-  console.log("errorMessage :", errorMessage);
   const [successMsg, setSuccessMsg] = useState("");
   if (searchParams.get("successMsg") !== successMsg) {
     setSuccessMsg(searchParams.get("successMsg"));
@@ -40,14 +39,14 @@ function Login() {
         if (!password) {
           setPwdMsg("Password required");
         }
-        console.log("username msg :", userMsg, "password msg:", pwdMsg);
+        // console.log("username msg :", userMsg, "password msg:", pwdMsg);
         return;
       }
       const res = await ax.post(`${serverURL}/auth/api/login`, {
         username: username,
         password: password,
       });
-      console.log("response is : ", res.data);
+      // console.log("response is : ", res.data);
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));

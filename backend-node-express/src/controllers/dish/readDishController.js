@@ -4,14 +4,16 @@ const db = require("../../config/database");
 exports.get_dishes = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const searchString = "%" + (req.query.q || "").trim().toLowerCase() + "%";
 
+    // console.log("searchString", searchString);
     // Get all the dishes for the users
     const [dishesResult] = await db.query(
       `SELECT dish_id, recipe_id, recipe_name, portion_size, preparation_date, total_cost, comment, time_prepared, meal, recipe_by, created_at
         FROM dishes 
-        WHERE user_id = ? AND is_active = 1
+        WHERE (LOWER(recipe_name) LIKE ? OR comment LIKE ?) AND user_id = ? AND is_active = 1
         ORDER BY preparation_date DESC`,
-      [user.id],
+      [searchString, searchString, user.id],
     );
 
     // convert string values(total_cost) to float before sending

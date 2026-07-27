@@ -5,6 +5,7 @@ import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 // import Button from "../../components/button";
 // import Navbar from "../../components/navbarOld";
+import Input from "../../components/input";
 import { MyIngredientContext } from "../../context/myIngredientContext";
 import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { Button } from "flowbite-react";
@@ -19,8 +20,10 @@ function MyIngredients() {
   const { myIngredients, setMyIngredients, fetchedOnce, setFetchedOnce } =
     useContext(MyIngredientContext);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [searchIng, setSearchIng] = useState("");
+  const [displayIngredients, setDisplayIngredients] = useState();
 
-  // Redirect to home if token not found
+  // Redirect to home if token NOT found
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate("/login");
@@ -29,7 +32,8 @@ function MyIngredients() {
 
   //------ fetch the data by giving url, method and body(if required) with the help of useFetch HOOK --------
   const method = "get";
-  const url = `${serverURL}/useringredient/api/`;
+  const url = `${serverURL}/useringredient/api/?q=${searchIng}`;
+  const config = { headers: { Authorization: `Bearer ${token}` } };
 
   // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {
@@ -37,11 +41,9 @@ function MyIngredients() {
       const fetchData = async () => {
         try {
           setFetchLoading(true);
-          if (token) {
-            const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
-            setMyIngredients(res?.data.data);
-            setFetchedOnce(true);
-          }
+          const res = await axios[method](url, config);
+          setMyIngredients(res?.data.data);
+          setFetchedOnce(true);
         } catch (err) {
           console.log(
             "error while fetching my ingredients list with axios is :",
@@ -56,11 +58,42 @@ function MyIngredients() {
     setFetchLoading(false);
   }, []);
 
+  // ----------------------------- update the displayIngredients list if searchIng has text --------------------
+  // As currently we have useContext and all the user_ingredients are stored and accessed later onwards, we will fetch the
+  // searchIng list from the context variable itself.
+  useEffect(() => {
+    const string = searchIng.trim().replace(/\s+/g, " ").toLowerCase();
+    // const searchurl = `${serverURL}/useringredient/api/?q=${string}`;
+    // const fetchData = async () => {
+    //   try {
+    //     setFetchLoading(true);
+    //     const res = await axios[method](searchurl, config);
+    //     setDisplayIngredients(res?.data.data);
+    //   } catch (err) {
+    //     console.log(
+    //       "error while fetching my ingredients list with axios is :",
+    //       err.response.message,
+    //     );
+    //   } finally {
+    //     setFetchLoading(false);
+    //   }
+    // };
+    // fetchData();
+
+    if (!string) {
+      setDisplayIngredients(myIngredients);
+    } else {
+      setDisplayIngredients(
+        myIngredients.filter((item) => item.name.toLowerCase().includes(string)),
+      );
+    }
+  }, [searchIng, myIngredients]);
+
   // ------------------------------------------- loading screen ----------------------------------------------
   if (fetchLoading) {
     return <h1> Page Loading .............</h1>;
   }
-  //   console.log("data before return html : ", data);
+  // console.log("myIngredients before return html : ", myIngredients);
   return (
     <>
       <div className="flex flex-col w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
@@ -84,6 +117,7 @@ function MyIngredients() {
                 </Button>
               </div>
             </div>
+
             {/* search bar for custom ingredients */}
             <div
               className="flex flex-col items-start sm:w-1/2 
@@ -94,9 +128,10 @@ function MyIngredients() {
               {/* search bar */}
               <div className="flex w-full items-end justify-end  py-2">
                 {/* search input */}
-                <input
+                <Input
                   className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                           focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1"
+                  onChange={(e) => setSearchIng(e.target.value)}
                 />
                 {/* search button */}
                 <button className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 ">
@@ -105,6 +140,7 @@ function MyIngredients() {
               </div>
             </div>
           </div>
+
           {/* Line Separator */}
           <div className="flex items-center mb-2">
             <div className="grow border-t border-gray-300"></div>
@@ -113,14 +149,17 @@ function MyIngredients() {
 
         {/* show all your custom ingredients */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
-          {myIngredients?.map((i) => (
-            <div className="flex  m-2 shadow-md border-gray-400 rounded-r-xl">
+          {displayIngredients?.map((i) => (
+            <div
+              key={i.user_ingredient_id}
+              className="flex  m-2 shadow-md border-gray-400 rounded-r-xl"
+            >
               {/* image section - left */}
               <div className="w-[40%] border-0 rounded-r-lg md:rounded-r-xl lg:rounded-r-2xl bg-gray-100 ">
                 <FaCarrot className="p-[30%] h-full w-full text-orange-400" />
               </div>
               {/* details section right */}
-              <div className="px-2" key={i.user_ingredient_id}>
+              <div className="px-2">
                 <p className="text-lg font-semibold">{capitaliseWords(i.name)}</p>
                 <p className="text-gray-500 italic text-md">
                   Priced £{i.display_price} for {i.display_quantity} {i.display_unit}{" "}
