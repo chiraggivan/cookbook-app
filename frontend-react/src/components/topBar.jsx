@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { getInitials } from "../utils/appUtils";
-// import { Input } from "../components/input";
+import Input from "./input";
 import { useState } from "react";
 
 function TopBar() {
