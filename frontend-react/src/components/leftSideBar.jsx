@@ -2,6 +2,10 @@ import { Link } from "react-router-dom";
 
 function LeftSideBar() {
   const role = JSON.parse(localStorage.getItem("user")).role;
+  if (!role) {
+    navigate("/login");
+    return;
+  }
 
   return (
     <>
