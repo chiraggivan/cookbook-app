@@ -47,7 +47,7 @@ function TopBar() {
             + Create
           </button>
           <div className="flex w-9 h-9 rounded-full bg-blue-400 items-center justify-center">
-            {getInitials(user.username)}
+            {getInitials(user?.username)}
           </div>
         </div>
       </div>
