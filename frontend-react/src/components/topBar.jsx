@@ -7,10 +7,12 @@ function TopBar() {
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = new useNavigate();
   const [searchInput, setSearchInput] = useState("");
-  if (!user) {
-    navigate("/login");
-    return;
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 z-50 w-full h-(--top-bar-height) ">
