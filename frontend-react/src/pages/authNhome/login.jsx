@@ -20,12 +20,15 @@ function Login() {
   const [userMsg, setUserMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
 
+  // console.log("serverURL", serverURL);
+
   // run only once
   useEffect(() => {
     if (errorMessage) {
       setErrMessage(errorMessage);
     }
   }, []);
+
   // submit button function
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,6 +99,7 @@ function Login() {
   };
 
   // console.log("successMsg :", successMsg);
+
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
