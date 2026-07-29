@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { getInitials } from "../utils/appUtils";
 import Input from "./input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user"));
