@@ -1,8 +1,9 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import ax from "axios";
+import axios from "axios";
 import { serverURL } from "../../utils/appUtils";
 import { useGoogleLogin } from "@react-oauth/google";
+import { Spinner } from "flowbite-react";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -19,7 +20,7 @@ function Login() {
   const [errGSigninMsg, setErrGSigninMsg] = useState("");
   const [userMsg, setUserMsg] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
-
+  const [isLoading, setIsLoading] = useState(false);
   // console.log("serverURL", serverURL);
 
   // run only once
@@ -29,26 +30,32 @@ function Login() {
     }
   }, []);
 
+  const method = "post";
+  const url = `${serverURL}/auth/api/login`;
+  const body = {
+    username: username,
+    password: password,
+  };
+
   // submit button function
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // setSuccessMsg("");
-    try {
-      // check values of username and password
-      if (!username || !password) {
-        if (!username) {
-          setUserMsg("Username required");
-        }
-        if (!password) {
-          setPwdMsg("Password required");
-        }
-        // console.log("username msg :", userMsg, "password msg:", pwdMsg);
-        return;
+
+    // check values of username and password
+    if (!username || !password) {
+      if (!username) {
+        setUserMsg("Username required");
       }
-      const res = await ax.post(`${serverURL}/auth/api/login`, {
-        username: username,
-        password: password,
-      });
+      if (!password) {
+        setPwdMsg("Password required");
+      }
+      // console.log("username msg :", userMsg, "password msg:", pwdMsg);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const res = await axios[method](url, body);
       // console.log("response is : ", res.data);
 
       localStorage.setItem("token", res.data.token);
@@ -59,8 +66,9 @@ function Login() {
       console.log(" response in error is :", err.response);
       setErrMessage(err.response.data.message);
       return;
-
-      console.log("Error in Login.jsx is : ", err);
+      // console.log("Error in Login.jsx is : ", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,7 +79,7 @@ function Login() {
 
       // Send tokenResponse.code to your backend
       try {
-        const res = await ax.post(`${serverURL}/auth/api/googleSignin`, {
+        const res = await axios.post(`${serverURL}/auth/api/googleSignin`, {
           code: tokenResponse.code,
         });
         console.log("response is : ", res.data);
@@ -100,6 +108,13 @@ function Login() {
 
   // console.log("successMsg :", successMsg);
 
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner color="purple" aria-label="Extra large spinner example" size="xl" />
+      </div>
+    );
+  }
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-slate-50">

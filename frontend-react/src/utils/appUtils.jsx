@@ -1,6 +1,7 @@
 // const serverURL = "http://localhost:5001";
 const serverURL = import.meta.env.VITE_API_URL;
 // console.log("serverURL :", serverURL);
+
 // get the intials (mostly username) in Upper case for alternative to image of user
 const getInitials = (name) => {
   if (!name) return "";

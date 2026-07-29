@@ -1,6 +1,7 @@
 const mysql = require("mysql2");
 const fs = require("fs");
 const path = require("path");
+const useSSL = process.env.DB_SSL === "true";
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -8,9 +9,11 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  ssl: {
-    ca: fs.readFileSync(path.join(__dirname, "../../ca.pem")),
-  },
+  ssl: useSSL
+    ? {
+        ca: fs.readFileSync(path.join(__dirname, "../../ca.pem")),
+      }
+    : undefined,
   connectionLimit: 10,
 });
 
