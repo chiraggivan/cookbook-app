@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 function LeftSideBar() {
-  const role = JSON.parse(localStorage.getItem("user")).role;
+  const role = JSON.parse(localStorage.getItem("user"))?.role ?? "";
   useEffect(() => {
     if (!role) {
       navigate("/login");

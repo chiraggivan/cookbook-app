@@ -4,7 +4,7 @@ import Input from "./input";
 import { useEffect, useState } from "react";
 
 function TopBar() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user")) ?? "";
   const navigate = new useNavigate();
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
