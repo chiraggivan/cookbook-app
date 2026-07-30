@@ -148,25 +148,28 @@ function MyDishes() {
   console.log("dishes :", dishes);
   return (
     <>
-      <div className="flex flex-col  mt-(--top-bar-height) ml-(--left-side-bar) pt-5 ">
+      {/*TopBar and LeftSideBar are added automatically thru 
+      routes with the help of MainLayout component */}
+      <div className="flex flex-col  mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
         {/* Create header and search bar for your ingredients and a line separator */}
-        <div className="flex flex-col sticky z-10 top-(--top-bar-height) bg-white">
+        <div className="flex flex-col sticky z-10 top-[calc(var(--top-bar-height)+28px)] md:top-(--top-bar-height) bg-white">
           {/* Header of the page with search bar */}
-          <div className="flex flex-col my-3 items-center lg:items-start lg:flex-row lg:justify-between">
+          <div className="flex flex-col m-3 items-center md:items-start md:flex-row md:justify-start">
             <div className="text-2xl font-semibold">Your Saved Dishes</div>
 
             {/* search bar */}
-            <div className="flex w-full items-end max-w-80">
+            <div className="flex w-[80%] md:pl-60 md:mr-2 max-w-140">
               {/* search input */}
               <Input
                 value={searchDish}
                 className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
-                                    focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1"
+                                    focus:ring-2 focus:ring-gray-300 h-8 w-full lg:w-100 px-2 pb-2 placeholder:text-gray-400"
                 onChange={(e) => setSearchDish(e.target.value)}
+                placeholder={"search your prepared dish"}
               />
               {/* search button */}
               <button
-                className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 "
+                className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-8 px-4 "
                 onClick={searchDishesButton}
               >
                 <HiOutlineSearch />
@@ -181,33 +184,29 @@ function MyDishes() {
         </div>
 
         {/* show all your saved Dishes*/}
-        <div className="grid grid-cols-1 mt-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 mt-3 lg:grid-cols-2  xl:grid-cols-4 gap-4">
           {dishes?.map((i) => (
             <div
               key={i.user_ingredient_id}
-              className="flex m-2 shadow-md border-gray-400  cursor-pointer"
+              className="flex m-2 shadow-xs border-gray-400  cursor-pointer rounded hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
               onClick={() => navigate(`/dish/${i.dish_id}`)}
             >
               {/* image section - left */}
-              <div className="min-w-45 min-h-45 max-w-45 max-h-45 border-0 ">
-                <GiHotMeal className=" h-full w-full rounded-r-xl bg-gray-300" />
+              <div className="min-w-40 min-h-40 max-w-40 max-h-40 border-0 ">
+                <GiHotMeal className=" h-full w-full bg-gray-300" />
               </div>
               {/* details section right */}
               <div className="px-2 pb-2">
-                <p className="text-lg font-semibold">{capitaliseWords(i.recipe_name)}</p>
-                <p>
-                  <span className="text-sm font-semibold">Portion : </span>
-                  {capitaliseWords(i.portion_size)}
+                <p className="text-lg font-semibold line-clamp-2 leading-[1.3]">
+                  {capitaliseWords(i.recipe_name)}
                 </p>
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Prepared on : </span>
+                <p className="leading-5"> Portion: {capitaliseWords(i.portion_size)}</p>
+                <p className=" text-sm text-gray-500 line-clamp-1">
                   {i.preparation_date.split("T")[0]} @ {i.time_prepared} for {i.meal}
                 </p>
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">Costing : </span> £ {i.total_cost}
-                </p>
-                <p className="text-sm text-gray-500 font-semibold">
-                  Comment : <span className="italic font-normal">{i.comment}</span>
+                <p className="text-sm text-gray-500">Costing: £ {i.total_cost}</p>
+                <p className="text-sm text-gray-500 font-semibold line-clamp-2">
+                  Comment: <span className="italic font-normal">{i.comment}</span>
                 </p>
               </div>
             </div>

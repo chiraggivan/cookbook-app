@@ -11,6 +11,7 @@ import Input from "../../components/input";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
+import { FaSearchengin } from "react-icons/fa6";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -114,16 +115,17 @@ function MyRecipes() {
   // console.log("searchRecipe", searchRecipe);
   return (
     <>
-      {/* <TopBar />
-      <div className="flex mt-(--top-bar-height)">
-        <LeftSideBar /> */}
-      <div className="flex flex-col w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
+      {/*TopBar and LeftSideBar are added automatically thru 
+      routes with the help of MainLayout component */}
+      <div className="flex flex-col w-auto mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
+        {/*header and search */}
         <div
-          className="flex flex-col items-start mb-4 h-60 
-                    lg:flex-row  lg:justify-between lg:h-40"
+          className="flex flex-col items-center pb-5 
+                     md:flex-row md:items-end sticky top-[calc(var(--top-bar-height)+39px)] md:top-(--top-bar-height) z-8 bg-white"
         >
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full pb-3 bg-amber-200 text-8xl">
+          <div className="flex items-center md:flex-1  md:justify-start">
+            <div className="text-2xl font-semibold">Your Recipes</div>
+            {/* <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full pb-3 bg-amber-200 text-8xl">
               {getInitials(user.username)}
             </div>
             <div className=" px-2">
@@ -132,70 +134,57 @@ function MyRecipes() {
               </p>
               <p className="text-1xl px-1">@{user.username}</p>
               <p className="text-1xl mb-2 px-1 text-gray-400">More about me</p>
-            </div>
+            </div> */}
           </div>
-          <div
-            className="w-full flex flex-col h-60 
-                      lg:h-40 lg:item-end lg:justify-end lg:w-50% "
-          >
-            <div>
-              <div className="flex mt-4 lg:mt-0 lg:pr-88 lg:justify-end">Search Your Recipe </div>
-              <div className="flex items-end justify-end w-full py-2">
-                <Input
-                  className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
-                          focus:ring-2 focus:ring-green-300 h-10 w-full lg:w-100 px-2 pb-1"
-                  onChange={(e) => setSearchRecipe(e.target.value)}
-                />
-                <button
-                  className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
+          <div className="flex md:flex-1">
+            <div className="flex">
+              <Input
+                className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
+                          focus:border-2 h-10 w-70 placeholder:text-gray-400"
+                onChange={(e) => setSearchRecipe(e.target.value)}
+                placeholder={"search your recipe...."}
+              />
+              <button
+                className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
                               hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                  onClick={searchRecipeButton}
-                >
-                  search
-                </button>
-              </div>
+                onClick={searchRecipeButton}
+              >
+                {" "}
+                <FaSearchengin />
+              </button>
             </div>
           </div>
         </div>
+
         {/* line . divider */}
-        <div className="flex items-center my-2">
+        <div className="flex items-center mb-2">
           <div className="grow border-t border-gray-300"></div>
         </div>
+
         {/* recipe list */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 xl:gap-6  my-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-4  p-4">
           {displayRecipes?.map((i) => (
             <div
               key={i.recipe_id}
-              className="flex aspect-5/2 rounded-r-2xl  md:sm:aspect-5/1.5 lg:aspect-5/2 xl:sm:aspect-5/1.5 shadow
-                            md:rounded-r-3xl hover:cursor-pointer md:hover:ring-6 hover:ring-green-200
-                             transition"
+              className="flex h-40 rounded-r-2xl shadow-sm
+                        hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
               onClick={() => navigate(`/recipe/${i.recipe_id}`)}
             >
-              <div className="w-[40%] shrink-0 h-full bg-gray-400"></div>
-              <div className="w-[60%] p-3">
-                <p
-                  className="text-1xl font-bold tracking-tight hover:underline 
-                                line-clamp-2"
-                >
+              <div className="h-full aspect-5/4 bg-gray-400 rounded"></div>
+              <div className="p-3">
+                <p className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer">
                   {i.name}
                 </p>
-                <p className="truncate">portion : {i.portion_size}</p>
-                <p className=" line-clamp-2">
-                  Description : <span className=" text-gray-600">{i.description}</span>{" "}
+                <p className="text-sm line-clamp-1 font-semibold text-gray-600 ">
+                  portion : {i.portion_size}
+                </p>
+                <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
+                  Description : <span className=" font-normal">{i.description}</span>{" "}
                 </p>
               </div>
             </div>
           ))}
         </div>
-
-        {/* {myRecipes?.map((i) => (
-            <div key={i.recipe_id}>
-              <h2 onClick={() => navigate(`/recipe/${i.recipe_id}`)}>{i.name}</h2>
-              <h4>portion : {i.portion_size}</h4>
-              <h4>Desription : {i.description}</h4>
-              <p></p>
-            </div>
-          ))} */}
       </div>
       {/* </div> */}
     </>

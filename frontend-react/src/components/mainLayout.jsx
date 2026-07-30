@@ -5,7 +5,9 @@ export default function MainLayout({ children }) {
   return (
     <div>
       <TopBar />
-      <LeftSideBar />
+      <div className="hidden md:block">
+        <LeftSideBar />
+      </div>
       <main>{children}</main>
     </div>
   );

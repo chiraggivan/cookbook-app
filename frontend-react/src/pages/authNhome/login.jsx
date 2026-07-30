@@ -65,10 +65,9 @@ function Login() {
     } catch (err) {
       console.log(" response in error is :", err.response);
       setErrMessage(err.response.data.message);
-      return;
-      // console.log("Error in Login.jsx is : ", err);
-    } finally {
       setIsLoading(false);
+      return;
+    } finally {
     }
   };
 

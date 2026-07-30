@@ -8,6 +8,8 @@ import { serverURL } from "../../utils/appUtils";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
+import Input from "../../components/input";
+import { HiSearch } from "react-icons/hi";
 
 function UserRecipes() {
   const { id } = useParams();
@@ -50,12 +52,12 @@ function UserRecipes() {
   // console.log("data before return html : ", data);
   return (
     <>
-      <div className="w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
-        <div
-          className="flex flex-col items-start mb-4 h-60 
-                    lg:flex-row  lg:justify-between lg:h-40"
-        >
-          <div className="flex items-center justify-center gap-3">
+      {/*TopBar and LeftSideBar are added automatically thru 
+      routes with the help of MainLayout component */}
+      <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
+        {/*header and search */}
+        <div className="flex flex-col pb-5 lg:flex-row lg:items-end sticky top-0 z-8 bg-white">
+          <div className="flex items-center justify-center">
             <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full pb-3 bg-amber-200 text-8xl">
               {getInitials(data?.userInfo.username)}
             </div>
@@ -67,51 +69,51 @@ function UserRecipes() {
               <p className="text-1xl mb-2 px-1 text-gray-400">More about me</p>
             </div>
           </div>
-          <div
-            className="w-full flex flex-col h-60 
-                      lg:h-40 lg:item-end lg:justify-end lg:w-50% "
-          >
-            <div>
-              <div className="flex mt-4 lg:mt-0 lg:pr-88 lg:justify-end">
-                Search {data?.userInfo.username}'s Recipe
-              </div>
-              <div className="flex items-end justify-end w-full py-2">
-                <input
-                  className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
-                          focus:ring-2 focus:ring-green-300 h-10 w-full lg:w-100 px-2 pb-1"
+
+          <div className="py-2 lg:py-0 lg:pl-40">
+            <div className="flex items-center justify-center">
+              <div className="flex w-80">
+                <Input
+                  className="flex-1 border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
+                          focus:border-2 h-10 w-full placeholder:text-gray-400"
+                  placeholder={`Search recipe by ${data?.userInfo?.username}`}
                 />
-                <button className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 hover:ring-2 hover:ring-gray-600">
-                  search
+                <button
+                  className="flex text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 items-center 
+                                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
+                  // onClick={searchRecipeButton}
+                >
+                  <HiSearch className="" />
                 </button>
               </div>
             </div>
           </div>
         </div>
+
         {/* line . divider */}
         <div className="flex items-center my-2">
           <div className="grow border-t border-gray-300"></div>
         </div>
+
         {/* recipe list */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 xl:gap-6  my-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-4  p-4">
           {data?.userRecipes.map((i) => (
             <div
               key={i.recipe_id}
-              className="flex aspect-5/2 rounded-r-2xl  md:sm:aspect-5/1.5 lg:aspect-5/2 xl:sm:aspect-5/1.5 shadow
-                            md:rounded-r-3xl hover:cursor-pointer md:hover:ring-6 hover:ring-green-200
-                             transition"
+              className="flex h-40 rounded-r-2xl shadow-sm
+                        hover:cursor-pointer hover:ring-10 hover:ring-green-100 hover:bg-green-100 transition duration-500"
               onClick={() => navigate(`/recipe/${i.recipe_id}`)}
             >
-              <div className="w-[40%] shrink-0 h-full bg-gray-400"></div>
-              <div className="w-[60%] p-3">
-                <p
-                  className="text-1xl font-bold tracking-tight hover:underline 
-                                line-clamp-2"
-                >
+              <div className="h-full aspect-5/4 bg-gray-400 rounded"></div>
+              <div className="p-3">
+                <p className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer">
                   {i.name}
                 </p>
-                <p className="truncate">portion : {i.portion_size}</p>
-                <p className=" line-clamp-2">
-                  Description : <span className=" text-gray-600">{i.description}</span>{" "}
+                <p className="text-sm line-clamp-1 font-semibold text-gray-600">
+                  portion : {i.portion_size}
+                </p>
+                <p className="text-sm line-clamp-3 font-semibold text-gray-600">
+                  Description : <span className="font-normal">{i.description}</span>{" "}
                 </p>
               </div>
             </div>

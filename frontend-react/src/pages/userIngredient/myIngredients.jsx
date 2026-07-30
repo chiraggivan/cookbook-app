@@ -96,7 +96,7 @@ function MyIngredients() {
   // console.log("myIngredients before return html : ", myIngredients);
   return (
     <>
-      <div className="flex flex-col w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
+      <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
         {/* Create header and search bar for your ingredients and a line separator */}
         <div className="flex flex-col sticky z-10 top-(--top-bar-height) bg-white">
           {/* header of your custom ingredients & search bar */}
@@ -124,14 +124,15 @@ function MyIngredients() {
                             lg:items-start  lg:w-1/3"
             >
               {/* search header */}
-              <div className="flex mt-4 lg:mt-0 ">Search Your Ingredient </div>
+              <div className="flex mt-4 lg:mt-0 "></div>
               {/* search bar */}
               <div className="flex w-full items-end justify-end  py-2">
                 {/* search input */}
                 <Input
                   className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
-                          focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1"
+                          focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1 placeholder:text-gray-400"
                   onChange={(e) => setSearchIng(e.target.value)}
+                  placeholder={"Search Your Ingredient"}
                 />
                 {/* search button */}
                 <button className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 ">
@@ -148,27 +149,24 @@ function MyIngredients() {
         </div>
 
         {/* show all your custom ingredients */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
           {displayIngredients?.map((i) => (
             <div
               key={i.user_ingredient_id}
-              className="flex  m-2 shadow-md border-gray-400 rounded-r-xl"
+              className="flex shadow-md border-gray-400 rounded-r-xl mt-3
+                          hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
             >
               {/* image section - left */}
-              <div className="w-[40%] border-0 rounded-r-lg md:rounded-r-xl lg:rounded-r-2xl bg-gray-100 ">
+              <div className="h-40 aspect-square border-0 rounded-r-lg bg-gray-100 ">
                 <FaCarrot className="p-[30%] h-full w-full text-orange-400" />
               </div>
               {/* details section right */}
               <div className="px-2">
-                <p className="text-lg font-semibold">{capitaliseWords(i.name)}</p>
-                <p className="text-gray-500 italic text-md">
+                <p className="text-lg font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
+                <p className="text-gray-500 italic text-md line-clamp-1">
                   Priced £{i.display_price} for {i.display_quantity} {i.display_unit}{" "}
                 </p>
-                {/* <p className="text-gray-400">Price: £{i.display_price}</p>
-                <p>
-                  For: {i.display_quantity} {i.display_unit}
-                </p> */}
-                <div className="flex items-center">
+                <div className="flex items-center line-clamp-2">
                   <TbBowlSpoonFilled className="text-gray-500" />
                   <p className="px-1 text-md text-gray-500">
                     <span className="font-semibold">Cup Weight : </span>{" "}
@@ -176,7 +174,7 @@ function MyIngredients() {
                   </p>
                 </div>
 
-                <p className="px-1 mb-1 text-md text-gray-500">{i.notes}</p>
+                <p className="px-1 mb-1 text-md text-gray-500  line-clamp-1">{i.notes}</p>
                 <div>
                   <Button
                     className="mb-1 cursor-pointer "

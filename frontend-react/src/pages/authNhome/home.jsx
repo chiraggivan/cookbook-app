@@ -56,47 +56,52 @@ function Home() {
   // console.log("data before return html : ", fetchData);
   return (
     <>
-      {/* <TopBar /> */}
-      {/* <div className="flex mt-(--top-bar-height)"> */}
-      {/* <LeftSideBar /> */}
-      <div className="w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
-        {/* <Navbar />
-          <div className="m-4"></div> */}
+      {/*TopBar and LeftSideBar are added automatically thru 
+      routes with the help of MainLayout component */}
+
+      <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5">
         {/* creating grid layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
           {data?.map((i) => (
             // for each record creating card
             <div
               key={i.recipe_id}
-              className="aspect-5/4  md:rounded-3xl  hover:cursor-pointer hover:ring-8 lg:hover:ring-15 hover:ring-green-100 transition"
+              className=" md:rounded-3xl  hover:cursor-pointer hover:ring-10 hover:bg-amber-100  hover:ring-amber-100 transition duration-500"
             >
               {/*  within card creating 2 sections: one for image and second one for info */}
               <div
-                className="h-[70%] bg-gray-300 md:rounded-t-3xl"
+                className="aspect-video bg-gray-300 md:rounded-t-3xl"
                 onClick={() => navigate(`/recipe/${i.recipe_id}`)}
               ></div>
-              <div className=" flex h-[30%] px-2">
-                <div
-                  className="flex aspect-square w-10 h-10 rounded-full bg-amber-200 items-center justify-center mt-2 mr-2"
-                  onClick={() => navigate(`/recipesBy/${i.user_id}`)}
-                >
-                  {i.username.slice(0, 2).toUpperCase() ?? getInitials(i.display_name)}
+
+              <div className=" flex">
+                <div className="px-1 py-2">
+                  <div
+                    className="p-2 flex aspect-square w-10 h-10 rounded-full bg-amber-200 items-center justify-center"
+                    onClick={() => navigate(`/recipesBy/${i.user_id}`)}
+                  >
+                    {i.username.slice(0, 2).toUpperCase() ?? getInitials(i.display_name)}
+                  </div>
                 </div>
-                <div className="m-2 w-full">
-                  <p
-                    className="text-xl font-bold leading-5 hover:cursor-pointer"
+
+                <div className="mx-1 my-2 w-full">
+                  <div
+                    className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer"
                     onClick={() => navigate(`/recipe/${i.recipe_id}`)}
                   >
                     {i.name}
-                  </p>
+                  </div>
                   <p
-                    className="text-sm font-semibold leading-6 text-gray-600 "
+                    className="text-sm line-clamp-1 font-semibold text-gray-600 "
                     onClick={() => navigate(`/recipe/${i.recipe_id}`)}
                   >
                     portion : {i.portion_size}
                   </p>
 
-                  <p className="leading-3" onClick={() => navigate(`/recipesBy/${i.user_id}`)}>
+                  <p
+                    className="text-sm line-clamp-1 font-semibold text-gray-600 "
+                    onClick={() => navigate(`/recipesBy/${i.user_id}`)}
+                  >
                     by : {i.user_id}
                   </p>
                   <p></p>
