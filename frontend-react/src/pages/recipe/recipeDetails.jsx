@@ -47,6 +47,111 @@ function RecipeDetails() {
       Authorization: `Bearer ${token}`,
     },
   };
+  const recipeRows = [];
+
+  //----------------------------------------- Redirect effect --------------------------------------------------
+  useEffect(() => {
+    if (!authHookLoading && (!token || !isAuthenticated)) {
+      navigate("/login");
+    }
+  }, [authHookLoading, token, isAuthenticated, navigate]);
+
+  // ---------- fetch the data by giving url, method and body(if required) -------------------------------------
+  const method = "get";
+  const url = `${serverURL}/recipe/api/${id}`;
+  const body = null;
+
+  const searchMyRecipes = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
+  // console.log("searchMyRecipes :", searchMyRecipes);
+  // ----------------------------- fetch data from backend only for once -------------------------------------
+  // useEffect(() => {
+  //   setFoundRecipeDetails(searchMyRecipes);
+  // }, [recipeDetails]);
+
+  useEffect(() => {
+    if (!searchMyRecipes) {
+      // console.log("when searchMyRecipe not found recipeDetails");
+      const fetchData = async () => {
+        try {
+          setFetchLoading(true);
+
+          // call api to get recipe details
+          const res = await axios[method](url, config);
+          const tempRecipe = res?.data?.data;
+          // console.log("data from backend :", tempRecipe);
+
+          // save the new recipe details in recipeDetails Context variable if user's recipe
+          if (tempRecipe?.recipe?.user_id === user.user_id) {
+            setRecipeDetails((prev) => [...prev, tempRecipe]);
+          }
+          setFoundRecipeDetails(tempRecipe);
+        } catch (err) {
+          console.log("error while fetching reicpe details with axios is :", err.response);
+          window.alert("Something went wrong while fetching recipe. Please try again later.");
+        } finally {
+          setFetchLoading(false);
+        }
+      };
+
+      fetchData();
+    }
+    setFetchLoading(false);
+  }, []);
+
+  // ----------------------- check if user is the owner of the recipe (helps to show buttons for edit/delete )--------------------------------
+  useEffect(() => {
+    // this below is done to make sure there is no flicker of recipe by for owner
+    if (!foundRecipeDetails) {
+      return;
+    }
+    if (user.user_id === foundRecipeDetails?.recipe.user_id) {
+      // console.log("Yes i am the owner");
+      setIsRecipeOwner(true);
+    } else {
+      setIsRecipeOwner(false);
+    }
+  }, [foundRecipeDetails]);
+
+  //-------------------------------------- get the total cost of recipe -----------------------------------
+  const totalCost =
+    Math.ceil(foundRecipeDetails?.ingredients?.reduce((sum, i) => sum + i.price, 0) * 100) / 100 ||
+    0;
+
+  // ------------------------------------  change privacy in recipe details ----------------------------
+  //  only option available to edit in read recipe for quick update.
+  const changePrivacy = async (val) => {
+    // setFetchLoading(true);
+    const url = `${serverURL}/recipe/api/update-privacy/${id}`;
+    const method = "put";
+    const body = { privacy: val };
+
+    try {
+      const res = await axios[method](url, body, config);
+      console.log("res :", res);
+    } catch (err) {
+      // console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
+      window.alert("Something went wrong while updating privacy. Please try again later.");
+
+      //  change back the privacy that we set with onChange in Toggle component, during err in above try block
+      setRecipeDetails(
+        recipeDetails.map((item) =>
+          item.recipe.recipe_id === id
+            ? {
+                ...item,
+                recipe: {
+                  ...item.recipe,
+                  privacy: val === "pubic" ? "private" : "public",
+                },
+              }
+            : item,
+        ),
+      );
+      return;
+    } finally {
+      // setFetchLoading(false);
+    }
+  };
+
   //----------------------------------- delete button function -------------------------------------------------
   const handleDelete = async (e) => {
     e.preventDefault();
@@ -141,106 +246,6 @@ function RecipeDetails() {
     // }
   };
 
-  //----------------------------------------- Redirect effect --------------------------------------------------
-  useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated)) {
-      navigate("/login");
-    }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
-
-  // ---------- fetch the data by giving url, method and body(if required) -------------------------------------
-  const method = "get";
-  const url = `${serverURL}/recipe/api/${id}`;
-  const body = null;
-
-  const searchMyRecipes = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
-  // console.log("searchMyRecipes :", searchMyRecipes);
-  // ----------------------------- fetch data from backend only for once -------------------------------------
-  useEffect(() => {
-    setFoundRecipeDetails(searchMyRecipes);
-  }, [recipeDetails]);
-
-  useEffect(() => {
-    if (!searchMyRecipes) {
-      // console.log("when searchMyRecipe not found recipeDetails");
-      const fetchData = async () => {
-        try {
-          setFetchLoading(true);
-
-          // call api to get recipe details
-          const res = await axios[method](url, config);
-          const tempRecipe = res?.data?.data;
-          // console.log("data from backend :", tempRecipe);
-          // save the new recipe details in recipeDetails Context variable
-          setRecipeDetails((prev) => [...prev, tempRecipe]);
-        } catch (err) {
-          console.log("error while fetching reicpe details with axios is :", err.response);
-          window.alert("Something went wrong while fetching recipe. Please try again later.");
-        } finally {
-          setFetchLoading(false);
-        }
-      };
-
-      fetchData();
-    }
-    setFetchLoading(false);
-  }, []);
-
-  // ----------------------- check if user is the owner of the recipe (helps to show buttons for edit/delete )--------------------------------
-  useEffect(() => {
-    // this below is done to make sure there is no flicker of recipe by for owner
-    if (!foundRecipeDetails) {
-      return;
-    }
-    if (user.user_id === foundRecipeDetails?.recipe.user_id) {
-      // console.log("Yes i am the owner");
-      setIsRecipeOwner(true);
-    } else {
-      setIsRecipeOwner(false);
-    }
-  }, [foundRecipeDetails]);
-
-  // ------------------------------------  change privacy in recipe details ----------------------------
-  //  only option available to edit in read recipe for quick update.
-
-  const changePrivacy = async (val) => {
-    // setFetchLoading(true);
-    const url = `${serverURL}/recipe/api/update-privacy/${id}`;
-    const method = "put";
-    const body = { privacy: val };
-
-    try {
-      const res = await axios[method](url, body, config);
-      console.log("res :", res);
-    } catch (err) {
-      // console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
-      window.alert("Something went wrong while updating privacy. Please try again later.");
-
-      //  change back the privacy that we set with onChange in Toggle component, during err in above try block
-      setRecipeDetails(
-        recipeDetails.map((item) =>
-          item.recipe.recipe_id === id
-            ? {
-                ...item,
-                recipe: {
-                  ...item.recipe,
-                  privacy: val === "pubic" ? "private" : "public",
-                },
-              }
-            : item,
-        ),
-      );
-      return;
-    } finally {
-      // setFetchLoading(false);
-    }
-  };
-
-  //-------------------------------------- get the total cost of recipe -----------------------------------
-  const totalCost =
-    Math.ceil(foundRecipeDetails?.ingredients?.reduce((sum, i) => sum + i.price, 0) * 100) / 100 ||
-    0;
-
   // ------------------------------  initial page loading screen -------------------------------------------
   if (fetchLoading) {
     return <h1> Page Loading .............</h1>;
@@ -289,6 +294,11 @@ function RecipeDetails() {
             </td>
           </tr>,
         );
+        recipeRows.push(
+          <div className="bg-gray-200 text-lg font-semibold" key={u}>
+            {comp_text}
+          </div>,
+        );
       } else if (u !== 0) {
         tableRows.push(
           <tr className="bg-gray-200 text-lg font-semibold">
@@ -296,6 +306,11 @@ function RecipeDetails() {
               {comp_text}
             </td>
           </tr>,
+        );
+        recipeRows.push(
+          <div className="bg-gray-200 text-lg font-semibold" key={u}>
+            {comp_text}
+          </div>,
         );
       }
 
@@ -317,6 +332,26 @@ function RecipeDetails() {
             <td className="px-1">{i.cost}</td> 
             <td>{i.ingredient_source}</td> */}
           </tr>,
+        );
+        recipeRows.push(
+          <div
+            className="flex flex-col md:flex-row w-full text-lg"
+            key={i.ingredient_display_order}
+          >
+            <div className="flex">
+              <div className="min-w-10 text-end px-1 ">{i.quantity}</div>
+              <div className="px-1">{i.unit_name}</div>
+              <div className="flex flex-1 px-1">
+                {i.ingredient_source === "main"
+                  ? capitaliseWords(i.name)
+                  : capitaliseWords(i.name) + "*"}
+              </div>
+              <div className="px-2">£ {Number(i.price.toFixed(3))}</div>
+            </div>
+            <div className="text-end px-2 text-sm text-gray-400">
+              £ {i.cost}/ {i.base_quantity} {i.unit}
+            </div>
+          </div>,
         );
         // --------------Below for create dish---------------------------
         const ings = {};
@@ -348,185 +383,228 @@ function RecipeDetails() {
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>
-      <TopBar />
-      <div className="flex mt-(--top-bar-height)">
-        <LeftSideBar />
-        <div className="w-full ml-(--left-side-bar) mt-5">
-          <div className="flex flex-col space-y-4 mt-1">
-            {/* Recipe Name header & recipe by */}
-            <div className="flex flex-col relative">
-              <div
-                className="flex mx-auto p-2 max-w-sm text-center font-extrabold text-3xl 
+      {/*TopBar and LeftSideBar are added automatically thru 
+      routes with the help of MainLayout component */}
+      <div className="flex flex-col  mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
+        <div className="flex flex-col  mt-1">
+          {/* Recipe Name header & recipe by */}
+          <div className="flex flex-col relative">
+            <div
+              className="flex mx-auto p-2 max-w-sm text-center font-extrabold text-3xl 
                               md:text-4xl md:max-w-lg
                               lg:text-5xl lg:max-w-xl"
-              >
-                {capitaliseWords(foundRecipeDetails?.recipe.name)}
+            >
+              {capitaliseWords(foundRecipeDetails?.recipe.name)}
+            </div>
+
+            {/* Show recipe owner details if different from user */}
+            {isRecipeOwner === false && (
+              <div className="absolute flex space-x-2 right-3 bottom-0">
+                <div className="font-semibold">By :</div>
+                <p>{foundRecipeDetails?.recipe.user_id}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Recipe Details and image */}
+          <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
+            {/* recipe details */}
+            <div
+              className="flex flex-col mx-3 text-sm  bg-amber-100
+                        md:text-xl md:w-3/5 lg:space-y-3  
+                        lg:text-2xl"
+            >
+              <div className="flex space-x-2">
+                <div className="font-semibold">Portion Size:</div>
+                <div> {foundRecipeDetails?.recipe.portion_size}</div>
               </div>
 
-              {/* Show recipe owner details if different from user */}
-              {isRecipeOwner === false && (
-                <div className="absolute flex space-x-2 right-3 bottom-0">
-                  <div className="font-semibold">By :</div>
+              {/* toggle switch for private recipe */}
+              {isRecipeOwner === true && (
+                <div className="flex">
+                  <div>
+                    {!changePrvcyLoading && (
+                      <Toggle
+                        title=""
+                        checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+                        onText="Private"
+                        offText="Private"
+                        onChange={(e) => {
+                          setChangePrvcyLoading(true);
+                          setRecipeDetails((prev) =>
+                            prev.map((item) =>
+                              item.recipe.recipe_id === Number(id)
+                                ? {
+                                    ...item,
+                                    recipe: {
+                                      ...item.recipe,
+                                      privacy: e.target.checked ? "private" : "public",
+                                    },
+                                  }
+                                : item,
+                            ),
+                          );
+                          changePrivacy(e.target.checked ? "private" : "public");
+                          setChangePrvcyLoading(false);
+                        }}
+                      />
+                    )}
+                    {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                  </div>
+                </div>
+              )}
+
+              {/* cost of recipe */}
+              <div className="flex space-x-2">
+                <div className="font-semibold">Costing :</div>
+                <p>£ {totalCost}</p>
+              </div>
+
+              {/* if Owner - Last prepared & create dish*/}
+              {isRecipeOwner && (
+                <>
+                  <div className="flex space-x-2">
+                    <div className="font-semibold">Last Prepared on :</div>
+                    <p>
+                      {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
+                      {foundRecipeDetails?.recipe.last_prepared_time}
+                    </p>
+                  </div>
+                  {/* Create dish button */}
+                  <div>
+                    <Button
+                      className="cursor-pointer"
+                      color="dark"
+                      onClick={() => setIsDishModalOpen(true)}
+                    >
+                      <HiClipboardList className="mr-2 w-5 h-5" />
+                      create dish
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* if not owner then - recipe creator's name */}
+              {!isRecipeOwner && (
+                <div className="flex space-x-2">
+                  <div className="font-semibold">Recipe By :</div>
                   <p>{foundRecipeDetails?.recipe.user_id}</p>
                 </div>
               )}
             </div>
 
-            {/* Recipe Details and image */}
-            <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
-              <div
-                className="flex flex-col m-3 space-y-3 text-md 
-                              md:text-xl md:w-3/5 rounded-2xl 
-                              lg:text-2xl"
-              >
-                <div className="flex space-x-2">
-                  <div className="font-semibold">Portion Size:</div>
-                  <div> {foundRecipeDetails?.recipe.portion_size}</div>
-                </div>
-
-                {/* toggle switch for private recipe */}
-                {isRecipeOwner === true && (
-                  <div className="flex">
-                    <div>
-                      {!changePrvcyLoading && (
-                        <Toggle
-                          title=""
-                          checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-                          onText="Private"
-                          offText="Private"
-                          onChange={(e) => {
-                            setChangePrvcyLoading(true);
-                            setRecipeDetails((prev) =>
-                              prev.map((item) =>
-                                item.recipe.recipe_id === Number(id)
-                                  ? {
-                                      ...item,
-                                      recipe: {
-                                        ...item.recipe,
-                                        privacy: e.target.checked ? "private" : "public",
-                                      },
-                                    }
-                                  : item,
-                              ),
-                            );
-                            changePrivacy(e.target.checked ? "private" : "public");
-                            setChangePrvcyLoading(false);
-                          }}
-                        />
-                      )}
-                      {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-                    </div>
-                  </div>
-                )}
-
-                {/* cost of recipe */}
-                <div className="flex space-x-2">
-                  <div className="font-semibold">Costing :</div>
-                  <p>£ {totalCost}</p>
-                </div>
-
-                {/* if Owner - Last prepared & create dish*/}
-                {isRecipeOwner && (
-                  <>
-                    <div className="flex space-x-2">
-                      <div className="font-semibold">Last Prepared on :</div>
-                      <p>
-                        {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
-                        {foundRecipeDetails?.recipe.last_prepared_time}
-                      </p>
-                    </div>
-                    {/* Create dish button */}
-                    <div>
-                      <Button
-                        className="cursor-pointer"
-                        color="dark"
-                        onClick={() => setIsDishModalOpen(true)}
-                      >
-                        <HiClipboardList className="mr-2 w-5 h-5" />
-                        create dish
-                      </Button>
-                    </div>
-                  </>
-                )}
-
-                {/* if not owner then - recipe creator's name */}
-                {!isRecipeOwner && (
-                  <div className="flex space-x-2">
-                    <div className="font-semibold">Recipe By :</div>
-                    <p>{foundRecipeDetails?.recipe.user_id}</p>
-                  </div>
-                )}
-              </div>
-              {/* recipe image */}
-              <div className="flex flex-col rounded-xl mr-3 md:w-2/5  ">
-                <GiHotMeal className="h-full w-full max-h-60 bg-gray-200 rounded-xl" />
-              </div>
+            {/* recipe image */}
+            <div className="flex md:w-2/5  ">
+              <GiHotMeal className="h-full w-full max-h-60 bg-gray-200" />
             </div>
+          </div>
 
-            {/* Buttons for owner */}
-            {isRecipeOwner && (
-              <div className="flex justify-between p-3">
-                {/* Create edit button */}
-                <div className="">
-                  <Button
-                    className="cursor-pointer"
-                    color="light"
-                    onClick={() => navigate(`/recipe/edit/${id}`)}
-                  >
-                    <MdOutlineEditNote className="mr-2 w-5 h-5" />
-                    Edit Recipe
-                  </Button>
-                </div>
-
-                {/* Delete recipe */}
-                <div>
-                  <Button
-                    className="cursor-pointer"
-                    color="red"
-                    onClick={() => setIsConfirmModalOpen(true)}
-                  >
-                    <HiTrash className="mr-2 w-5 h-5" />
-                    Delete Recipe
-                  </Button>
-                </div>
+          {/* Buttons for owner */}
+          {isRecipeOwner && (
+            <div className="flex justify-between p-3">
+              {/* Create edit button */}
+              <div className="">
+                <Button
+                  className="cursor-pointer"
+                  color="light"
+                  onClick={() => navigate(`/recipe/edit/${id}`)}
+                >
+                  <MdOutlineEditNote className="mr-2 w-5 h-5" />
+                  Edit Recipe
+                </Button>
               </div>
-            )}
 
-            {/* description of recipe */}
-            <div className="flex min-h-20 max-w-xl m-3 text-2xl">
+              {/* Delete recipe */}
               <div>
-                {" "}
-                <span className="font-semibold">Description: </span>{" "}
-                {foundRecipeDetails?.recipe.description}
+                <Button
+                  className="cursor-pointer"
+                  color="red"
+                  onClick={() => setIsConfirmModalOpen(true)}
+                >
+                  <HiTrash className="mr-2 w-5 h-5" />
+                  Delete Recipe
+                </Button>
               </div>
             </div>
+          )}
 
-            {/* tabs option of flowbite for smaller screen below xl */}
-            <Tabs className="flex xl:hidden" aria-label="Tabs with icons" variant="fullWidth">
+          {/* description of recipe */}
+          <div
+            className="flex  max-w-xl mx-3 mb-3 text-sm bg-amber-100
+                          md:text-xl lg:text-2xl"
+          >
+            <div>
+              <span className="font-semibold">Description: </span>{" "}
+              {foundRecipeDetails?.recipe.description}
+            </div>
+          </div>
+
+          {/* tabs option of flowbite for smaller screen below xl */}
+          <Tabs className="flex xl:hidden" aria-label="Tabs with icons" variant="fullWidth">
+            {/* Ingredients */}
+            <TabItem active title="Ingredients" icon={HiTrash}>
+              {/* <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl ">
+                <table>
+                  <thead></thead>
+                  <tbody>{tableRows}</tbody>
+                </table>
+              </div> */}
+              <div className="mt-5">{recipeRows}</div>
+            </TabItem>
+            {/* Recipe steps */}
+            <TabItem title="Steps" icon={HiClipboardList}>
+              <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl">
+                <table>
+                  {/* <thead>
+                      <tr>
+                        <th>Sr-No.</th>
+                        <th>Steps Description</th>
+                      </tr>
+                    </thead> */}
+                  <tbody>
+                    {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                      <div className="italic text-gray-400">No steps defined for recipe</div>
+                    )}
+                    {foundRecipeDetails?.steps &&
+                      foundRecipeDetails?.steps.length !== 0 &&
+                      foundRecipeDetails?.steps.map((s) => (
+                        <tr className="" key={s.step_order}>
+                          <td className="flex flex-col text-end top-0 px-4">
+                            {s.step_order + "."}
+                          </td>
+                          <td>{s.step_text}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </TabItem>
+          </Tabs>
+
+          {/* tabs option of flowbite for screen bigger than xl */}
+          <div className="hidden xl:block">
+            <Tabs className="flex" aria-label="Tabs with icons" variant="fullWidth">
               {/* Ingredients */}
               <TabItem active title="Ingredients" icon={HiTrash}>
-                <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl ">
-                  <table>
-                    <thead>
-                      <tr className="">
-                        <th className=""></th>
-                        <th className=""></th>
-                        <th className=""></th>
-                        <th className=""></th>
-                        <th className=""></th>
-                        <th className=""></th>
-                        <th className=""></th>
-                        <th className=""></th>
-                      </tr>
-                    </thead>
-                    <tbody>{tableRows}</tbody>
+                <div className="flex">
+                  <table className="w-1/2">
+                    <div className="m-2 p-2">
+                      <thead>
+                        <tr className="">
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                        </tr>
+                      </thead>
+                      <tbody>{tableRows}</tbody>
+                    </div>
                   </table>
-                </div>
-              </TabItem>
-              {/* Recipe steps */}
-              <TabItem title="Steps" icon={HiClipboardList}>
-                <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl">
-                  <table>
+                  <table className=" w-1/2  ">
                     {/* <thead>
                       <tr>
                         <th>Sr-No.</th>
@@ -534,7 +612,52 @@ function RecipeDetails() {
                       </tr>
                     </thead> */}
                     <tbody>
-                      {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                      {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
+                        <div className="italic text-gray-400">No steps defined for recipe</div>
+                      )}
+                      {foundRecipeDetails?.steps &&
+                        foundRecipeDetails?.steps.length !== 0 &&
+                        foundRecipeDetails?.steps.map((s) => (
+                          <tr className="" key={s.step_order}>
+                            <td className="flex flex-col text-end top-0 px-4">
+                              {s.step_order + "."}
+                            </td>
+                            <td>{s.step_text}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabItem>
+              {/* Recipe steps */}
+              <TabItem title="Steps" icon={HiClipboardList}>
+                <div className="flex  ">
+                  <table className="w-1/2">
+                    <div className="m-2 p-2 ">
+                      <thead>
+                        <tr className="">
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                          <th className=""></th>
+                        </tr>
+                      </thead>
+                      <tbody>{tableRows}</tbody>
+                    </div>
+                  </table>
+                  <table className="w-1/2 ">
+                    {/* <thead>
+                      <tr>
+                        <th>Sr-No.</th>
+                        <th>Steps Description</th>
+                      </tr>
+                    </thead> */}
+                    <tbody>
+                      {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
                         <div className="italic text-gray-400">No steps defined for recipe</div>
                       )}
                       {foundRecipeDetails?.steps &&
@@ -552,138 +675,43 @@ function RecipeDetails() {
                 </div>
               </TabItem>
             </Tabs>
-
-            {/* tabs option of flowbite for screen bigger than xl */}
-            <div className="hidden xl:block">
-              <Tabs className="flex" aria-label="Tabs with icons" variant="fullWidth">
-                {/* Ingredients */}
-                <TabItem active title="Ingredients" icon={HiTrash}>
-                  <div className="flex">
-                    <table className="w-1/2">
-                      <div className="m-2 p-2">
-                        <thead>
-                          <tr className="">
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                          </tr>
-                        </thead>
-                        <tbody>{tableRows}</tbody>
-                      </div>
-                    </table>
-                    <table className=" w-1/2  ">
-                      {/* <thead>
-                      <tr>
-                        <th>Sr-No.</th>
-                        <th>Steps Description</th>
-                      </tr>
-                    </thead> */}
-                      <tbody>
-                        {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
-                          <div className="italic text-gray-400">No steps defined for recipe</div>
-                        )}
-                        {foundRecipeDetails?.steps &&
-                          foundRecipeDetails?.steps.length !== 0 &&
-                          foundRecipeDetails?.steps.map((s) => (
-                            <tr className="" key={s.step_order}>
-                              <td className="flex flex-col text-end top-0 px-4">
-                                {s.step_order + "."}
-                              </td>
-                              <td>{s.step_text}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabItem>
-                {/* Recipe steps */}
-                <TabItem title="Steps" icon={HiClipboardList}>
-                  <div className="flex  ">
-                    <table className="w-1/2">
-                      <div className="m-2 p-2 ">
-                        <thead>
-                          <tr className="">
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                            <th className=""></th>
-                          </tr>
-                        </thead>
-                        <tbody>{tableRows}</tbody>
-                      </div>
-                    </table>
-                    <table className="w-1/2 ">
-                      {/* <thead>
-                      <tr>
-                        <th>Sr-No.</th>
-                        <th>Steps Description</th>
-                      </tr>
-                    </thead> */}
-                      <tbody>
-                        {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
-                          <div className="italic text-gray-400">No steps defined for recipe</div>
-                        )}
-                        {foundRecipeDetails?.steps &&
-                          foundRecipeDetails?.steps.length !== 0 &&
-                          foundRecipeDetails?.steps.map((s) => (
-                            <tr className="" key={s.step_order}>
-                              <td className="flex flex-col text-end top-0 px-4">
-                                {s.step_order + "."}
-                              </td>
-                              <td>{s.step_text}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabItem>
-              </Tabs>
-            </div>
           </div>
-
-          <div>
-            {!changePrvcyLoading && (
-              <ToggleSwitch
-                theme={{
-                  toggle: { checked: { color: { default: "bg-blue-900" } } },
-                }}
-                checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-                // checked={false}
-                label="Private"
-                onChange={(flag) => {
-                  setChangePrvcyLoading(true);
-                  setRecipeDetails((prev) =>
-                    prev.map((item) =>
-                      item.recipe.recipe_id === Number(id)
-                        ? {
-                            ...item,
-                            recipe: {
-                              ...item.recipe,
-                              privacy: flag ? "private" : "public",
-                            },
-                          }
-                        : item,
-                    ),
-                  );
-                  changePrivacy(flag ? "private" : "public");
-                  setChangePrvcyLoading(false);
-                }}
-              />
-            )}
-            {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-          </div>
-          <ToggleSwitchC />
         </div>
+
+        <div>
+          {!changePrvcyLoading && (
+            <ToggleSwitch
+              theme={{
+                toggle: { checked: { color: { default: "bg-blue-900" } } },
+              }}
+              checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+              // checked={false}
+              label="Private"
+              onChange={(flag) => {
+                setChangePrvcyLoading(true);
+                setRecipeDetails((prev) =>
+                  prev.map((item) =>
+                    item.recipe.recipe_id === Number(id)
+                      ? {
+                          ...item,
+                          recipe: {
+                            ...item.recipe,
+                            privacy: flag ? "private" : "public",
+                          },
+                        }
+                      : item,
+                  ),
+                );
+                changePrivacy(flag ? "private" : "public");
+                setChangePrvcyLoading(false);
+              }}
+            />
+          )}
+          {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+        </div>
+        <ToggleSwitchC />
       </div>
+
       {isConfirmModalOpen && (
         <ConfirmModal
           isOpen={isConfirmModalOpen}
