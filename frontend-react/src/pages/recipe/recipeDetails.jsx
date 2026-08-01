@@ -16,8 +16,9 @@ import { capitaliseWords } from "../../utils/appUtils";
 import { Alert, ToggleSwitch, TabItem, Tabs, Button } from "flowbite-react";
 
 import { HiTrash, HiClipboardList } from "react-icons/hi";
-import { GiHotMeal } from "react-icons/gi";
+import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdOutlineEditNote } from "react-icons/md";
+import { TbFoodsteps } from "react-icons/tb";
 
 import ToggleSwitchC from "../../components/toggleSwitch";
 
@@ -40,14 +41,13 @@ function RecipeDetails() {
   const [switch1, setSwitch1] = useState(false);
 
   const navigate = useNavigate();
-  let tableRows = [];
+  const recipeRows = [];
   const details4Dish = {};
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
-  const recipeRows = [];
 
   //----------------------------------------- Redirect effect --------------------------------------------------
   useEffect(() => {
@@ -287,72 +287,46 @@ function RecipeDetails() {
       if (u === 0 && comp_text === "") {
         // console.log("first component text is empty");
       } else if (u === 0 && comp_text !== "") {
-        tableRows.push(
-          <tr className="bg-gray-200 text-lg font-semibold">
-            <td className="p-2 rounded-sm" colSpan={8}>
-              {comp_text}
-            </td>
-          </tr>,
-        );
         recipeRows.push(
-          <div className="bg-gray-200 text-lg font-semibold" key={u}>
+          <div className="pl-2 bg-gray-200 text-lg font-semibold" key={u}>
             {comp_text}
           </div>,
         );
       } else if (u !== 0) {
-        tableRows.push(
-          <tr className="bg-gray-200 text-lg font-semibold">
-            <td className="p-2 rounded-sm" colSpan={8}>
-              {comp_text}
-            </td>
-          </tr>,
-        );
         recipeRows.push(
-          <div className="bg-gray-200 text-lg font-semibold" key={u}>
+          <div className="pl-2 bg-gray-200 text-lg font-semibold" key={u}>
             {comp_text}
           </div>,
         );
       }
 
-      for (const i of compIngs) {
-        tableRows.push(
-          <tr className="w-full text-lg" key={i.ingredient_display_order}>
-            <td className="px-1 ">{i.quantity}</td>
-            <td className="px-1">{i.unit_name}</td>
-            <td className="px-1 ">
-              {i.ingredient_source === "main"
-                ? capitaliseWords(i.name)
-                : capitaliseWords(i.name) + "*"}
-            </td>
-            <td className="px-5 text-end min-w-25">£ {Number(i.price.toFixed(3))}</td>
-            <td className="px-1 text-sm text-end text-gray-400" colSpan={4}>
-              £ {i.cost}/ {i.base_quantity} {i.unit}
-            </td>
-            {/* <td className="px-1">{i.unit}</td>
-            <td className="px-1">{i.cost}</td> 
-            <td>{i.ingredient_source}</td> */}
-          </tr>,
-        );
+      compIngs.forEach((i, index) => {
         recipeRows.push(
           <div
-            className="flex flex-col md:flex-row w-full text-lg"
+            className={index % 2 === 0 ? "flex w-full text-md " : "flex w-full text-md bg-gray-50"}
             key={i.ingredient_display_order}
           >
-            <div className="flex">
-              <div className="min-w-10 text-end px-1 ">{i.quantity}</div>
-              <div className="px-1">{i.unit_name}</div>
-              <div className="flex flex-1 px-1">
+            <div className="flex w-full">
+              <div className="min-w-10 text-end pl-1 ">{i.quantity}</div>
+              <div className="min-w-10 pl-1">{i.unit_name}</div>
+              <div className="flex-1 pl-1">
                 {i.ingredient_source === "main"
                   ? capitaliseWords(i.name)
                   : capitaliseWords(i.name) + "*"}
               </div>
-              <div className="px-2">£ {Number(i.price.toFixed(3))}</div>
+              <div className="flex flex-col items-end">
+                <div className="px-2 ">£ {Number(i.price.toFixed(3))}</div>
+                <div className=" text-end px-2 text-sm text-gray-500  mb-2">
+                  £ {i.cost}/ {i.base_quantity} {i.unit}
+                </div>
+              </div>
             </div>
-            <div className="text-end px-2 text-sm text-gray-400">
+            {/* <div className="hidden md:block text-end px-2 text-sm text-gray-500  mb-2">
               £ {i.cost}/ {i.base_quantity} {i.unit}
-            </div>
+            </div> */}
           </div>,
         );
+
         // --------------Below for create dish---------------------------
         const ings = {};
         ings.base_price = i.cost;
@@ -367,7 +341,8 @@ function RecipeDetails() {
         ings.ingredient_source = i.ingredient_source;
         comps.ingredients.push(ings);
         // --------------Above for create dish---------------------------
-      }
+      });
+
       details4Dish.components.push(comps);
     }
   }
@@ -385,7 +360,7 @@ function RecipeDetails() {
     <div>
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
-      <div className="flex flex-col  mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
+      <div className="flex flex-col mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
         <div className="flex flex-col  mt-1">
           {/* Recipe Name header & recipe by */}
           <div className="flex flex-col relative">
@@ -410,7 +385,7 @@ function RecipeDetails() {
           <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
             {/* recipe details */}
             <div
-              className="flex flex-col mx-3 text-sm  bg-amber-100
+              className="flex flex-col px-3 text-sm
                         md:text-xl md:w-3/5 lg:space-y-3  
                         lg:text-2xl"
             >
@@ -471,7 +446,7 @@ function RecipeDetails() {
                     </p>
                   </div>
                   {/* Create dish button */}
-                  <div>
+                  <div className="hidden md:block">
                     <Button
                       className="cursor-pointer"
                       color="dark"
@@ -480,6 +455,20 @@ function RecipeDetails() {
                       <HiClipboardList className="mr-2 w-5 h-5" />
                       create dish
                     </Button>
+                  </div>
+                  <div className="block md:hidden ">
+                    <div
+                      className="flex w-17 h-17 rounded-full bg-gray-400 items-center justify-center
+                                  border border-gray-600 hover:bg-gray-500"
+                    >
+                      <Button
+                        className="cursor-pointer rounded-full w-15 h-15 "
+                        color="dark"
+                        onClick={() => setIsDishModalOpen(true)}
+                      >
+                        create dish
+                      </Button>
+                    </div>
                   </div>
                 </>
               )}
@@ -496,6 +485,17 @@ function RecipeDetails() {
             {/* recipe image */}
             <div className="flex md:w-2/5  ">
               <GiHotMeal className="h-full w-full max-h-60 bg-gray-200" />
+            </div>
+          </div>
+
+          {/* description of recipe */}
+          <div
+            className="flex  max-w-xl px-3 mb-3 text-sm 
+                          md:text-xl lg:text-2xl"
+          >
+            <div>
+              <span className="font-semibold">Description: </span>{" "}
+              {foundRecipeDetails?.recipe.description}
             </div>
           </div>
 
@@ -528,150 +528,91 @@ function RecipeDetails() {
             </div>
           )}
 
-          {/* description of recipe */}
-          <div
-            className="flex  max-w-xl mx-3 mb-3 text-sm bg-amber-100
-                          md:text-xl lg:text-2xl"
-          >
-            <div>
-              <span className="font-semibold">Description: </span>{" "}
-              {foundRecipeDetails?.recipe.description}
-            </div>
-          </div>
-
-          {/* tabs option of flowbite for smaller screen below xl */}
-          <Tabs className="flex xl:hidden" aria-label="Tabs with icons" variant="fullWidth">
+          {/* tabs option of flowbite for smaller screen below lg */}
+          <Tabs className="flex lg:hidden" aria-label="Tabs with icons" variant="fullWidth">
             {/* Ingredients */}
-            <TabItem active title="Ingredients" icon={HiTrash}>
-              {/* <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl ">
-                <table>
-                  <thead></thead>
-                  <tbody>{tableRows}</tbody>
-                </table>
-              </div> */}
-              <div className="mt-5">{recipeRows}</div>
+            <TabItem active title="Ingredients" icon={GiAvocado}>
+              <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
             </TabItem>
+
             {/* Recipe steps */}
-            <TabItem title="Steps" icon={HiClipboardList}>
-              <div className="m-2 p-2 border-3 rounded-xl border-gray-500 max-w-xl">
-                <table>
-                  {/* <thead>
-                      <tr>
-                        <th>Sr-No.</th>
-                        <th>Steps Description</th>
-                      </tr>
-                    </thead> */}
-                  <tbody>
-                    {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                      <div className="italic text-gray-400">No steps defined for recipe</div>
-                    )}
-                    {foundRecipeDetails?.steps &&
-                      foundRecipeDetails?.steps.length !== 0 &&
-                      foundRecipeDetails?.steps.map((s) => (
-                        <tr className="" key={s.step_order}>
-                          <td className="flex flex-col text-end top-0 px-4">
-                            {s.step_order + "."}
-                          </td>
-                          <td>{s.step_text}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+            <TabItem title="Steps" icon={TbFoodsteps}>
+              <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                  <div className="italic text-gray-400 text-center bg-amber-100">
+                    No steps defined for recipe
+                  </div>
+                )}
+                {foundRecipeDetails?.steps &&
+                  foundRecipeDetails?.steps.length !== 0 &&
+                  foundRecipeDetails?.steps.map((s) => (
+                    <div className="flex mb-2" key={s.step_order}>
+                      <div className="flex flex-col text-end top-0 pl-2 min-w-8">
+                        {s.step_order + "."}
+                      </div>
+                      <div className="pl-2">{s.step_text}</div>
+                    </div>
+                  ))}
               </div>
             </TabItem>
           </Tabs>
 
-          {/* tabs option of flowbite for screen bigger than xl */}
-          <div className="hidden xl:block">
+          {/* tabs option of flowbite for screen bigger than lg */}
+          <div className="hidden lg:block">
             <Tabs className="flex" aria-label="Tabs with icons" variant="fullWidth">
               {/* Ingredients */}
-              <TabItem active title="Ingredients" icon={HiTrash}>
+              <TabItem active title="Ingredients" icon={GiAvocado}>
                 <div className="flex">
-                  <table className="w-1/2">
-                    <div className="m-2 p-2">
-                      <thead>
-                        <tr className="">
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                        </tr>
-                      </thead>
-                      <tbody>{tableRows}</tbody>
-                    </div>
-                  </table>
-                  <table className=" w-1/2  ">
-                    {/* <thead>
-                      <tr>
-                        <th>Sr-No.</th>
-                        <th>Steps Description</th>
-                      </tr>
-                    </thead> */}
-                    <tbody>
-                      {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
-                        <div className="italic text-gray-400">No steps defined for recipe</div>
+                  <div className="flex-1">
+                    <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                      {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                        <div className="italic text-gray-400 text-center">
+                          No steps defined for recipe
+                        </div>
                       )}
                       {foundRecipeDetails?.steps &&
                         foundRecipeDetails?.steps.length !== 0 &&
                         foundRecipeDetails?.steps.map((s) => (
-                          <tr className="" key={s.step_order}>
-                            <td className="flex flex-col text-end top-0 px-4">
+                          <div className="flex mb-2" key={s.step_order}>
+                            <div className="flex flex-col text-end top-0 pl-2 min-w-8">
                               {s.step_order + "."}
-                            </td>
-                            <td>{s.step_text}</td>
-                          </tr>
+                            </div>
+                            <div className="pl-2">{s.step_text}</div>
+                          </div>
                         ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
                 </div>
               </TabItem>
+
               {/* Recipe steps */}
-              <TabItem title="Steps" icon={HiClipboardList}>
-                <div className="flex  ">
-                  <table className="w-1/2">
-                    <div className="m-2 p-2 ">
-                      <thead>
-                        <tr className="">
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                          <th className=""></th>
-                        </tr>
-                      </thead>
-                      <tbody>{tableRows}</tbody>
-                    </div>
-                  </table>
-                  <table className="w-1/2 ">
-                    {/* <thead>
-                      <tr>
-                        <th>Sr-No.</th>
-                        <th>Steps Description</th>
-                      </tr>
-                    </thead> */}
-                    <tbody>
-                      {foundRecipeDetails?.steps && foundRecipeDetails?.steps.length === 0 && (
-                        <div className="italic text-gray-400">No steps defined for recipe</div>
+              <TabItem title="Steps" icon={TbFoodsteps}>
+                <div className="flex">
+                  <div className="flex-1">
+                    <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                      {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                        <div className="italic text-gray-400 text-center">
+                          No steps defined for recipe
+                        </div>
                       )}
                       {foundRecipeDetails?.steps &&
                         foundRecipeDetails?.steps.length !== 0 &&
                         foundRecipeDetails?.steps.map((s) => (
-                          <tr className="" key={s.step_order}>
-                            <td className="flex flex-col text-end top-0 px-4">
+                          <div className="flex mb-2" key={s.step_order}>
+                            <div className="flex flex-col text-end top-0 pl-2 min-w-8">
                               {s.step_order + "."}
-                            </td>
-                            <td>{s.step_text}</td>
-                          </tr>
+                            </div>
+                            <div className="pl-2">{s.step_text}</div>
+                          </div>
                         ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
                 </div>
               </TabItem>
             </Tabs>
