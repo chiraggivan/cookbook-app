@@ -303,7 +303,7 @@ function RecipeDetails() {
       compIngs.forEach((i, index) => {
         recipeRows.push(
           <div
-            className={index % 2 === 0 ? "flex w-full text-md " : "flex w-full text-md bg-gray-50"}
+            className={index % 2 === 0 ? "flex w-full text-md " : "flex w-full text-md bg-gray-200"}
             key={i.ingredient_display_order}
           >
             <div className="flex w-full">
