@@ -1264,9 +1264,10 @@ function EditRecipe() {
               <div className="min-h-[calc(100vh-200px)]">
                 {/* button to add first heading and Total cost of recipe*/}
                 <div className="flex items-center justify-between h-10">
+                  {/* Top header button */}
                   <div>
                     {!showTopRow && (
-                      <div className="">
+                      <div className="pl-2">
                         <Button
                           className="cursor-pointer rounded-full"
                           color="light"
@@ -1281,14 +1282,14 @@ function EditRecipe() {
                   {/* cost of recipe */}
                   <div className="flex space-x-2 text-lg ">
                     <div className="font-semibold">Costing :</div>
-                    <p className="">£ {totalCost.toFixed(2)}</p>
+                    <p className="pr-2">£ {totalCost.toFixed(2)}</p>
                   </div>
                 </div>
 
                 {/* ingredients  list - New */}
                 <div className="flex flex-col ">
                   {/* Ingredients table header */}
-                  <div className="flex text-xs w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
+                  <div className="flex w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
                     <div className="flex min-w-10 items-center justify-center">No.</div>
                     <div className="flex min-w-15 items-center justify-center">Move</div>
                     <div className="flex flex-6 items-center justify-between ">
@@ -1348,7 +1349,7 @@ function EditRecipe() {
                                 onBlur={(e) => checkDuplicateText(comp.uid, e.target.value)}
                               />
                             </div>
-                            <div className="flex w-15 items-center justify-center">
+                            <div className="flex sm:w-15 items-center justify-center">
                               <div
                                 className=" text-red-400 hover:text-red-900 transition duration-300"
                                 onClick={() => deleteComponentHeader(comp.uid, indexc)}
@@ -1477,7 +1478,7 @@ function EditRecipe() {
                                             ref={(el) => (itemRefs.current[index] = el)}
                                             style={{
                                               backgroundColor:
-                                                index === highlightedIndex ? "#f0f0f0" : "white",
+                                                index === highlightedIndex ? "#c0c0c0" : "white",
                                               // padding: "10px",
                                               cursor: "pointer",
                                             }}
@@ -1517,20 +1518,14 @@ function EditRecipe() {
                                 />
                               </div>
 
-                              {/* 5th column */}
+                              {/* 5th column unit */}
                               <div className="flex flex-4 pt-1 items-start justify-center ">
                                 <Dropdown
-                                  className="flex rounded  text-sm h-7.5 pl-1 pr-7 py-0"
+                                  className="flex rounded w-14 text-sm h-7.5 pl-1 pr-7 py-0"
                                   options={ing?.measuringUnits}
                                   value={ing?.unitId}
                                   onChange={(e) => {
                                     updateUnit(comp.uid, ing.uid, e.target.value);
-                                    // if (
-                                    //   checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId
-                                    // ) {
-                                    //   const x = checkFinalData.components[indexc];
-                                    //   x.ingredients[index].unitId = "";
-                                    // }
                                     setRecipeInfo((prev) => ({
                                       ...prev,
                                       components: prev.components.map((component) =>
@@ -1554,16 +1549,17 @@ function EditRecipe() {
                                       ),
                                     }));
                                   }}
-                                  error={
-                                    ing?.errors?.errorUnitId ?? ""
-                                    // checkFinalData?.components?.[indexc]?.ingredients?.[index]?.unitId ?? ""
-                                  }
+                                  error={ing?.errors?.errorUnitId ?? ""}
                                 />
                               </div>
 
-                              {/* 6th column */}
-                              <div className="flex flex-3 justify-center items-center text-sm">
+                              {/* 6th column cost */}
+                              {/* created 2 div- one for mobile(less than sm), 2nd for wider than mobile - for sm and more) */}
+                              <div className="hidden sm:flex flex-3 justify-center items-center text-sm">
                                 {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
+                              </div>
+                              <div className="sm:hidden flex flex-3 justify-center items-center text-sm">
+                                {ing?.cost ? Number(Number(ing?.cost).toFixed(2)) : ""}
                               </div>
                             </div>
 
