@@ -1466,19 +1466,6 @@ function EditRecipe() {
                                 {activeInputId === ing.uid &&
                                   suggestedIng.length > 0 && ( // inputText[index] &&
                                     <div className="flex flex-8 items-center justify-center">
-                                      {/* <div
-                                  style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    left: 0,
-                                    width: "100%",
-                                    background: "white",
-                                    border: "1px solid #ccc",
-                                    zIndex: 10,
-                                    maxHeight: "70px",
-                                    overflow: "auto",
-                                  }}
-                                > */}
                                       <div
                                         className="absolute top-8.25 left-0 w-full min-w-38  text-sm max-h-25 overflow-auto z-10 
                                         border-2 border-gray-500 rounded lg:w-38"
