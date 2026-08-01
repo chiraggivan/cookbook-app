@@ -1288,7 +1288,7 @@ function EditRecipe() {
                 {/* ingredients  list - New */}
                 <div className="flex flex-col ">
                   {/* Ingredients table header */}
-                  <div className="flex w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
+                  <div className="flex text-xs w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
                     <div className="flex min-w-10 items-center justify-center">No.</div>
                     <div className="flex min-w-15 items-center justify-center">Move</div>
                     <div className="flex flex-6 items-center justify-between ">
@@ -1306,7 +1306,8 @@ function EditRecipe() {
                         <div className="flex w-1/3 justify-center">Price</div>
                       </div>
                     </div>
-                    <div className="flex min-w-15 lg:w-1">
+                    <div className="block w-5 sm:hidden"></div>
+                    <div className="hidden sm:flex min-w-15 lg:w-1">
                       <div className="flex justify-end items-center px-2">Action</div>
                     </div>
                   </div>
@@ -1366,7 +1367,7 @@ function EditRecipe() {
                             className="flex flex-1 items-stretch bg-gray-50 border-b border-gray-400"
                           >
                             {/* 1st column - Sr No. */}
-                            <div className="flex w-10 p-1 h-10 justify-end items-center">
+                            <div className="flex w-6 sm:min-w-8 p-1 h-10 justify-end items-center">
                               {index + 1}.
                             </div>
 
@@ -1405,7 +1406,7 @@ function EditRecipe() {
                               {/* 3rd column - ing name */}
                               <div className="relative flex flex-8 items-start pt-1 justify-start ">
                                 <Input
-                                  className="flex w-full min-w-38 py-0.5 px-1 rounded placeholder:text-gray-500 "
+                                  className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500 "
                                   value={ing.name ?? ""}
                                   onFocus={(e) => {
                                     setActiveInputId(ing.uid);
@@ -1467,7 +1468,7 @@ function EditRecipe() {
                                   suggestedIng.length > 0 && ( // inputText[index] &&
                                     <div className="flex flex-8 items-center justify-center">
                                       <div
-                                        className="absolute top-8.25 left-0 w-full min-w-38  text-sm max-h-25 overflow-auto z-10 
+                                        className="absolute top-8.25 left-0 w-full min-w-18  text-sm max-h-25 overflow-auto z-10 
                                         border-2 border-gray-500 rounded lg:w-38"
                                       >
                                         {suggestedIng.map((ingredient, index) => (
@@ -1494,7 +1495,7 @@ function EditRecipe() {
                               </div>
 
                               {/* 4th column - quantity */}
-                              <div className="flex flex-3 p-1 justify-center ">
+                              <div className="flex flex-3 p-1 min-w-7 justify-center ">
                                 <Input
                                   className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
                                   value={ing?.quantity ?? ""}
@@ -1668,7 +1669,7 @@ function EditRecipe() {
                             </div>
 
                             {/* 10th Column - Delete ingredient */}
-                            <div className="flex w-15 text-center items-center justify-center">
+                            <div className="flex sm:w-15 text-center items-center justify-center">
                               {index !== comp.ingredients.length - 1 && (
                                 <div className=" text-red-400 hover:text-red-900 transition duration-300">
                                   <HiTrash
@@ -1822,8 +1823,8 @@ function EditRecipe() {
           </div>
 
           {/* ingredients list */}
-          <div className="flex flex-col ">
-            {/* Ingredients table header */}
+          {/* <div className="flex flex-col ">
+            
             <div className="flex w-full bg-blue-200 mt-2">
               <div className="flex w-18 min-w-15 items-center justify-center bg-amber-100">
                 Move
@@ -1848,11 +1849,11 @@ function EditRecipe() {
                 <div className="flex w-full justify-end items-center px-2">Action</div>
               </div>
             </div>
-            {/* Dynamic ingredient rows display */}
+            
             <div className="flex flex-col w-full bg-blue-100">
               {recipeInfo?.components?.map((comp, indexc) => (
                 <>
-                  {/* displaying the sub header if condition matched*/}
+                  
                   {(showTopRow || comp.componentText !== "" || indexc !== 0) && (
                     <div key={comp.uid} className="flex w-full justify-between bg-blue-100">
                       <div className="p-1 w-full max-w-sm">
@@ -1890,14 +1891,14 @@ function EditRecipe() {
                       </div>
                     </div>
                   )}
-                  {/* displaying ingredients within sub header */}
+                  
                   {comp.ingredients?.map((ing, index) => (
                     // ingredient row
                     <div
                       key={ing.uid}
                       className="flex w-full justify-between items-center bg-blue-50 border-b border-gray-400"
                     >
-                      {/* 1st column Move rows*/}
+                      
                       <div className="flex w-15 min-w-15">
                         {index !== comp.ingredients.length - 1 && (
                           <div className="flex w-full justify-center items-center my-1 space-x-2">
@@ -1926,11 +1927,11 @@ function EditRecipe() {
                         )}
                       </div>
                       <div className="flex w-full items-center justify-between">
-                        {/* 2nd column - Sr No. */}
+                        
                         <div className="flex w-10 p-1 bg-amber-100 h-6 justify-end items-center">
                           {index + 1}
                         </div>
-                        {/* 3rd column - ing name */}
+                        
                         <div className="relative">
                           <Input
                             className="flex min-w-38 max-w-48 py-0.5 rounded placeholder:text-gray-500 lg:max-w-38"
@@ -1999,7 +2000,7 @@ function EditRecipe() {
                             }}
                           />
                         </div>
-                        {/* 4th column - Quantity */}
+                        
                         <div className=" flex w-12">
                           <Input
                             className="flex w-full py-0.5 rounded placeholder:text-gray-500"
@@ -2019,7 +2020,7 @@ function EditRecipe() {
                             }
                           />
                         </div>
-                        {/* 5th column - Unit used */}
+                        
                         <div className="flex w-18 items-center justify-center h-6">
                           <Dropdown
                             className="flex w-full rounded  text-sm h-7.5 pl-1 pr-7 py-0"
@@ -2041,14 +2042,14 @@ function EditRecipe() {
                             // style={{ maxHeight: "30px", overflow: "auto" }}
                           />
                         </div>
-                        {/* 6th column - Costs */}
+                        
                         <div className="flex w-15 mr-2 justify-end items-center lg:pr-2">
                           {ing?.cost ?? ""}
                         </div>
                       </div>
-                      {/* base values  colums in separate div */}
+                      
                       <div className="hidden lg:flex lg:w-full lg:max-w-57 lg:justify-between  bg-amber-100">
-                        {/* 7th column - Base - Quantity */}
+                        
                         <div className="flex max-w-15 items-center justify-center ">
                           <Input
                             className="flex w-full px-1 py-0  rounded "
@@ -2069,7 +2070,7 @@ function EditRecipe() {
                             }
                           />
                         </div>
-                        {/* 8th column - Base - Unit */}
+                        
                         <div className="flex w-22 max-w-18 items-center justify-center ">
                           <DropdownArray
                             className="flex w-full rounded  text-sm h-6.5 pl-1 pr-7 py-0"
@@ -2091,7 +2092,7 @@ function EditRecipe() {
                             }
                           />
                         </div>
-                        {/* 9th column - Base - Price */}
+                        
                         <div className="flex max-w-15 item-center justify-center ">
                           <Input
                             className="flex w-full px-1 py-0  rounded "
@@ -2113,7 +2114,7 @@ function EditRecipe() {
                           />
                         </div>
                       </div>
-                      {/* 10th column - Delete action */}
+                      
                       <div className="flex ml-auto w-15 min-w-15 max-w-15 items-center justify-center">
                         {index !== comp.ingredients.length - 1 && (
                           <Button
@@ -2129,7 +2130,7 @@ function EditRecipe() {
                 </>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* //////////////////////////////////////////////////////////////////////// */}
