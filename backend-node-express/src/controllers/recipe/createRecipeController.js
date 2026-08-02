@@ -161,7 +161,7 @@ exports.create_recipe = async (req, res) => {
       for (const ing of ingredients) {
         // Validate unit refers to ingredient
         const [unitRows] = await db.query(
-          "SELECT 1 FROM units WHERE unit_id = ? AND ingredient_id = ? AND ingredient_source = ?",
+          `SELECT 1 FROM units WHERE unit_id = ? AND ingredient_id = ? AND ingredient_source = ?`,
           [ing.unit, ing.ingredient_id, ing.ingredient_source],
         );
         if (unitRows.length === 0) {

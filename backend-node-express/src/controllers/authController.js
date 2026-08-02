@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username specified
     const [rows] = await db.query(
-      "SELECT user_id, username, password, role FROM users WHERE username = ? AND is_active = 1",
+      `SELECT user_id, username, password, role FROM users WHERE username = ? AND is_active = 1`,
       [username],
     );
     if (rows.length === 0) {

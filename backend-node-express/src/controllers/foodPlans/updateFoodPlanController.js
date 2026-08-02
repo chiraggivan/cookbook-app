@@ -80,7 +80,7 @@ exports.update_day_food_plan_old = async (req, res) => {
     // --------------------------- connect db and verify data --------------------------
 
     // check user is valid and active
-    const [userRows] = await db.query("SELECT 1 FROM users WHERE user_id = ? AND is_active = 1", [
+    const [userRows] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
       user.id,
     ]);
     if (userRows.length === 0) {
@@ -103,7 +103,7 @@ exports.update_day_food_plan_old = async (req, res) => {
 
     // check food_plan_id valid for user
     const [planRows] = await db.query(
-      "SELECT 1 FROM food_plans WHERE user_id = ? AND food_plan_id = ? AND is_active = 1",
+      `SELECT 1 FROM food_plans WHERE user_id = ? AND food_plan_id = ? AND is_active = 1`,
       [user.id, foodPlanId],
     );
     if (!planRows.length) {
@@ -523,7 +523,7 @@ exports.update_day_food_plan = async (req, res) => {
     // --------------------------- connect db and verify data --------------------------
 
     // check user is valid and active
-    const [userRows] = await db.query("SELECT 1 FROM users WHERE user_id = ? AND is_active = 1", [
+    const [userRows] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
       user.id,
     ]);
     if (!userRows.length) {
@@ -546,7 +546,7 @@ exports.update_day_food_plan = async (req, res) => {
 
     // check food_plan_id valid for user
     const [planRows] = await db.query(
-      "SELECT 1 FROM food_plans WHERE user_id = ? AND food_plan_id = ? AND is_active = 1",
+      `SELECT 1 FROM food_plans WHERE user_id = ? AND food_plan_id = ? AND is_active = 1`,
       [user.id, foodPlanId],
     );
     if (!planRows.length) {

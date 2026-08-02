@@ -316,7 +316,7 @@ function RecipeDetails() {
               </div>
               <div className="flex flex-col items-end">
                 <div className="px-2 ">£ {Number(i.price.toFixed(3))}</div>
-                <div className=" text-end px-2 text-sm text-gray-500  mb-2">
+                <div className=" text-end px-2 text-sm text-gray-500  pb-1">
                   £ {i.cost}/ {i.base_quantity} {i.unit}
                 </div>
               </div>
@@ -483,8 +483,8 @@ function RecipeDetails() {
             </div>
 
             {/* recipe image */}
-            <div className="flex md:w-2/5  ">
-              <GiHotMeal className="h-full w-full max-h-60 bg-gray-200" />
+            <div className="flex md:w-2/5 h-60 items-center justify-center bg-gray-200 ">
+              <GiHotMeal className="h-[80%] w-[80%] " />
             </div>
           </div>
 

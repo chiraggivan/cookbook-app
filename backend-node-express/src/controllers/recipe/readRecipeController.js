@@ -54,7 +54,7 @@ exports.get_user_recipes = async (req, res) => {
 
     // verify user exists
     const [userResult] = await db.query(
-      "SELECT display_name, username, email, picture_url, email_verified FROM users WHERE user_id = ? AND is_active = 1",
+      `SELECT display_name, username, email, picture_url, email_verified FROM users WHERE user_id = ? AND is_active = 1`,
       [find_user],
     );
     if (userResult.length === 0) {
@@ -103,7 +103,7 @@ exports.get_my_recipes = async (req, res) => {
 
     // verify user exists
     const [userResult] = await db.query(
-      "SELECT username FROM users WHERE user_id = ? AND is_active = 1",
+      `SELECT username FROM users WHERE user_id = ? AND is_active = 1`,
       [user.id],
     );
     if (userResult.length === 0) {

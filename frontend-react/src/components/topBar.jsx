@@ -3,6 +3,8 @@ import { getInitials } from "../utils/appUtils";
 import Input from "./input";
 import { useEffect, useState } from "react";
 import { GiHamburgerMenu } from "react-icons/gi";
+import { HiOutlinePlus } from "react-icons/hi";
+import { BsPlusCircleDotted } from "react-icons/bs";
 
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user")) ?? "";
@@ -34,7 +36,7 @@ function TopBar() {
 
           {/* counter space for hamburger */}
           <div className="block pr-2 min-w-10 min-h-10 md:hidden">
-            {/* <GiHamburgerMenu className="h-full w-full" /> */}
+            <BsPlusCircleDotted className="h-full w-full" onClick={() => navigate("/recipe/new")} />
           </div>
         </div>
 
