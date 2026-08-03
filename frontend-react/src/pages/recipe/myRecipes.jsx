@@ -117,48 +117,43 @@ function MyRecipes() {
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
-      <div className="flex flex-col w-auto mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
+      <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
         {/*header and search */}
-        <div
-          className="flex flex-col items-center pb-5 
-                     md:flex-row md:items-end sticky top-[calc(var(--top-bar-height)+39px)] md:top-(--top-bar-height) z-8 bg-white"
-        >
-          <div className="flex items-center md:flex-1  md:justify-start">
-            <div className="text-2xl font-semibold">Your Recipes</div>
-            {/* <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full pb-3 bg-amber-200 text-8xl">
-              {getInitials(user.username)}
+        <div className="sticky top-(--top-bar-height) z-9 bg-white shadow-md">
+          <div
+            className="flex flex-col items-center pb-5 
+                     md:flex-row md:items-end "
+          >
+            <div className="flex items-center md:flex-1  md:justify-start">
+              <div className="text-2xl font-semibold">Your Recipes</div>
             </div>
-            <div className=" px-2">
-              <p className="text-5xl mb-2">
-                {user.username.charAt(0).toUpperCase() + user.username.slice(1)}
-              </p>
-              <p className="text-1xl px-1">@{user.username}</p>
-              <p className="text-1xl mb-2 px-1 text-gray-400">More about me</p>
-            </div> */}
-          </div>
-          <div className="flex md:flex-1">
-            <div className="flex">
-              <Input
-                className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
-                          focus:border-2 h-10 w-70 placeholder:text-gray-400"
-                onChange={(e) => setSearchRecipe(e.target.value)}
-                placeholder={"search your recipe...."}
-              />
-              <button
-                className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
-                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                onClick={searchRecipeButton}
-              >
-                {" "}
-                <FaSearchengin />
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* line . divider */}
-        <div className="flex items-center mb-2">
-          <div className="grow border-t border-gray-300"></div>
+            {/* search field */}
+            <div className="flex md:flex-1">
+              <div className="flex">
+                <Input
+                  value={searchRecipe}
+                  className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
+                          focus:border-2 h-10 w-70 placeholder:text-gray-400"
+                  onChange={(e) => setSearchRecipe(e.target.value)}
+                  placeholder={"search your recipe...."}
+                />
+                <button
+                  className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
+                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
+                  onClick={searchRecipeButton}
+                >
+                  {" "}
+                  <FaSearchengin />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* line . divider */}
+          {/* <div className="flex items-center mt-2">
+            <div className="grow border-t border-gray-300"></div>
+          </div> */}
         </div>
 
         {/* recipe list */}

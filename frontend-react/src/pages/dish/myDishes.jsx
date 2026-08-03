@@ -150,9 +150,9 @@ function MyDishes() {
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
-      <div className="flex flex-col  mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
+      <div className="flex flex-col  mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
         {/* Create header and search bar for your ingredients and a line separator */}
-        <div className="flex flex-col sticky z-10 top-[calc(var(--top-bar-height)+28px)] md:top-(--top-bar-height) bg-white">
+        <div className="flex flex-col sticky z-9 top-(--top-bar-height) bg-white shadow-md">
           {/* Header of the page with search bar */}
           <div className="flex flex-col m-3 items-center md:items-start md:flex-row md:justify-start">
             <div className="text-2xl font-semibold">Your Saved Dishes</div>
@@ -178,9 +178,9 @@ function MyDishes() {
           </div>
 
           {/* Line Separator */}
-          <div className="flex items-center">
-            <div className="grow border-b shadow border-gray-500"></div>
-          </div>
+          {/* <div className="flex items-center">
+            <div className="grow border-b shadow border-gray-400"></div>
+          </div> */}
         </div>
 
         {/* show all your saved Dishes*/}

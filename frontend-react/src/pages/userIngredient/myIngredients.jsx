@@ -96,9 +96,9 @@ function MyIngredients() {
   // console.log("myIngredients before return html : ", myIngredients);
   return (
     <>
-      <div className="flex flex-col w-auto mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
+      <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
         {/* Create header and search bar for your ingredients and a line separator */}
-        <div className="flex flex-col sticky z-10 top-[calc(var(--top-bar-height)+40px)] md:top-(--top-bar-height) bg-white">
+        <div className="flex flex-col sticky z-8 top-(--top-bar-height) bg-white shadow-md">
           {/* header of your custom ingredients & search bar */}
           <div
             className="flex flex-col mb-4 items-center
@@ -142,10 +142,10 @@ function MyIngredients() {
             </div>
           </div>
 
-          {/* Line Separator */}
+          {/* Line Separator
           <div className="flex items-center mb-2">
             <div className="grow border-t border-gray-300"></div>
-          </div>
+          </div> */}
         </div>
 
         {/* show all your custom ingredients */}

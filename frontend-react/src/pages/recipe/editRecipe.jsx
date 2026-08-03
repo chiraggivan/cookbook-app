@@ -1137,7 +1137,7 @@ function EditRecipe() {
         <div className="flex sticky z-10 h-0.5 shadow top-(--top-bar-height) bg-white"></div>
 
         <div className="flex flex-col my-5">
-          <div className="text-xl font-bold mt-8 pl-2 bg-amber-50"> Edit Recipe Details</div>
+          <div className="text-xl font-bold mt-8 pl-2"> Edit Recipe Details</div>
 
           {/* Line Separator */}
           <div className="flex items-center mt-2">
@@ -1309,8 +1309,8 @@ function EditRecipe() {
                         </div>
                       </div>
                       <div className="block w-10 sm:hidden"></div>
-                      <div className="hidden sm:flex min-w-15">
-                        <div className="flex justify-end items-center px-2">Action</div>
+                      <div className="hidden sm:flex min-w-15 justify-center items-center">
+                        <div className="flex">Action</div>
                       </div>
                     </div>
 
@@ -1562,7 +1562,7 @@ function EditRecipe() {
                                   {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
                                 </div>
                                 <div className="sm:hidden flex flex-3 justify-center items-center text-sm">
-                                  {ing?.cost ? Number(Number(ing?.cost).toFixed(2)) : ""}
+                                  {ing?.cost ? Number(Number(ing?.cost).toFixed(3)) : ""}
                                 </div>
                               </div>
 

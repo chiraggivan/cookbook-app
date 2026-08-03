@@ -1,19 +1,27 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import useFetch from "../../hooks/useFetch";
 import Button from "../../components/button";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
-import { serverURL, getInitials } from "../../utils/appUtils";
 import Navbar from "../../components/navbarOld";
+import { Spinner } from "flowbite-react";
+import {
+  serverURL,
+  showTokenErrMsgOnScreen,
+  JWTunverifiedMsg,
+  getInitials,
+} from "../../utils/appUtils";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchRecipe = searchParams.get("q");
+  const [data, setData] = useState();
+  const [isLoading, setIsLoading] = useState(false);
 
   const method = "get";
   let url;
@@ -22,6 +30,9 @@ function Home() {
   } else {
     url = `${serverURL}/recipe/api/all`;
   }
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
 
   // Redirect effects
   useEffect(() => {
@@ -30,28 +41,34 @@ function Home() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  const { success, data, message, loading, error } = useFetch(
-    token ? url : null,
-    token,
-    method,
-    null,
-  );
+  //  verify token (valid or expired)
+  useEffect(() => {
+    const fetchData = async () => {
+      if (token) {
+        try {
+          setIsLoading(true);
+          const res = await axios[method](url, config);
+          setData(res?.data.data);
+        } catch (err) {
+          // console.log("Error while fetching all recipes", err);
+          if (err.response?.data.message === JWTunverifiedMsg) {
+            localStorage.removeItem("token");
+            navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchData();
+  }, [token]);
 
-  // function to get the first to characters of display_name(one from first name and one from last name)
-  // const getInitials = (name) => {
-  //   const nameArray = name.split(" ");
-  //   if (nameArray.length === 1) {
-  //     return nameArray[0].slice(0, 2).toUpperCase();
-  //   } else {
-  //     const initials = nameArray[0].charAt(0) + nameArray[1].charAt(0);
-  //     return initials.toUpperCase();
-  //   }
-  //   return "CH";
-  // };
-
-  // console.log("searchRecipe is :", searchRecipe);
-  if (loading) {
-    return <h1> Page Loading .............</h1>;
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner color="purple" aria-label="Extra large spinner example" size="xl" />
+      </div>
+    );
   }
   // console.log("data before return html : ", fetchData);
   return (

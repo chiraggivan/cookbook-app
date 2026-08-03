@@ -1,7 +1,8 @@
 // const serverURL = "http://localhost:5001";
 const serverURL = import.meta.env.VITE_API_URL;
 // console.log("serverURL :", serverURL);
-
+const JWTunverifiedMsg = "Invalid or Expired token from: authenticate Token"; // to check on every page if token is invalid from middleware
+const showTokenErrMsgOnScreen = "Login expired";
 // get the intials (mostly username) in Upper case for alternative to image of user
 const getInitials = (name) => {
   if (!name) return "";
@@ -41,4 +42,11 @@ function validateInput(field, value, maxDecimals, maxLength) {
     }));
   }
 }
-export { serverURL, getInitials, capitaliseWords, validateInput };
+export {
+  serverURL,
+  JWTunverifiedMsg,
+  showTokenErrMsgOnScreen,
+  getInitials,
+  capitaliseWords,
+  validateInput,
+};

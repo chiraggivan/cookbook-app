@@ -13,7 +13,7 @@ function LeftSideBar() {
 
   return (
     <>
-      <div className="fixed top-(--top-bar-height) left-0   w-(--left-side-bar)  text-gray-800 h-[calc(100vh-var(--top-bar-height))] p-4">
+      <div className="fixed top-(--top-bar-height) left-0   w-(--left-side-bar)  text-gray-800 h-[calc(100vh-var(--top-bar-height))] p-4 z-10 bg-white">
         <div className="flex flex-col justify-between h-full">
           <div>
             <ul className="space-y-6">
