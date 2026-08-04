@@ -1522,8 +1522,9 @@ function EditRecipe() {
                                 </div>
 
                                 {/* 5th column unit */}
-                                <div className="flex flex-4 pt-1 items-start justify-center ">
+                                <div className="flex flex-4 pt-1 items-start justify-center">
                                   <Dropdown
+                                    key={ing?.unitId}
                                     className="flex rounded w-14 md:min-w-18 text-sm h-7.5 pl-1 pr-7 py-0"
                                     options={ing?.measuringUnits}
                                     value={ing?.unitId}
@@ -1593,6 +1594,7 @@ function EditRecipe() {
                                 {/* 8th column - Base - Unit  */}
                                 <div className="flex flex-4 pt-2 items-start justify-center">
                                   <DropdownArray
+                                    key={ing?.displayUnit ?? ""}
                                     className="flex w-full rounded text-sm h-6.5 py-0  pl-1"
                                     options={ing?.baseUnits}
                                     value={ing?.displayUnit ?? ""}
@@ -2358,7 +2360,7 @@ function EditRecipe() {
                 Save
               </Button>
               <Button className="cursor-pointer" color={"alternative"} onClick={() => navigate(-1)}>
-                Canel
+                Cancel
               </Button>
             </div>
           </div>

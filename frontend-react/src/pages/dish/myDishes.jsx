@@ -145,7 +145,7 @@ function MyDishes() {
     }
   };
 
-  console.log("dishes :", dishes);
+  // console.log("dishes :", dishes);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 

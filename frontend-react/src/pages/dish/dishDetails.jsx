@@ -106,27 +106,33 @@ function DishDetails() {
         // console.log("first component text is empty");
       } else if (u === 0 && comp_text !== "") {
         ingsDiv.push(
-          <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 rounded-md px-2">
+          <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 px-2">
             {comp_text}
           </div>,
         );
       } else if (u !== 0) {
         ingsDiv.push(
-          <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 rounded-md px-2">
+          <div className="flex p-1 justify-between max-w-xl mx-auto font-semibold bg-gray-300 px-2">
             {comp_text}
           </div>,
         );
       }
 
-      for (const i of compIngs) {
+      compIngs.forEach((i, index) => {
         ingsDiv.push(
-          <div className="flex flex-col max-w-xl mx-auto">
+          <div
+            className={
+              index % 2 === 0
+                ? "flex flex-col max-w-xl mx-auto bg-gray-100"
+                : "flex flex-col max-w-xl mx-auto"
+            }
+          >
             <div className="flex p-1 justify-between  ">
               <div className="flex">
                 <div className="flex min-w-8 text-md items-start justify-end mr-1">
                   {i.quantity}
                 </div>
-                <div className="flex min-w-12 text-md items-start justify-center mr-1">
+                <div className="flex min-w-12 text-md items-start justify-start mr-1">
                   {capitaliseWords(i.unit_name)}
                 </div>
                 <div className="flex min-w-20 text-md items-start justify-start mr-2">
@@ -134,24 +140,48 @@ function DishDetails() {
                 </div>
               </div>
               <div className="flex flex-col my-0.5">
-                <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost}</div>
+                <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost.toFixed(3)}</div>
                 <div className="flex min-w-7 text-sm justify-end mr-1 text-gray-500">
                   £{i.base_price}/{i.base_unit}
                 </div>
               </div>
             </div>
-            {/* <div className="grow items-center border-t border-gray-400"></div> */}
           </div>,
         );
-      }
+      });
+      // for (const i of compIngs) {
+      //   ingsDiv.push(
+      //     <div className="flex flex-col max-w-xl mx-auto">
+      //       <div className="flex p-1 justify-between  ">
+      //         <div className="flex">
+      //           <div className="flex min-w-8 text-md items-start justify-end mr-1">
+      //             {i.quantity}
+      //           </div>
+      //           <div className="flex min-w-12 text-md items-start justify-center mr-1">
+      //             {capitaliseWords(i.unit_name)}
+      //           </div>
+      //           <div className="flex min-w-20 text-md items-start justify-start mr-2">
+      //             {capitaliseWords(i.ingredient_name)}
+      //           </div>
+      //         </div>
+      //         <div className="flex flex-col my-0.5">
+      //           <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost}</div>
+      //           <div className="flex min-w-7 text-sm justify-end mr-1 text-gray-500">
+      //             £{i.base_price}/{i.base_unit}
+      //           </div>
+      //         </div>
+      //       </div>
+      //     </div>,
+      //   );
+      // }
     }
   }
 
   // console.log("dishD before jsx: ", foundDish);
-  console.log("ingDiv : ", ingsDiv);
+  // console.log("ingDiv : ", ingsDiv);
   return (
     <>
-      <div className="flex flex-col w-auto mt-(--top-bar-height) ml-(--left-side-bar) pt-5">
+      <div className="flex flex-col mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar)">
         <DishDetailsPage
           id={id}
           data={foundDish}

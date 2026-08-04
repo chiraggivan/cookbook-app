@@ -16,6 +16,7 @@ import {
 } from "react-icons/hi";
 import { BsPlusCircleDotted } from "react-icons/bs";
 import {
+  createTheme,
   Drawer,
   DrawerHeader,
   DrawerItems,
@@ -45,6 +46,13 @@ function TopBar() {
     e.preventDefault();
     setIsOpen(false);
     navigate(`/?q=${searchInput.trim().replace(/\s+/g, " ").toLowerCase()}`);
+  };
+
+  // change theme of 'drawer' to make sure dark backdrop is above the topBar
+  const drawerTheme = {
+    root: {
+      backdrop: "z-55",
+    },
   };
 
   return (
@@ -111,7 +119,7 @@ function TopBar() {
           </div>
         </div>
       </header>
-      <Drawer className="z-60 max-w-[60%]" open={isOpen} onClose={handleClose}>
+      <Drawer theme={drawerTheme} className="z-60 max-w-[60%]" open={isOpen} onClose={handleClose}>
         <DrawerHeader title="MENU" titleIcon={() => <></>} />
         <DrawerItems>
           <Sidebar
@@ -181,13 +189,6 @@ function TopBar() {
           </Sidebar>
         </DrawerItems>
       </Drawer>
-      {/* Making sure dark backdrop is above the top bar */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-55 bg-gray-900/50 dark:bg-gray-900/80"
-          onClick={handleClose}
-        ></div>
-      )}
     </>
   );
 }

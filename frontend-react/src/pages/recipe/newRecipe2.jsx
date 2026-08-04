@@ -1250,11 +1250,11 @@ function NewRecipe() {
                   {/* Dynamic ingredient rows display */}
                   {sections.map((comp, indexc) => (
                     <>
-                      <div className="flex flex-col w-full border-x border-gray-500">
+                      <div className="flex flex-col w-full border-x border-gray-500" key={comp.uid}>
                         {/* displaying the sub header if condition matched*/}
                         {(showTopRow || indexc !== 0) && (
                           <div
-                            key={comp.uid}
+                            // key={comp.uid}
                             className="flex w-full justify-between bg-gray-200 border-b border-gray-500"
                           >
                             <div className="flex-1 p-1 max-w-sm">
@@ -1740,7 +1740,7 @@ function NewRecipe() {
           {/* button for save and cancel at the bottom  along with global errorMessage div */}
           <div className="flex flex-col">
             <div className="px-1 mt-2 h-6 font-semibold text-red-500 text-sm">{errorMessage}</div>
-            <div className="flex items-center justify-between my-2">
+            <div className="flex items-center justify-between m-2">
               <Button className="cursor-pointer" color={"dark"} onClick={handleSubmit}>
                 Save
               </Button>

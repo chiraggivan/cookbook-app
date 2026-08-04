@@ -61,7 +61,7 @@ function Home() {
       }
     };
     fetchData();
-  }, [token]);
+  }, [token, searchRecipe]);
 
   if (isLoading) {
     return (

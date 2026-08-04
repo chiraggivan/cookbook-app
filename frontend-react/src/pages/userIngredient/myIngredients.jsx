@@ -189,61 +189,6 @@ function MyIngredients() {
             </div>
           ))}
         </div>
-
-        <h1>entered users ingredient page....</h1>
-        <div>
-          <Button color="gray" onClick={() => navigate("/myIngredient/new")}>
-            Add New Ingredient
-          </Button>
-        </div>
-        {myIngredients?.map((i) => (
-          <div key={i.user_ingredient_id}>
-            <h1>{i.name}</h1>
-            <h3>Price: £{i.display_price}</h3>
-            <h3>
-              For: {i.display_quantity} {i.display_unit}
-            </h3>
-            <h3>
-              Cup Weight: {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
-            </h3>
-            <h4>{i.notes}</h4>
-            <div>
-              <Button
-                color="gray"
-                onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
-              >
-                Edit
-              </Button>
-            </div>
-          </div>
-        ))}
-        <h1>entered users ingredient page....</h1>
-        <div>
-          <Button color="dark" onClick={() => navigate("/myIngredient/new")}>
-            Add New Ingredient
-          </Button>
-        </div>
-        {myIngredients?.map((i) => (
-          <div key={i.user_ingredient_id}>
-            <h1>{i.name}</h1>
-            <h3>Price: £{i.display_price}</h3>
-            <h3>
-              For: {i.display_quantity} {i.display_unit}
-            </h3>
-            <h3>
-              Cup Weight: {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
-            </h3>
-            <h4>{i.notes}</h4>
-            <div>
-              <Button
-                color="blue"
-                onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
-              >
-                Edit
-              </Button>
-            </div>
-          </div>
-        ))}
       </div>
     </>
   );

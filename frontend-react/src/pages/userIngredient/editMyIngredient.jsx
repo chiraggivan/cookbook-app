@@ -16,6 +16,7 @@ import { Button, TextInput, Textarea, Select } from "flowbite-react";
 import { FaWeightScale } from "react-icons/fa6";
 import ConfirmModal from "../../components/confirmModal";
 import { HiTrash } from "react-icons/hi";
+import CreateUpdateMyIngredientPage from "./createUpdateMyIngredientPage";
 
 function EditIngredient() {
   const { state } = useLocation();
@@ -35,7 +36,7 @@ function EditIngredient() {
   const { myIngredients, setMyIngredients } = useContext(MyIngredientContext);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-
+  const mode = "edit"; // ---> used for process identifying in common page for update and create myIngredient
   // if no state found in url then return
   if (!state?.data) {
     return <Navigate to="/" replace />;
@@ -126,17 +127,19 @@ function EditIngredient() {
     // set new timeout for the delay text search
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
-        try {
-          const res = await axios.get(
-            `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          // console.log("ingredients found are : ", res.data);
-          const ingList = res.data.data.map((i) => i.name);
-          const names = ingList.join("\n");
-          setExistIngs(names);
-        } catch (err) {
-          console.log("error in editMyIng.jsx while ing search :", err.response);
+        if (ingData.name) {
+          try {
+            const res = await axios.get(
+              `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            // console.log("ingredients found are : ", res.data);
+            const ingList = res.data.data.map((i) => i.name);
+            const names = ingList.join("\n");
+            setExistIngs(names);
+          } catch (err) {
+            console.log("error in editMyIng.jsx while ing search :", err.response);
+          }
         }
       };
 
@@ -177,7 +180,7 @@ function EditIngredient() {
       isValid = false;
       checkData.errors.display_unit = `Unit required and should be one of these : ${mainUnits}`;
     }
-    if (checkData.cup_weight || checkData.cup_unit) {
+    if (Number(checkData.cup_weight) !== 0 || checkData.cup_unit) {
       if (!checkData.cup_weight || checkData.cup_weight <= 0) {
         isValid = false;
         checkData.errors.cup_weight = `Cup Weight required - If Cup Unit selected`;
@@ -284,6 +287,13 @@ function EditIngredient() {
   useEffect(() => {
     // create new variable to remove errors from the ingData to compare with orgData
     const comparingData = { ...ingData };
+    if (comparingData.cup_weight === "0" || comparingData.cup_weight === "null") {
+      comparingData.cup_weight = "";
+    }
+
+    if (orgData.cup_weight === "0" || orgData.cup_weight === "null") {
+      orgData.cup_weight = "";
+    }
     delete comparingData.errors;
 
     const btnDisabled = OnDataChange(comparingData ?? {}, orgData ?? {});
@@ -292,248 +302,266 @@ function EditIngredient() {
   }, [ingData]);
 
   // console.log("my Ingredients are: ", myIngredients);
-  console.log("ingData :", ingData);
-  console.log("orgData :", orgData);
+  // console.log("ingData :", ingData);
+  // console.log("orgData :", orgData);
   return (
-    <>
-      <div className="flex flex-col  mt-(--top-bar-height) ml-(--left-side-bar) ">
-        <div className="flex flex-col w-full max-w-3xl mx-auto ">
-          {/* header */}
-          <div className="m-2 text-2xl">
-            <p>Edit Ingredient</p>
-          </div>
-          {/* ingredients details with similar ing names */}
-          <div className="flex flex-col-reverse border border-gray-300 rounded-2xl lg:flex-row">
-            {/* details of ingredients */}
-            <div className="flex flex-col p-3 lg:w-2/3">
-              {/* first row */}
-              <div className="flex flex-col mb-1">
-                <div className="flex items-center space-x-1">
-                  <p className="min-w-31">Ingredient Name: </p>
-                  <TextInput
-                    className="grow border-gray-300 rounded-lg max-w-72"
-                    value={ingData?.name ? ingData?.name : ""}
-                    onChange={(e) => {
-                      handleChange("name", e.target.value);
-                      setIngData((prev) => ({
-                        ...prev,
-                        errors: { ...prev.errors, name: "" },
-                      }));
-                    }}
-                    error={ingData?.errors?.name}
-                  />
-                </div>
-                <div className="text-sm font-semibold text-red-700 h-5  max-w-100">
-                  {ingData?.errors?.name ? "*Name Required" : ""}
-                </div>
-              </div>
+    <CreateUpdateMyIngredientPage
+      mode={mode}
+      ingData={ingData}
+      handleChange={handleChange}
+      validateInput={validateInput}
+      validateNumber={validateNumber}
+      setIngData={setIngData}
+      errorMessage={errorMessage}
+      existIngs={existIngs}
+      updateBtn={updateBtn}
+      handlesubmit={handlesubmit}
+      setIsConfirmModalOpen={setIsConfirmModalOpen}
+      isConfirmModalOpen={isConfirmModalOpen}
+      handleDelete={handleDelete}
+      navigate={navigate}
+    />
+    // <>
+    //   <div className="flex flex-col  mt-(--top-bar-height) md:ml-(--left-side-bar)">
+    //     <div className="flex flex-col w-full max-w-3xl mx-auto ">
+    //       {/* header */}
+    //       <div className="m-2 text-2xl">
+    //         <p>Edit Ingredient: {ingData?.name}</p>
+    //       </div>
 
-              {/* second row */}
-              <div className="flex items-center justify-between mb-1 max-w-105">
-                <div className="flex flex-col ">
-                  <div className="flex items-center space-x-1 ">
-                    <p>Quantity:</p>
-                    <TextInput
-                      className=" border-gray-300 rounded-lg w-16"
-                      value={ingData?.display_quantity ? ingData?.display_quantity : ""}
-                      onChange={(e) => {
-                        validateInput("display_quantity", e.target.value, 3, 5);
-                        setIngData((prev) => ({
-                          ...prev,
-                          errors: { ...prev.errors, display_quantity: "" },
-                        }));
-                        // if (/^\d*\.?\d*$/.test(e.target.value)) {
-                        //   handleChange("display_quantity", e.target.value);
-                        // }
-                      }}
-                      onBlur={() => validateNumber("display_quantity")}
-                      error={ingData?.errors?.display_quantity}
-                    />
-                  </div>
-                  <div className="flex justify-end text-sm font-semibold text-red-700 h-5 ">
-                    {ingData?.errors?.display_quantity ? "*Required" : ""}
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center space-x-0">
-                    <p>Unit:</p>
-                    <Select
-                      className="w-19 m-1"
-                      value={ingData?.display_unit}
-                      onChange={(e) => {
-                        handleChange("display_unit", e.target.value);
-                      }}
-                      error={ingData?.errors?.display_unit}
-                    >
-                      {mainUnits.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="flex justify-end text-sm font-semibold  text-red-700 h-5 "></div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center space-x-1">
-                    <p>Price:</p>
-                    <TextInput
-                      className=" border-gray-300 rounded-lg w-26"
-                      value={ingData?.display_price ? ingData?.display_price : ""}
-                      addon="£"
-                      onChange={(e) => {
-                        validateInput("display_price", e.target.value, 2, 5);
-                        setIngData((prev) => ({
-                          ...prev,
-                          errors: { ...prev.errors, display_price: "" },
-                        }));
-                      }}
-                      onBlur={() => validateNumber("display_price")}
-                      error={ingData?.errors?.display_price}
-                    />
-                  </div>
-                  <div className="flex justify-end text-sm font-semibold text-red-700 h-5 ">
-                    {ingData?.errors?.display_price ? "*Required" : ""}
-                  </div>
-                </div>
-              </div>
+    //       {/* ingredients details with similar ing names */}
+    //       <div className="flex flex-col-reverse border border-gray-300 rounded-2xl lg:flex-row">
+    //         {/* details of ingredients */}
+    //         <div className="flex flex-col p-3 lg:w-2/3">
+    //           {/* first row */}
+    //           <div className="flex flex-col mb-1">
+    //             <div className="flex items-center space-x-1">
+    //               <p className="min-w-31">Ingredient Name: </p>
+    //               <TextInput
+    //                 className="grow border-gray-300 rounded-lg max-w-72"
+    //                 value={ingData?.name ? ingData?.name : ""}
+    //                 onChange={(e) => {
+    //                   handleChange("name", e.target.value);
+    //                   setIngData((prev) => ({
+    //                     ...prev,
+    //                     errors: { ...prev.errors, name: "" },
+    //                   }));
+    //                 }}
+    //                 error={ingData?.errors?.name}
+    //               />
+    //             </div>
+    //             <div className="text-sm font-semibold text-red-700 h-5  max-w-100">
+    //               {ingData?.errors?.name ? "*Name Required" : ""}
+    //             </div>
+    //           </div>
 
-              {/* textarea for why cup details are helpful */}
-              <div className="flex flex-col text-sm text-gray-500">
-                <div className="flex text-justify mb-2">
-                  Cup weight is optional, but providing it allows the app to generate additional
-                  ingredient units (such as cup, tablespoon, and teaspoon) when creating recipes.
-                  This is most useful for ingredients like grains, flour, powders, etc., that are
-                  commonly measured in cup, tablespoon, teaspoon, etc.
-                </div>
-                <div className="italic mb-2">
-                  * If an ingredient isn’t typically measured in cups, tablespoons or teaspoons, you
-                  can safely leave this blank.
-                </div>
-              </div>
+    //           {/* second row */}
+    //           <div className="flex items-center justify-between mb-1 max-w-105">
+    //             <div className="flex flex-col ">
+    //               <div className="flex items-center space-x-1 ">
+    //                 <p>Quantity:</p>
+    //                 <TextInput
+    //                   className=" border-gray-300 rounded-lg w-16"
+    //                   value={ingData?.display_quantity ? ingData?.display_quantity : ""}
+    //                   onChange={(e) => {
+    //                     validateInput("display_quantity", e.target.value, 3, 5);
+    //                     setIngData((prev) => ({
+    //                       ...prev,
+    //                       errors: { ...prev.errors, display_quantity: "" },
+    //                     }));
+    //                   }}
+    //                   onBlur={() => validateNumber("display_quantity")}
+    //                   error={ingData?.errors?.display_quantity}
+    //                 />
+    //               </div>
+    //               <div className="flex justify-end text-sm font-semibold text-red-700 h-5 ">
+    //                 {ingData?.errors?.display_quantity ? "*Required" : ""}
+    //               </div>
+    //             </div>
+    //             <div className="flex flex-col">
+    //               <div className="flex items-center">
+    //                 <p>Unit:</p>
+    //                 <Select
+    //                   className="w-19 m-1"
+    //                   value={ingData?.display_unit}
+    //                   onChange={(e) => {
+    //                     handleChange("display_unit", e.target.value);
+    //                   }}
+    //                   error={ingData?.errors?.display_unit}
+    //                 >
+    //                   {mainUnits.map((option) => (
+    //                     <option key={option} value={option}>
+    //                       {option}
+    //                     </option>
+    //                   ))}
+    //                 </Select>
+    //               </div>
+    //               <div className="flex justify-end text-sm font-semibold  text-red-700 h-5 ">
+    //                 {ingData?.errors?.display_unit ? "*Required" : ""}
+    //               </div>
+    //             </div>
+    //             <div className="flex flex-col">
+    //               <div className="flex items-center space-x-1">
+    //                 <p>Price:</p>
+    //                 <TextInput
+    //                   className=" border-gray-300 rounded-lg w-26"
+    //                   value={ingData?.display_price ?? ""}
+    //                   addon="£"
+    //                   onChange={(e) => {
+    //                     validateInput("display_price", e.target.value, 2, 5);
+    //                     setIngData((prev) => ({
+    //                       ...prev,
+    //                       errors: { ...prev.errors, display_price: "" },
+    //                     }));
+    //                   }}
+    //                   onBlur={() => validateNumber("display_price")}
+    //                   error={ingData?.errors?.display_price}
+    //                 />
+    //               </div>
+    //               <div className="flex justify-end text-sm font-semibold text-red-700 h-5 ">
+    //                 {ingData?.errors?.display_price ? "*Required" : ""}
+    //               </div>
+    //             </div>
+    //           </div>
 
-              {/* third row */}
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between max-w-104">
-                  <div className="flex items-center space-x-2">
-                    <p>Cup Weight:</p>
-                    <TextInput
-                      className=" border-gray-300 rounded-lg w-25 "
-                      value={ingData?.cup_weight !== "null" ? ingData?.cup_weight : ""}
-                      onChange={(e) => {
-                        validateInput("cup_weight", e.target.value, 3, 4);
-                        setIngData((prev) => ({
-                          ...prev,
-                          errors: { ...prev.errors, cup_weight: "" },
-                        }));
-                      }}
-                      onBlur={() => validateNumber("cup_weight")}
-                      error={ingData?.errors?.cup_weight}
-                      // rightIcon={FaWeightScale}
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <p>Cup Unit:</p>
-                    <Select
-                      className="w-19 "
-                      value={ingData?.cup_unit}
-                      onChange={(e) => {
-                        handleChange("cup_unit", e.target.value);
-                        setIngData((prev) => ({
-                          ...prev,
-                          errors: { ...prev.errors, cup_unit: "" },
-                        }));
-                      }}
-                      error={ingData?.errors?.cup_unit}
-                    >
-                      <option key="" value="">
-                        Select
-                      </option>
-                      {cupUnits.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex text-sm font-semibold text-red-700 h-5 ">
-                  {ingData?.errors?.cup_weight ?? ingData?.errors?.cup_unit}
-                </div>
-              </div>
+    //           {/* textarea for why cup details are helpful */}
+    //           <div className="flex flex-col text-sm text-gray-500">
+    //             <div className="flex text-justify mb-2">
+    //               Cup weight is optional, but providing it allows the app to generate additional
+    //               ingredient units - such as cup, tablespoon, and teaspoon - used in creating
+    //               recipes. This is most useful for ingredients like grains, flour, powders, etc.,
+    //               that are commonly measured in cup, tablespoon, teaspoon, etc.
+    //             </div>
+    //             <div className="italic mb-2">
+    //               * If an ingredient isn’t typically measured in cups, tablespoons or teaspoons, you
+    //               can safely leave this blank.
+    //             </div>
+    //           </div>
 
-              {/* common errorMessage */}
-              <div>
-                {errorMessage && (
-                  <p className="flex text-sm font-semibold text-red-700 h-5">{errorMessage}</p>
-                )}
-              </div>
-            </div>
-            {/* similar items list */}
-            <div className="flex flex-col lg:w-1/3 border border-gray-200 rounded-xl bg-white">
-              <div className="mt-1 mx-auto">
-                <p className="text-sm text-gray-500">Similar Ingredient Names</p>
-              </div>
-              {/* Line Separator */}
-              <div className="flex items-center mt-1">
-                <div className="grow border-t border-gray-300"></div>
-              </div>
-              {/* list of similar ing names */}
-              <Textarea
-                className="w-full h-full border-hidden text-gray-500 text-sm  lg:h-full"
-                value={existIngs}
-                placeholder=""
-                rows={6}
-                readOnly
-              />
-            </div>
-          </div>
-          {/* buttons for update, delete and cancel */}
-          <div className="flex justify-between mt-3">
-            <div className="flex gap-x-2 lg:gap-x-6">
-              {/* update button */}
-              <div>
-                <Button
-                  className={updateBtn ? "cursor-pointer text-gray-300" : "cursor-pointer"}
-                  color="alternative"
-                  disabled={updateBtn}
-                  onClick={handlesubmit}
-                >
-                  Update Ingredient
-                </Button>
-              </div>
+    //           {/* third row */}
+    //           <div className="flex flex-col">
+    //             <div className="flex items-center justify-between max-w-104">
+    //               <div className="flex items-center space-x-2">
+    //                 <p>Cup Weight:</p>
+    //                 <TextInput
+    //                   className=" border-gray-300 rounded-lg w-25 "
+    //                   value={ingData?.cup_weight !== "null" ? ingData?.cup_weight : ""}
+    //                   onChange={(e) => {
+    //                     validateInput("cup_weight", e.target.value, 3, 4);
+    //                     setIngData((prev) => ({
+    //                       ...prev,
+    //                       errors: { ...prev.errors, cup_weight: "" },
+    //                     }));
+    //                   }}
+    //                   onBlur={() => validateNumber("cup_weight")}
+    //                   error={ingData?.errors?.cup_weight}
+    //                   // rightIcon={FaWeightScale}
+    //                 />
+    //               </div>
+    //               <div className="flex items-center space-x-2">
+    //                 <p>Cup Unit:</p>
+    //                 <Select
+    //                   className="w-19 "
+    //                   value={ingData?.cup_unit}
+    //                   onChange={(e) => {
+    //                     handleChange("cup_unit", e.target.value);
+    //                     setIngData((prev) => ({
+    //                       ...prev,
+    //                       errors: { ...prev.errors, cup_unit: "" },
+    //                     }));
+    //                   }}
+    //                   error={ingData?.errors?.cup_unit}
+    //                 >
+    //                   <option key="" value="">
+    //                     Select
+    //                   </option>
+    //                   {cupUnits.map((option) => (
+    //                     <option key={option} value={option}>
+    //                       {option}
+    //                     </option>
+    //                   ))}
+    //                 </Select>
+    //               </div>
+    //             </div>
+    //             <div className="flex text-sm font-semibold text-red-700 h-5 ">
+    //               {ingData?.errors?.cup_weight ?? ingData?.errors?.cup_unit}
+    //             </div>
+    //           </div>
 
-              {/* cancel button */}
-              <div>
-                <Button className="cursor-pointer" color="dark" onClick={() => navigate(-1)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-            {/* delete button */}
-            <div>
-              <Button className="cursor-pointer" color="red" onClick={setIsConfirmModalOpen}>
-                Delete
-              </Button>
-            </div>
-          </div>
+    //           {/* common errorMessage */}
+    //           <div>
+    //             {errorMessage && (
+    //               <p className="flex text-sm font-semibold text-red-700 h-5">{errorMessage}</p>
+    //             )}
+    //           </div>
+    //         </div>
 
-          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-        </div>
-        {isConfirmModalOpen && (
-          <ConfirmModal
-            isOpen={isConfirmModalOpen}
-            onClose={() => setIsConfirmModalOpen(false)}
-            onConfirm={handleDelete}
-            title={"Delete"}
-            message={`Are you sure. delete - ${capitaliseWords(ingData.name)} ?`}
-            OKtext={"Delete"}
-            OKtextIcon={HiTrash}
-            cancelText={"No, Are you crazy"}
-          />
-        )}
-      </div>
-    </>
+    //         {/* similar items list */}
+    //         <div className="flex flex-col lg:w-1/3 border border-gray-200 rounded-xl bg-white">
+    //           <div className="mt-1 mx-auto">
+    //             <p className="text-sm text-gray-500">Similar Ingredient Names</p>
+    //           </div>
+    //           {/* Line Separator */}
+    //           <div className="flex items-center mt-1">
+    //             <div className="grow border-t border-gray-300"></div>
+    //           </div>
+    //           {/* list of similar ing names */}
+    //           <Textarea
+    //             className="w-full h-full border-hidden text-gray-500 text-sm  lg:h-full"
+    //             value={existIngs}
+    //             placeholder=""
+    //             rows={6}
+    //             readOnly
+    //           />
+    //         </div>
+    //       </div>
+
+    //       {/* buttons for update, delete and cancel */}
+    //       <div className="flex justify-between mt-3">
+    //         <div className="flex gap-x-2 lg:gap-x-6">
+    //           {/* update button */}
+    //           <div>
+    //             <Button
+    //               className={updateBtn ? "cursor-pointer text-gray-300" : "cursor-pointer"}
+    //               color="alternative"
+    //               disabled={updateBtn}
+    //               onClick={handlesubmit}
+    //             >
+    //               Update Ingredient
+    //             </Button>
+    //           </div>
+
+    //           {/* cancel button */}
+    //           <div>
+    //             <Button className="cursor-pointer" color="dark" onClick={() => navigate(-1)}>
+    //               Cancel
+    //             </Button>
+    //           </div>
+    //         </div>
+    //         {/* delete button */}
+    //         <div>
+    //           <Button className="cursor-pointer" color="red" onClick={setIsConfirmModalOpen}>
+    //             Delete
+    //           </Button>
+    //         </div>
+    //       </div>
+
+    //       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+    //     </div>
+    //     {isConfirmModalOpen && (
+    //       <ConfirmModal
+    //         isOpen={isConfirmModalOpen}
+    //         onClose={() => setIsConfirmModalOpen(false)}
+    //         onConfirm={handleDelete}
+    //         title={"Delete"}
+    //         message={`Are you sure. delete - ${capitaliseWords(ingData.name)} ?`}
+    //         OKtext={"Delete"}
+    //         OKtextIcon={HiTrash}
+    //         cancelText={"No, Are you crazy"}
+    //       />
+    //     )}
+    //   </div>
+    // </>
   );
 }
 

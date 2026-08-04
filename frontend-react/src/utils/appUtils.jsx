@@ -3,6 +3,7 @@ const serverURL = import.meta.env.VITE_API_URL;
 // console.log("serverURL :", serverURL);
 const JWTunverifiedMsg = "Invalid or Expired token from: authenticate Token"; // to check on every page if token is invalid from middleware
 const showTokenErrMsgOnScreen = "Login expired";
+
 // get the intials (mostly username) in Upper case for alternative to image of user
 const getInitials = (name) => {
   if (!name) return "";
@@ -24,24 +25,57 @@ function capitaliseWords(str) {
     .join(" ");
 }
 
-// ------------------------ function to validate INPUT for number Allowing [0123456789.] ----------------------
-function validateInput(field, value, maxDecimals, maxLength) {
+// ------------------------ function to validate Text INPUT for number Allowing [0123456789.] ----------------------
+function validateInputNumber(ogData, field, value, maxDecimals, maxLength) {
   // Define a regex for one optional decimal with up to maxDecimals digits
   const regex = new RegExp(`^\\d+(\\.\\d{0,${maxDecimals}})?$`);
 
   // Check the length
   if ((regex.test(value) || value.length === 0) && value.length <= maxLength + 1) {
     // dis allow continous zeros
-    if (ingData[field] === "0" && value === "00") {
-      return;
+    if (ogData[field] === "0" && value === "00") {
+      return ogData[field];
     }
-    // update ingData value
-    setIngData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    // // update ingData value
+    // setData((prev) => ({
+    //   ...prev,
+    //   [field]: value,
+    // }));
+    return value;
   }
+  return ogData[field];
 }
+
+// ------------------------ function to validate Text INPUT for number Allowing [0123456789.] ----------------------
+function validateInput(ogData, field, value, maxDecimals, maxLength) {
+  // Define a regex for one optional decimal with up to maxDecimals digits
+  const regex = new RegExp(`^\\d+(\\.\\d{0,${maxDecimals}})?$`);
+
+  // Check the length
+  if ((regex.test(value) || value.length === 0) && value.length <= maxLength + 1) {
+    // dis allow continous zeros
+    if (ogData[field] === "0" && value === "00") {
+      return ogData[field];
+    }
+    // // update ingData value
+    // setData((prev) => ({
+    //   ...prev,
+    //   [field]: value,
+    // }));
+    return value;
+  }
+  return ogData[field];
+}
+
+// ------------------- function to check onBlur input values and convert if number not in proper format -------------------
+function confirmInputNumber(ogData, field) {
+  if (ogData[field] === "null") {
+    ogData[field] = "";
+  }
+  const value = ogData[field] ?? "";
+  return value;
+}
+
 export {
   serverURL,
   JWTunverifiedMsg,
@@ -49,4 +83,6 @@ export {
   getInitials,
   capitaliseWords,
   validateInput,
+  validateInputNumber,
+  confirmInputNumber,
 };
