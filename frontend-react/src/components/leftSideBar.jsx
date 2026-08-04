@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, NavLink } from "react-router-dom";
 
 function LeftSideBar() {
   const navigate = new useNavigate();
@@ -18,45 +18,65 @@ function LeftSideBar() {
           <div>
             <ul className="space-y-6">
               <li>
-                <Link
+                <NavLink
                   to="/"
-                  className="block font-medium text-gray-700 hover:text-blue-400 transition duration-200"
+                  className={({ isActive }) =>
+                    `block font-medium transition duration-200 ${
+                      isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary"
+                    }`
+                  }
                 >
                   Home
-                </Link>
+                </NavLink>
               </li>
               <li>
-                <Link
+                <NavLink
                   to="/MyRecipes"
-                  className="block font-medium text-gray-700 hover:text-blue-400 transition duration-200"
+                  className={({ isActive }) =>
+                    `block font-medium transition duration-200 ${
+                      isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary "
+                    }`
+                  }
                 >
                   My Recipes
-                </Link>
+                </NavLink>
               </li>
               <li>
-                <Link
+                <NavLink
                   to="#"
-                  className="block font-medium text-gray-700 hover:text-blue-400 transition duration-200"
+                  className={({ isActive }) =>
+                    `block font-medium transition duration-200 ${
+                      isActive ? "text-gray-700" : "text-gray-700 hover:text-app-primary"
+                    }`
+                  }
                 >
                   Food Plan
-                </Link>
+                </NavLink>
               </li>
               <li>
-                <Link
+                <NavLink
                   to="/myDishes"
-                  className="block font-medium text-gray-700 hover:text-blue-400 transition duration-200"
+                  className={({ isActive }) =>
+                    `block font-medium transition duration-200 ${
+                      isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary"
+                    }`
+                  }
                 >
                   Dishes Made
-                </Link>
+                </NavLink>
               </li>
 
               <li>
-                <Link
+                <NavLink
                   to="/myIngredients"
-                  className="block font-medium text-gray-700 hover:text-blue-400 transition duration-200"
+                  className={({ isActive }) =>
+                    `block font-medium transition duration-200 ${
+                      isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary"
+                    }`
+                  }
                 >
                   My Ingredients
-                </Link>
+                </NavLink>
               </li>
             </ul>
           </div>
@@ -64,7 +84,11 @@ function LeftSideBar() {
             <div className="mb-10">
               <Link
                 to="/admin/ingredients/all"
-                className="block font-medium text-gray-700 hover:text-red-400 transition duration-200"
+                className={({ isActive }) =>
+                  `block font-medium transition duration-200 ${
+                    isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary"
+                  }`
+                }
               >
                 Admin Screen
               </Link>

@@ -3,6 +3,7 @@ import { getInitials } from "../utils/appUtils";
 import Input from "./input";
 import { useEffect, useState } from "react";
 import { GiCarrot, GiHamburgerMenu, GiSettingsKnobs } from "react-icons/gi";
+
 import {
   HiBookmark,
   HiClipboardList,
@@ -26,6 +27,7 @@ import {
   SidebarItems,
   TextInput,
 } from "flowbite-react";
+import { FaPlus } from "react-icons/fa6";
 
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user")) ?? "";
@@ -76,10 +78,10 @@ function TopBar() {
               eatReci
             </div>
 
-            {/* counter space for hamburger */}
+            {/* add new recipe + */}
             <div className="block pr-2 min-w-10 min-h-10 md:hidden">
-              <BsPlusCircleDotted
-                className="h-full w-full"
+              <FaPlus
+                className="h-full w-full text-app-primary"
                 onClick={() => navigate("/recipe/new")}
               />
             </div>

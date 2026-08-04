@@ -1132,12 +1132,12 @@ function EditRecipe() {
 
   return (
     <>
-      <div className="flex flex-col  mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar)">
+      <div className="flex flex-col mt-(--top-bar-height) md:ml-(--left-side-bar)">
         {/* line just below top bar  */}
         <div className="flex sticky z-10 h-0.5 shadow top-(--top-bar-height) bg-white"></div>
 
-        <div className="flex flex-col my-5">
-          <div className="text-xl font-bold mt-8 pl-2"> Edit Recipe Details</div>
+        <div className="flex flex-col">
+          <div className="text-xl font-bold mt-3 pl-2"> Edit Recipe Details</div>
 
           {/* Line Separator */}
           <div className="flex items-center mt-2">
@@ -1151,11 +1151,11 @@ function EditRecipe() {
               {/* recipe name section */}
               <div className="flex max-w-md">
                 {/* title of recipe name */}
-                <div className="flex px-1 items-center font-semibold justify-end w-36">Name :</div>
+                <div className="flex px-1 items-center font-semibold justify-end w-36">Name:</div>
 
                 {/* input name section */}
                 <Input
-                  className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
+                  className="flex border border-gray-300 rounded-lg bg-app-table-row placeholder:text-gray-400"
                   value={capitaliseWords(recipeInfo?.recipe?.name) ?? ""}
                   onChange={(e) => {
                     setRecipeInfo({
@@ -1176,11 +1176,11 @@ function EditRecipe() {
               <div className="flex max-w-md">
                 {/* title of portion size*/}
                 <div className="flex px-1 items-center font-semibold justify-end w-36">
-                  Portion size :
+                  Portion size:
                 </div>
                 {/* input portion section */}
                 <Input
-                  className="flex border border-gray-300 rounded-lg bg-gray-50 placeholder:text-gray-400"
+                  className="flex border border-gray-300 rounded-lg bg-app-table-row placeholder:text-gray-400"
                   value={recipeInfo?.recipe?.portion_size ?? ""}
                   onChange={(e) => {
                     setRecipeInfo((prev) => ({
@@ -1238,7 +1238,7 @@ function EditRecipe() {
             <div className="flex font-semibold justify-end w-26">Description :</div>
             <div className="mt-2">
               <Textarea
-                className="w-full h-40 bg-gray-50 border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
+                className="w-full h-40 bg-app-table-row border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
                 value={recipeInfo?.recipe?.description ?? ""}
                 onChange={(e) => {
                   setRecipeInfo({
@@ -2356,7 +2356,11 @@ function EditRecipe() {
           <div className="flex flex-col px-2">
             <div className="px-1 h-6 font-semibold text-red-500 text-sm">{errorMessage}</div>
             <div className="flex items-center justify-between my-3">
-              <Button className="cursor-pointer" color={"dark"} onClick={handleSubmit}>
+              <Button
+                className="cursor-pointer bg-app-primary"
+                color={"dark"}
+                onClick={handleSubmit}
+              >
                 Save
               </Button>
               <Button className="cursor-pointer" color={"alternative"} onClick={() => navigate(-1)}>

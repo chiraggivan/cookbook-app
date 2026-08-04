@@ -142,34 +142,36 @@ function CreateUpdateMyIngredientPage({
                 <div className="flex flex-col sm:flex-1">
                   <div className="flex items-center space-x-1">
                     <p>Price:</p>
-                    <TextInput
-                      className=" border-gray-300 rounded-lg w-26"
-                      value={ingData?.display_price ?? ""}
-                      addon="£"
-                      onChange={(e) => {
-                        setIngData((prev) => ({
-                          ...prev,
-                          display_price: validateInputNumber(
-                            ingData,
-                            "display_price",
-                            e.target.value,
-                            2,
-                            5,
-                          ),
-                          errors: { ...prev.errors, display_price: "" },
-                        }));
-                      }}
-                      onBlur={(e) => {
-                        setIngData((prev) => ({
-                          ...prev,
-                          display_price: Number(e.target.value ?? 0),
-                        }));
-                      }}
-                      error={ingData?.errors?.display_price}
-                    />
-                  </div>
-                  <div className="flex justify-end text-sm font-semibold text-red-700 h-5 ">
-                    {ingData?.errors?.display_price ? "*Required" : ""}
+                    <div className="flex flex-col">
+                      <TextInput
+                        className=" border-gray-300 rounded-lg w-26"
+                        value={ingData?.display_price ?? ""}
+                        addon="£"
+                        onChange={(e) => {
+                          setIngData((prev) => ({
+                            ...prev,
+                            display_price: validateInputNumber(
+                              ingData,
+                              "display_price",
+                              e.target.value,
+                              2,
+                              5,
+                            ),
+                            errors: { ...prev.errors, display_price: "" },
+                          }));
+                        }}
+                        onBlur={(e) => {
+                          setIngData((prev) => ({
+                            ...prev,
+                            display_price: Number(e.target.value ?? 0),
+                          }));
+                        }}
+                        error={ingData?.errors?.display_price}
+                      />
+                      <div className="flex justify-end text-sm font-semibold text-red-700 h-5 pr-2">
+                        {ingData?.errors?.display_price ? "*Required" : ""}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -268,7 +270,7 @@ function CreateUpdateMyIngredientPage({
               </div>
               {/* list of similar ing names */}
               <Textarea
-                className="w-full h-full rounded-none resize-none border-hidden text-gray-500 text-sm  lg:h-full"
+                className="w-full h-full rounded-none resize-none border-hidden text-gray-500 bg-gray-100 text-sm  lg:h-full"
                 value={existIngs}
                 placeholder=""
                 rows={6}

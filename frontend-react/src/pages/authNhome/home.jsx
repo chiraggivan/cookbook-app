@@ -76,9 +76,9 @@ function Home() {
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
 
-      <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5">
+      <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5 ">
         {/* creating grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 ">
           {data?.map((i) => (
             // for each record creating card
             <div
@@ -91,7 +91,7 @@ function Home() {
                 onClick={() => navigate(`/recipe/${i.recipe_id}`)}
               ></div>
 
-              <div className=" flex">
+              <div className=" flex rounded-b-3xl">
                 <div className="px-1 py-2">
                   <div
                     className="p-2 flex aspect-square w-10 h-10 rounded-full bg-amber-200 items-center justify-center"

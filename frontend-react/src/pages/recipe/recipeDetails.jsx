@@ -14,7 +14,7 @@ import ConfirmModal from "../../components/confirmModal";
 import DishesModal from "../../components/dishesModal";
 import { capitaliseWords } from "../../utils/appUtils";
 import { Alert, ToggleSwitch, TabItem, Tabs, Button } from "flowbite-react";
-
+import { SlOptionsVertical } from "react-icons/sl";
 import { HiTrash, HiClipboardList } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdOutlineEditNote } from "react-icons/md";
@@ -303,13 +303,15 @@ function RecipeDetails() {
       compIngs.forEach((i, index) => {
         recipeRows.push(
           <div
-            className={index % 2 === 0 ? "flex w-full text-md " : "flex w-full text-md bg-gray-200"}
+            className={
+              index % 2 === 0 ? "flex w-full text-md " : "flex w-full text-md bg-app-table-row"
+            }
             key={i.ingredient_display_order}
           >
             <div className="flex w-full">
-              <div className="min-w-10 text-end pl-1 ">{i.quantity}</div>
-              <div className="min-w-10 pl-1">{i.unit_name}</div>
-              <div className="flex-1 pl-1">
+              <div className="min-w-10 text-end pl-1 pt-1 ">{i.quantity}</div>
+              <div className="min-w-10 pl-1 pt-1">{i.unit_name}</div>
+              <div className="flex-1 pl-1 pt-1">
                 {i.ingredient_source === "main"
                   ? capitaliseWords(i.name)
                   : capitaliseWords(i.name) + "*"}
@@ -360,14 +362,20 @@ function RecipeDetails() {
     <div>
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
-      <div className="flex flex-col mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
+      <div className="flex flex-col mt-(--top-bar-height) md:ml-(--left-side-bar)">
         <div className="flex flex-col  mt-1">
           {/* Recipe Name header & recipe by */}
           <div className="flex flex-col relative">
             <div
-              className="flex mx-auto p-2 max-w-sm text-center font-extrabold text-3xl 
+              className={
+                isRecipeOwner
+                  ? `flex mx-auto px-6 max-w-sm text-center font-extrabold text-3xl 
                               md:text-4xl md:max-w-lg
-                              lg:text-5xl lg:max-w-xl"
+                              lg:text-5xl lg:max-w-xl`
+                  : `flex mx-auto px-6 pb-6 max-w-sm text-center font-extrabold text-3xl 
+                              md:text-4xl md:max-w-lg
+                              lg:text-5xl lg:max-w-xl`
+              }
             >
               {capitaliseWords(foundRecipeDetails?.recipe.name)}
             </div>
@@ -377,6 +385,13 @@ function RecipeDetails() {
               <div className="absolute flex space-x-2 right-3 bottom-0">
                 <div className="font-semibold">By :</div>
                 <p>{foundRecipeDetails?.recipe.user_id}</p>
+              </div>
+            )}
+
+            {/* show triple option for delete recipe for owner */}
+            {isRecipeOwner === true && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-app-primary scale-125 ">
+                <SlOptionsVertical />
               </div>
             )}
           </div>
@@ -505,8 +520,8 @@ function RecipeDetails() {
               {/* Create edit button */}
               <div className="">
                 <Button
-                  className="cursor-pointer"
-                  color="light"
+                  className="cursor-pointer bg-app-primary"
+                  // color="light"
                   onClick={() => navigate(`/recipe/edit/${id}`)}
                 >
                   <MdOutlineEditNote className="mr-2 w-5 h-5" />

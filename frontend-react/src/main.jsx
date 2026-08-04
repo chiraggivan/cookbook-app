@@ -9,6 +9,7 @@ import { DishProvider } from "./context/dishContext.jsx";
 import { MyIngredientProvider } from "./context/myIngredientContext.jsx";
 import { MyRecipeProvider } from "./context/myRecipeContext.jsx";
 import { google_client_id } from "./config.js";
+import "@fontsource/inter";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

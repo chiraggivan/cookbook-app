@@ -1,11 +1,23 @@
 @import "tailwindcss";
 @import "flowbite";
+@theme {
+  --color-page-background: #9ade7b;
+  --color-app-primary: #68ba52;
+  --color-app-table-row: #e1ffd9;
+  --color-app-secondary: #9ade7b;
+  --color-app-danger: #9ade7b;
+  --color-app-border: #9ade7b;
+  --color-app-text: #9ade7b;
+}
 
 body {
   /* max-width: 1100px; */
   margin: 0 0;
   padding: 0 0;
   scrollbar-gutter: stable;
+  font-family:
+    inter,
+    sans serif;
 }
 
 /* html {
