@@ -363,7 +363,7 @@ function RecipeDetails() {
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
       <div className="flex flex-col mt-(--top-bar-height) md:ml-(--left-side-bar)">
-        <div className="flex flex-col  mt-1">
+        <div className="flex flex-col mt-1 w-full max-w-5xl lg:mx-auto">
           {/* Recipe Name header & recipe by */}
           <div className="flex flex-col relative">
             <div
@@ -401,63 +401,75 @@ function RecipeDetails() {
           </div>
 
           {/* Recipe Details and image */}
-          <div className="flex  flex-col-reverse lg:max-h-60 lg:flex-row">
+          <div className="flex  flex-col-reverse mt-2 lg:max-h-60 lg:flex-row">
             {/* recipe details */}
             <div
-              className="flex flex-col px-3 text-sm
-                        md:text-xl md:w-3/5 lg:space-y-3  
-                        lg:text-2xl"
+              className="flex flex-col px-2 text-sm my-auto
+                        md:text-md lg:w-3/5 lg:space-y-3  
+                        lg:text-lg"
             >
-              <div className="flex space-x-2">
+              {/* Portion size field */}
+              <div className="flex space-x-2 mt-2">
                 <div className="font-semibold">Portion Size:</div>
                 <div> {foundRecipeDetails?.recipe.portion_size}</div>
               </div>
 
-              {/* toggle switch for private recipe */}
-              {isRecipeOwner === true && (
-                <div className="flex">
-                  <div>
-                    {!changePrvcyLoading && (
-                      <Toggle
-                        title=""
-                        checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-                        onText="Private"
-                        offText="Private"
-                        onChange={(e) => {
-                          setChangePrvcyLoading(true);
-                          setRecipeDetails((prev) =>
-                            prev.map((item) =>
-                              item.recipe.recipe_id === Number(id)
-                                ? {
-                                    ...item,
-                                    recipe: {
-                                      ...item.recipe,
-                                      privacy: e.target.checked ? "private" : "public",
-                                    },
-                                  }
-                                : item,
-                            ),
-                          );
-                          changePrivacy(e.target.checked ? "private" : "public");
-                          setChangePrvcyLoading(false);
-                        }}
-                      />
-                    )}
-                    {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+              {/* toggle switch for private recipe and Cost of recipe */}
+              <div className="flex justify-between mt-2">
+                {/* toggle switch for private recipe */}
+                {isRecipeOwner === true && (
+                  <div className="flex">
+                    <div>
+                      {!changePrvcyLoading && (
+                        <Toggle
+                          title=""
+                          checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
+                          onText="Private"
+                          offText="Private"
+                          onChange={(e) => {
+                            setChangePrvcyLoading(true);
+                            setRecipeDetails((prev) =>
+                              prev.map((item) =>
+                                item.recipe.recipe_id === Number(id)
+                                  ? {
+                                      ...item,
+                                      recipe: {
+                                        ...item.recipe,
+                                        privacy: e.target.checked ? "private" : "public",
+                                      },
+                                    }
+                                  : item,
+                              ),
+                            );
+                            changePrivacy(e.target.checked ? "private" : "public");
+                            setChangePrvcyLoading(false);
+                          }}
+                        />
+                      )}
+                      {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* cost of recipe */}
-              <div className="flex space-x-2">
-                <div className="font-semibold">Costing :</div>
-                <p>£ {totalCost}</p>
+                {/* if not owner then - recipe creator's name */}
+                {!isRecipeOwner && (
+                  <div className="flex space-x-2">
+                    <div className="font-semibold">Recipe By :</div>
+                    <p>{foundRecipeDetails?.recipe.user_id}</p>
+                  </div>
+                )}
+
+                {/* cost of recipe */}
+                <div className="flex space-x-2">
+                  <div className="font-semibold">Costing :</div>
+                  <p>£ {totalCost}</p>
+                </div>
               </div>
 
               {/* if Owner - Last prepared & create dish*/}
               {isRecipeOwner && (
-                <>
-                  <div className="flex space-x-2">
+                <div className="flex justify-between mt-4">
+                  <div className="flex flex-col space-x-2">
                     <div className="font-semibold">Last Prepared on :</div>
                     <p>
                       {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
@@ -489,28 +501,20 @@ function RecipeDetails() {
                       </Button>
                     </div>
                   </div>
-                </>
-              )}
-
-              {/* if not owner then - recipe creator's name */}
-              {!isRecipeOwner && (
-                <div className="flex space-x-2">
-                  <div className="font-semibold">Recipe By :</div>
-                  <p>{foundRecipeDetails?.recipe.user_id}</p>
                 </div>
               )}
             </div>
 
             {/* recipe image */}
-            <div className="flex md:w-2/5 h-60 items-center justify-center bg-gray-200 ">
+            <div className="flex h-60 items-center justify-center rounded-md bg-gray-200  md:w-2/5 md:mr-2">
               <GiHotMeal className="h-[80%] w-[80%] " />
             </div>
           </div>
 
           {/* description of recipe */}
           <div
-            className="flex  max-w-xl px-3 mb-3 text-sm 
-                          md:text-xl lg:text-2xl"
+            className="flex  max-w-xl px-2 mt-2 text-sm 
+                          md:text-md lg:text-lg"
           >
             <div>
               <span className="font-semibold">Description: </span>{" "}
@@ -520,7 +524,7 @@ function RecipeDetails() {
 
           {/* Buttons for owner */}
           {isRecipeOwner && (
-            <div className="flex justify-between p-3">
+            <div className="flex justify-between p-2">
               {/* Create edit button */}
               <div className="">
                 <Button
@@ -548,7 +552,22 @@ function RecipeDetails() {
           )}
 
           {/* tabs option of flowbite for smaller screen below lg */}
-          <Tabs className="flex lg:hidden" aria-label="Tabs with icons" variant="fullWidth">
+          <Tabs
+            theme={{
+              tablist: {
+                tabitem: {
+                  variant: {
+                    fullWidth: {
+                      active: { on: "bg-app-primary text-white", off: "hover:bg-app-table-row" },
+                    },
+                  },
+                },
+              },
+            }}
+            className="flex lg:hidden"
+            aria-label="Tabs with icons"
+            variant="fullWidth"
+          >
             {/* Ingredients */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
               <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
@@ -578,7 +597,22 @@ function RecipeDetails() {
 
           {/* tabs option of flowbite for screen bigger than lg */}
           <div className="hidden lg:block">
-            <Tabs className="flex" aria-label="Tabs with icons" variant="fullWidth">
+            <Tabs
+              theme={{
+                tablist: {
+                  tabitem: {
+                    variant: {
+                      fullWidth: {
+                        active: { on: "bg-app-primary text-white", off: "hover:bg-app-table-row" },
+                      },
+                    },
+                  },
+                },
+              }}
+              className="flex"
+              aria-label="Tabs with icons"
+              variant="fullWidth"
+            >
               {/* Ingredients */}
               <TabItem active title="Ingredients" icon={GiAvocado}>
                 <div className="flex">

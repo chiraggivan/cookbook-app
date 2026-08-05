@@ -1145,7 +1145,7 @@ function EditRecipe() {
           </div>
 
           {/* recipe details and image */}
-          <div className=" mt-2 border rounded-lg m-1 border-app-primary md:border-none">
+          <div className=" mt-2 border-2 rounded-xl m-1 border-app-primary md:border-none">
             <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between">
               {/* recipe details */}
               <div className="flex flex-col justify-between h-40">
@@ -1210,7 +1210,7 @@ function EditRecipe() {
                 <div className="flex max-w-md">
                   {/* title of privacy*/}
                   <div className="flex px-1 items-center font-semibold justify-end w-28">
-                    Privacy :
+                    Privacy:
                   </div>
 
                   {/* Toggle for privacy*/}
@@ -1233,14 +1233,14 @@ function EditRecipe() {
               </div>
 
               {/* image */}
-              <div className="max-w-full h-40 rounded-t-lg md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
+              <div className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
                 <GiHotMeal className="h-full w-full" />
               </div>
             </div>
 
             {/* recipe description */}
             <div className="flex flex-col mt-5">
-              <div className="flex font-semibold justify-end w-27">Description :</div>
+              <div className="flex font-semibold justify-end w-27">Description:</div>
               <div className="mx-1.75">
                 <Textarea
                   className="w-full h-40 border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
@@ -1756,7 +1756,7 @@ function EditRecipe() {
 
             {/* Recipe steps */}
             <TabItem title="Steps" icon={TbFoodsteps}>
-              <div className="min-h-[calc(100vh-200px)]">
+              <div className="min-h-[calc(100vh-100px)]">
                 {/* steps list */}
                 <div className="flex flex-col">
                   {/* steps header row */}

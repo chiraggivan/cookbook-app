@@ -1099,7 +1099,7 @@ function NewRecipe() {
           </div>
 
           {/* recipe details and image */}
-          <div className=" mt-2 border rounded-lg m-1 border-app-primary md:border-none">
+          <div className=" mt-2 border-2 rounded-xl m-1 border-app-primary md:border-none">
             <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between">
               {/* recipe details */}
               <div className="flex flex-col justify-between h-40">
@@ -1173,7 +1173,7 @@ function NewRecipe() {
               </div>
 
               {/* image */}
-              <div className="max-w-full h-40 rounded-t-lg md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
+              <div className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
                 <GiHotMeal className="h-full w-full" />
               </div>
             </div>
