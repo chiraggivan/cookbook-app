@@ -401,74 +401,64 @@ function RecipeDetails() {
           </div>
 
           {/* Recipe Details and image */}
-          <div className="flex  flex-col-reverse mt-2 lg:max-h-60 lg:flex-row">
+          <div className="flex  flex-col-reverse mt-2 lg:max-h-60 lg:flex-row lg:w-full lg:justify-between">
             {/* recipe details */}
-            <div
-              className="flex flex-col px-2 text-sm my-auto
-                        md:text-md lg:w-3/5 lg:space-y-3  
-                        lg:text-lg"
-            >
-              {/* Portion size field */}
-              <div className="flex space-x-2 mt-2">
-                <div className="font-semibold">Portion Size:</div>
-                <div> {foundRecipeDetails?.recipe.portion_size}</div>
-              </div>
+            <div className="flex flex-col w-full justify-center lg:max-w-lg">
+              {/* portion-size, privacy and cost */}
+              <div className="flex w-full justify-between px-2">
+                {/* portion size and privacy if owner */}
+                <div className="flex flex-col space-y-2">
+                  {/* Portion size field */}
+                  <div className="flex space-x-2 mt-2">
+                    <div className="font-semibold">Portion:</div>
+                    <div> {foundRecipeDetails?.recipe.portion_size}</div>
+                  </div>
 
-              {/* toggle switch for private recipe and Cost of recipe */}
-              <div className="flex justify-between mt-2">
-                {/* toggle switch for private recipe */}
-                {isRecipeOwner === true && (
-                  <div className="flex">
-                    <div>
-                      {!changePrvcyLoading && (
-                        <Toggle
-                          title=""
-                          checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-                          onText="Private"
-                          offText="Private"
-                          onChange={(e) => {
-                            setChangePrvcyLoading(true);
-                            setRecipeDetails((prev) =>
-                              prev.map((item) =>
-                                item.recipe.recipe_id === Number(id)
-                                  ? {
-                                      ...item,
-                                      recipe: {
-                                        ...item.recipe,
-                                        privacy: e.target.checked ? "private" : "public",
-                                      },
-                                    }
-                                  : item,
-                              ),
-                            );
-                            changePrivacy(e.target.checked ? "private" : "public");
-                            setChangePrvcyLoading(false);
-                          }}
-                        />
-                      )}
-                      {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                  {/* toggle switch for private recipe */}
+                  {isRecipeOwner === true && (
+                    <div className="flex">
+                      <div>
+                        {!changePrvcyLoading && (
+                          <Toggle
+                            title=""
+                            checked={
+                              foundRecipeDetails?.recipe.privacy === "private" ? true : false
+                            }
+                            onText="Private"
+                            offText="Private"
+                            onChange={(e) => {
+                              setChangePrvcyLoading(true);
+                              setRecipeDetails((prev) =>
+                                prev.map((item) =>
+                                  item.recipe.recipe_id === Number(id)
+                                    ? {
+                                        ...item,
+                                        recipe: {
+                                          ...item.recipe,
+                                          privacy: e.target.checked ? "private" : "public",
+                                        },
+                                      }
+                                    : item,
+                                ),
+                              );
+                              changePrivacy(e.target.checked ? "private" : "public");
+                              setChangePrvcyLoading(false);
+                            }}
+                          />
+                        )}
+                        {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* if not owner then - recipe creator's name */}
-                {!isRecipeOwner && (
-                  <div className="flex space-x-2">
-                    <div className="font-semibold">Recipe By :</div>
-                    <p>{foundRecipeDetails?.recipe.user_id}</p>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* cost of recipe */}
-                <div className="flex space-x-2">
-                  <div className="font-semibold">Costing :</div>
-                  <p>£ {totalCost}</p>
-                </div>
+                <div className="flex items-end text-3xl">£ {totalCost}</div>
               </div>
 
               {/* if Owner - Last prepared & create dish*/}
               {isRecipeOwner && (
-                <div className="flex justify-between mt-4">
+                <div className="flex justify-between mt-2 px-2">
                   <div className="flex flex-col space-x-2">
                     <div className="font-semibold">Last Prepared on :</div>
                     <p>
@@ -528,7 +518,7 @@ function RecipeDetails() {
               {/* Create edit button */}
               <div className="">
                 <Button
-                  className="cursor-pointer bg-app-primary"
+                  className="cursor-pointer bg-app-secondary"
                   // color="light"
                   onClick={() => navigate(`/recipe/edit/${id}`)}
                 >
