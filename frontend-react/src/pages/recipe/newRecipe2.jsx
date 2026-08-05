@@ -1092,119 +1092,142 @@ function NewRecipe() {
         <div className="flex sticky z-10 h-0.5 shadow top-(--top-bar-height) bg-white"></div>
 
         <div className="flex flex-col">
-          <div className="text-xl font-bold mt-3 pl-2"> New Recipe Details</div>
+          <div className="text-lg font-bold mt-3 pl-2"> New Recipe Details</div>
           {/* Line Separator */}
           <div className="flex items-center mt-2">
             <div className="grow border-t border-gray-300"></div>
           </div>
 
           {/* recipe details and image */}
-          <div className="flex flex-col-reverse w-full gap-3 mt-2 md:flex-row md:justify-between">
-            {/* recipe details */}
-            <div className="flex flex-col justify-between h-40">
-              {/* recipe name section */}
-              <div className="flex max-w-md">
-                {/* title of recipe name */}
-                <div className="flex px-1 items-center font-semibold justify-end w-36">Name:</div>
-                {/* input section */}
+          <div className=" mt-2 border rounded-lg m-1 border-app-primary md:border-none">
+            <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between">
+              {/* recipe details */}
+              <div className="flex flex-col justify-between h-40">
+                {/* recipe name section */}
+                <div className="flex max-w-md">
+                  {/* title of recipe name */}
+                  <div className="flex px-1 items-center font-semibold justify-end w-28">Name:</div>
 
-                <Input
-                  className="flex border border-gray-300 rounded-lg bg-app-table-row placeholder:text-gray-400"
-                  value={capitaliseWords(recipeInfo?.name) ?? ""}
-                  onChange={(e) => {
-                    setRecipeInfo((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                      error_name: "",
-                    }));
-                  }}
-                  placeholder={"Name of the recipe...."}
-                  error={recipeInfo?.error_name}
-                />
+                  {/* input name section */}
+                  <div className="mr-1.75">
+                    <Input
+                      className="flex border border-gray-300 rounded-lg w-full min-w-25 placeholder:text-gray-400"
+                      value={capitaliseWords(recipeInfo?.name) ?? ""}
+                      onChange={(e) => {
+                        setRecipeInfo((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                          error_name: "",
+                        }));
+                      }}
+                      placeholder={"Name of the recipe...."}
+                      error={recipeInfo?.error_name}
+                    />
+                  </div>
+                </div>
+
+                {/* recipe portion size section */}
+                <div className="flex max-w-md">
+                  {/* title of portion size*/}
+                  <div className="flex px-1 items-center font-semibold justify-end w-28 min-w-28">
+                    Portion Size:
+                  </div>
+                  {/* input portion section */}
+                  <div className="mr-1.75">
+                    <Input
+                      className="flex border border-gray-300 rounded-lg w-full min-w-25 placeholder:text-gray-400"
+                      value={capitaliseWords(recipeInfo?.portion_size) ?? ""}
+                      onChange={(e) => {
+                        setRecipeInfo((prev) => ({
+                          ...prev,
+                          portion_size: e.target.value,
+                          error_portion_size: "",
+                        }));
+                      }}
+                      placeholder={"eg. 2 person, 1kg, 750ml, etc."}
+                      error={recipeInfo?.error_portion_size}
+                    />
+                  </div>
+                </div>
+
+                {/* recipe Privacy section */}
+                <div className="flex max-w-md">
+                  {/* title of privacy*/}
+                  <div className="flex px-1 items-center font-semibold justify-end w-28">
+                    Privacy:
+                  </div>
+                  {/* Toggle for privacy*/}
+                  <Toggle
+                    checked={isPrivate}
+                    onText=" Private"
+                    offText=" Public"
+                    onChange={(e) => {
+                      setIsPrivate(e.target.checked);
+                      setRecipeInfo({
+                        ...recipeInfo,
+                        privacy: e.target.checked === true ? "private" : "public",
+                      });
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* recipe portion size section */}
-              <div className="flex max-w-md">
-                {/* title of portion size*/}
-                <div className="flex px-1 items-center font-semibold justify-end w-36">
-                  Portion size:
-                </div>
-                {/* input portion section */}
-                <Input
-                  className="flex border border-gray-300 rounded-lg bg-app-table-row placeholder:text-gray-400"
-                  value={capitaliseWords(recipeInfo?.portion_size) ?? ""}
-                  onChange={(e) => {
-                    setRecipeInfo((prev) => ({
-                      ...prev,
-                      portion_size: e.target.value,
-                      error_portion_size: "",
-                    }));
-                  }}
-                  placeholder={"eg. 2 person, 1kg, 750ml, etc."}
-                  error={recipeInfo?.error_portion_size}
-                />
+              {/* image */}
+              <div className="max-w-full h-40 rounded-t-lg md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
+                <GiHotMeal className="h-full w-full" />
               </div>
+            </div>
 
-              {/* recipe Privacy section */}
-              <div className="flex max-w-md">
-                {/* title of privacy*/}
-                <div className="flex px-1 items-center font-semibold justify-end w-26">
-                  Privacy :
-                </div>
-                {/* Toggle for privacy*/}
-                <Toggle
-                  checked={isPrivate}
-                  onText=" Private"
-                  offText=" Public"
+            {/* recipe description */}
+            <div className="flex flex-col mt-5">
+              <div className="flex font-semibold justify-end mb-2 w-27">Description:</div>
+              <div className="mx-1.75">
+                <Textarea
+                  className="w-full h-40 border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
+                  value={recipeInfo?.recipe?.description ?? ""}
                   onChange={(e) => {
-                    setIsPrivate(e.target.checked);
                     setRecipeInfo({
                       ...recipeInfo,
-                      privacy: e.target.checked === true ? "private" : "public",
+                      recipe: { ...recipeInfo.recipe, description: e.target.value },
                     });
+                    if (checkFinalData?.recipe?.description) {
+                      checkFinalData.recipe.description = "";
+                    }
                   }}
+                  placeholder="description of your recipe..."
+                  error={checkFinalData?.recipe?.description}
                 />
               </div>
             </div>
-
-            {/* image */}
-            <div className="mx-auto max-w-70 h-40 md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
-              <GiHotMeal className="h-full w-full" />
-            </div>
-          </div>
-
-          {/* recipe description */}
-          <div className="flex flex-col mt-5">
-            <div className="flex font-semibold justify-end mb-2 w-26">Description:</div>
-            <Textarea
-              className="w-full h-40 bg-app-table-row border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
-              value={recipeInfo?.recipe?.description ?? ""}
-              onChange={(e) => {
-                setRecipeInfo({
-                  ...recipeInfo,
-                  recipe: { ...recipeInfo.recipe, description: e.target.value },
-                });
-                if (checkFinalData?.recipe?.description) {
-                  checkFinalData.recipe.description = "";
-                }
-              }}
-              placeholder="description of your recipe..."
-              error={checkFinalData?.recipe?.description}
-            />
           </div>
 
           {/* tabs option of flowbite for smaller screen below lg */}
-          <Tabs className="flex" aria-label="Tabs with icons" variant="fullWidth">
+          <Tabs
+            theme={{
+              tablist: {
+                tabitem: {
+                  variant: {
+                    fullWidth: {
+                      active: { on: "bg-app-primary text-white", off: "hover:bg-app-table-row" },
+                    },
+                  },
+                },
+              },
+            }}
+            className="flex"
+            aria-label="Tabs with icons"
+            variant="fullWidth"
+          >
             {/* Ingredients */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
               {/* button to add first heading and Total cost of recipe*/}
-              <div className="flex items-center justify-between h-10">
+              <div className="flex items-center justify-between h-10 p-1">
                 <div>
                   {!showTopRow && (
                     <div className="">
                       <Button
-                        className="cursor-pointer rounded-full"
-                        color="light"
+                        className="cursor-pointer bg-app-secondary rounded-full"
+                        // color="light"
                         onClick={() => setShowTopRow(true)}
                       >
                         Add Top Header
@@ -1220,12 +1243,15 @@ function NewRecipe() {
                 </div>
               </div>
 
+              {/* ingredients table */}
               <div className="overflow-x-auto">
                 {/* ingredients list */}
-                <div className="flex flex-col min-w-105">
+                <div className="flex flex-col min-w-107 px-0.5">
                   {/* Ingredients table header */}
                   <div className="flex w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
-                    <div className="flex w-6 sm:min-w-10 items-center justify-center">No.</div>
+                    <div className="flex w-6 sm:min-w-10 items-center justify-center pl-0.5">
+                      No.
+                    </div>
                     <div className="flex min-w-15 items-center justify-center">Move</div>
                     <div className="flex flex-6 items-center">
                       <div className="flex flex-8 justify-center ">Name</div>
@@ -1621,10 +1647,10 @@ function NewRecipe() {
               </div>
 
               {/* button for adding new heading at the bottom */}
-              <div className="my-3">
+              <div className="my-3 pl-1">
                 <Button
-                  className="cursor-pointer rounded-full"
-                  color="light"
+                  className="cursor-pointer bg-app-secondary rounded-full"
+                  // color="light"
                   onClick={() => {
                     setSections((prev) => [...prev, emptySectionData()]);
                   }}
@@ -1739,7 +1765,9 @@ function NewRecipe() {
 
           {/* button for save and cancel at the bottom  along with global errorMessage div */}
           <div className="flex flex-col">
-            <div className="px-1 mt-2 h-6 font-semibold text-red-500 text-sm">{errorMessage}</div>
+            <div className="px-1 mt-2 h-6 font-semibold text-app-danger text-xs sm:text-sm">
+              {errorMessage}
+            </div>
             <div className="flex items-center justify-between m-2">
               <Button
                 className="cursor-pointer bg-app-primary"

@@ -369,12 +369,12 @@ function RecipeDetails() {
             <div
               className={
                 isRecipeOwner
-                  ? `flex mx-auto px-6 max-w-sm text-center font-extrabold text-3xl 
-                              md:text-4xl md:max-w-lg
-                              lg:text-5xl lg:max-w-xl`
-                  : `flex mx-auto px-6 pb-6 max-w-sm text-center font-extrabold text-3xl 
-                              md:text-4xl md:max-w-lg
-                              lg:text-5xl lg:max-w-xl`
+                  ? `flex pl-2 pr-6 max-w-sm font-extrabold text-xl 
+                              md:text-2xl md:max-w-lg
+                              lg:text-3xl lg:max-w-xl`
+                  : `flex pl-2 pr-6 pb-6 max-w-sm font-extrabold text-xl 
+                              md:text-2xl md:max-w-lg
+                              lg:text-3xl lg:max-w-xl`
               }
             >
               {capitaliseWords(foundRecipeDetails?.recipe.name)}
@@ -390,7 +390,11 @@ function RecipeDetails() {
 
             {/* show triple option for delete recipe for owner */}
             {isRecipeOwner === true && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-app-primary scale-125 ">
+              <div className="absolute right-2 top-1 text-app-primary scale-125 ">
+                {
+                  // top-1/2 -translate-y-1/2
+                }
+
                 <SlOptionsVertical />
               </div>
             )}
