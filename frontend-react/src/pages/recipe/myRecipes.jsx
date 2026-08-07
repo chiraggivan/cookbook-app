@@ -186,7 +186,7 @@ function MyRecipes() {
                 ) : (
                   <img
                     className="h-full w-full md:rounded-md"
-                    src={serverURL + imageBaseURL + i?.image_url}
+                    src={i?.image_url}
                     alt="Recipe Image"
                     onError={() => handleImageError(i.recipe_id)}
                   />

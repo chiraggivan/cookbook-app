@@ -38,7 +38,22 @@ router.patch("/update/:recipeId", authenticateToken, updateRecipeController.upda
 router.post(
   "/updateRecipeImage/:recipeId",
   authenticateToken,
-  upload.single("image"),
+  (req, res, next) => {
+    upload.single("image")(req, res, function (err) {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(400).json({
+            message: "Image size should not exceed 5 MB",
+          });
+        }
+        return res.status(400).json({
+          message: err.message,
+        });
+      }
+
+      next();
+    });
+  },
   updateRecipeController.update_recipe_image,
 );
 

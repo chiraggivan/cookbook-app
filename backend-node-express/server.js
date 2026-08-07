@@ -1,9 +1,12 @@
 const dotenv = require("dotenv");
 dotenv.config();
 
+const cloudinary = require("./src/config/cloudinary");
+
 const app = require("./src/app.js");
 
 const db = require("./src/config/database.js");
+const { cloudinary_js_config } = require("./src/config/cloudinary.js");
 
 const PORT = process.env.PORT || 5001;
 

@@ -7,6 +7,8 @@ const {
   validateRecipeIngredientForUpdate,
 } = require("./utils/updateRecipeUtils");
 
+const { uploadToCloudinary } = require("../../config/cloudinary");
+
 // get recipe details but also make sure owner is logged in
 exports.get_recipe_details_for_update = async (req, res) => {
   try {
@@ -180,19 +182,37 @@ exports.update_privacy = async (req, res) => {
 
 // update recipe image
 exports.update_recipe_image = async (req, res) => {
-  console.log("USER:", req.user);
+  // console.log("USER:", req.user);
+  // console.log("FILE:", req.file);
 
-  console.log("FILE:", req.file);
+  // check if file is received here in controller
+  if (!req.file) {
+    res.status(400).json({
+      success: false,
+      message: "No image was uploaded",
+    });
+  }
 
-  const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-  const recipeId = req.params.recipeId;
-
-  // ------------------------------------ enter in db the value of file name in recipe table for column image_url ------------------------------------
   try {
-    const res = await db.query(
-      `UPDATE recipes SET image_url = ? WHERE recipe_id = ? AND user_id = ?`,
-      [req.file.filename, recipeId, user.id],
-    );
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const recipeId = req.params.recipeId;
+    const image_url = cloudinaryResult.secure_url;
+    const storage_key = cloudinaryResult.public_id;
+
+    // ------------------------------------ enter in db the value of file name in recipe table for column image_url ------------------------------------
+    if (user && recipeId && image_url && storage_key) {
+      const res = await db.query(
+        `UPDATE recipes SET image_url = ?, storage_key = ? WHERE recipe_id = ? AND user_id = ?`,
+        [image_url, storage_key, recipeId, user.id],
+      );
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong while updating image.",
+      });
+    }
   } catch (err) {
     console.log("error while updating recipe image in db", err.response);
     res.status(500).json({

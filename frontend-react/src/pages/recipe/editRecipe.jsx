@@ -107,7 +107,7 @@ function EditRecipe() {
   // -------------------------------------------- Handle image Cange  --------------------------------------------
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    console.log("file is :", file);
+    // console.log("file is :", file);
     if (!file) return;
 
     const imageUrl = URL.createObjectURL(file);
@@ -124,10 +124,11 @@ function EditRecipe() {
           formData,
           config,
         );
-        // console.log("url :", res?.data?.file?.path);
-        setImageURL(res?.data?.file?.path);
+        console.log("url :", res);
+        // setImageURL(res?.data?.file?.path);
       } catch (err) {
         console.log("Error while sending image file:", err.response);
+        setPreviewImage(null);
       }
     };
     sendImage();
@@ -200,7 +201,7 @@ function EditRecipe() {
         const recipeData = { ...tempRecipe.recipe };
         // updating previewImage use state if recipe iamge available
         if (recipeData?.image_url) {
-          setPreviewImage(serverURL + imageBaseURL + recipeData?.image_url);
+          setPreviewImage(recipeData?.image_url);
         }
         setRecipeInfo((prev) => ({ ...prev, recipe: { ...tempRecipe.recipe } }));
         const components = [];
@@ -1298,7 +1299,7 @@ function EditRecipe() {
                 className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
                 onClick={handleImagePicker}
               >
-                {!imageError ? (
+                {previewImage && !imageError ? (
                   <img
                     src={previewImage}
                     alt="Preview"

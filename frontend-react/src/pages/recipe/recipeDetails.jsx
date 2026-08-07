@@ -361,10 +361,7 @@ function RecipeDetails() {
   // console.log("isDishModalOpen : ", isDishModalOpen);
   // console.log("isRecipeOwner :", isRecipeOwner);
   // console.log("recipeData : ", state?.recipeData);
-  console.log(
-    "image url for src :",
-    serverURL + imageBaseURL + foundRecipeDetails?.recipe?.image_url,
-  );
+  console.log("image url for src :", foundRecipeDetails?.recipe?.image_url);
   console.log("imageError is:", imageError);
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
@@ -534,10 +531,10 @@ function RecipeDetails() {
 
             {/* recipe image */}
             <div className="flex w-full h-60 sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
-              {!imageError ? (
+              {foundRecipeDetails?.recipe?.image_url && !imageError ? (
                 <img
                   className="h-full w-full md:rounded-md"
-                  src={serverURL + imageBaseURL + foundRecipeDetails?.recipe?.image_url}
+                  src={foundRecipeDetails?.recipe?.image_url}
                   alt="Recipe Image"
                   onError={() => setImageError(true)}
                 />
