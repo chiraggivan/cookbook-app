@@ -81,7 +81,12 @@ function Home() {
   if (isLoading) {
     return (
       <div className="flex w-full h-screen items-center justify-center">
-        <Spinner color="purple" aria-label="Extra large spinner example" size="xl" />
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
       </div>
     );
   }

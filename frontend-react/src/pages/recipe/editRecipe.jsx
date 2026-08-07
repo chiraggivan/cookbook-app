@@ -18,7 +18,7 @@ import { getFinalDataForBackend } from "./editRecipeUtils/getFinalDataForBackend
 import OnDataChange from "../../utils/submitButtonActivation";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import TopBar from "../../components/topBar";
-import { Button, TabItem, Tabs, TextInput } from "flowbite-react";
+import { Button, Progress, Spinner, TabItem, Tabs, TextInput } from "flowbite-react";
 import { GiAvocado, GiHotMeal, GiHotSpices } from "react-icons/gi";
 import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 import { HiTrash } from "react-icons/hi";
@@ -31,7 +31,7 @@ function EditRecipe() {
   const [isPrivate, setIsPrivate] = useState(false);
   const recipeCosting = useRef(0);
   const [errorMessage, setErrorMessage] = useState("");
-  const [fetchLoading, setFetchLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [suggestedIng, setSuggestedIng] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   // const [rowData, setRowData] = useState([]);
@@ -86,6 +86,9 @@ function EditRecipe() {
   const [imageURL, setImageURL] = useState("");
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
+  const [imgErrMsg, setImgErrMsg] = useState("");
+  const [imgUploadSuccessMsg, setImgUploadSuccessMsg] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -101,6 +104,8 @@ function EditRecipe() {
 
   // ------------------------------------- Handle image picker function ------------------------------------
   const handleImagePicker = () => {
+    setImgErrMsg("");
+    setImgUploadSuccessMsg("");
     fileInputRef.current?.click();
   };
 
@@ -109,6 +114,20 @@ function EditRecipe() {
     const file = e.target.files[0];
     // console.log("file is :", file);
     if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    const maxSize = 6 * 1024 * 1024; // 5 MB
+
+    if (!allowedTypes.includes(file.type)) {
+      setImgErrMsg("Only images and videos are allowed.");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      setImgErrMsg("File must be less than 6 MB.");
+      return;
+    }
 
     const imageUrl = URL.createObjectURL(file);
     // console.log("imageUrl", imageUrl);
@@ -119,12 +138,16 @@ function EditRecipe() {
 
     const sendImage = async () => {
       try {
-        const res = await axios.post(
-          `${serverURL}/recipe/api/updateRecipeImage/${id}`,
-          formData,
-          config,
-        );
-        console.log("url :", res);
+        const res = await axios.post(`${serverURL}/recipe/api/updateRecipeImage/${id}`, formData, {
+          ...config,
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+
+            setUploadProgress(percent);
+          },
+        });
+        setUploadProgress(0);
+        setImgUploadSuccessMsg("Image uploaded successfully");
         // setImageURL(res?.data?.file?.path);
       } catch (err) {
         console.log("Error while sending image file:", err.response);
@@ -192,7 +215,7 @@ function EditRecipe() {
 
     const fetchData = async () => {
       try {
-        setFetchLoading(true);
+        setIsLoading(true);
         // if (token) {
         const res = await axios[method](url, config);
         const tempRecipe = res?.data?.data;
@@ -269,10 +292,11 @@ function EditRecipe() {
         setOgData((prev) => ({ ...prev, steps: [...updtdStepsData] }));
         // }
       } catch (err) {
-        window.alert(`Error while fetching recipe data from database`);
+        // window.alert(`Error while fetching recipe data from database`);
         console.log("error while fetching reicpe details with axios is :", err.response);
+        setErrorMessage(err?.response?.data?.message);
       } finally {
-        setFetchLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -1147,7 +1171,7 @@ function EditRecipe() {
 
     const updateRecipe = async () => {
       try {
-        setFetchLoading(true);
+        setIsLoading(true);
         // call api
         const res = await axios[method](url, body, config);
         // console.log("res :", res);
@@ -1172,7 +1196,7 @@ function EditRecipe() {
         window.alert(`Error while  finalData recipe update with database`);
         console.log("error while updating finalData with axios is :", err.response.data.message);
       } finally {
-        setFetchLoading(false);
+        setIsLoading(false);
       }
     };
     updateRecipe();
@@ -1188,8 +1212,17 @@ function EditRecipe() {
   // console.log("total cost is :", totalCost);
 
   // ------------------------------  initial page loading screen -------------------------------------------
-  if (fetchLoading) {
-    return <h1> Page Loading .............</h1>;
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
   }
 
   return (
@@ -1208,7 +1241,7 @@ function EditRecipe() {
 
           {/* recipe details and image */}
           <div className=" mt-2 border-2 rounded-xl m-1 border-app-primary md:border-none">
-            <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between lg:max-w-200">
+            <div className="flex flex-col-reverse w-full gap-4 mt-0 sm:mt-2 md:flex-row md:justify-between lg:max-w-200">
               {/* recipe details */}
               <div className="flex flex-col justify-between h-40">
                 {/* recipe name section */}
@@ -1316,6 +1349,23 @@ function EditRecipe() {
                   accept="image/*"
                   onChange={handleImageChange}
                 />
+                {imgErrMsg && <p className="text-xs text-app-danger ml-2 md:ml-0">{imgErrMsg}</p>}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <Progress
+                    color="teal"
+                    progress={uploadProgress}
+                    textLabel="uploaded "
+                    size="lg"
+                    labelProgress
+                    labelText
+                  />
+                )}
+                {uploadProgress === 100 && (
+                  <p className="text-xs text-teal-600 ml-2 md:ml-0"> Processing Image...</p>
+                )}
+                {imgUploadSuccessMsg && (
+                  <p className="text-xs text-teal-600 ml-2 md:ml-0"> {imgUploadSuccessMsg}</p>
+                )}
               </div>
             </div>
 

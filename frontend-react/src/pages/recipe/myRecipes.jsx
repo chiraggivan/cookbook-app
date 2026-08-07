@@ -13,6 +13,7 @@ import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
 import { FaSearchengin } from "react-icons/fa6";
 import { GiHotMeal } from "react-icons/gi";
+import { Spinner } from "flowbite-react";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -21,7 +22,7 @@ function MyRecipes() {
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { myRecipes, setMyRecipes, fetchedOnce, setFetchedOnce } = useContext(MyRecipeContext);
-  const [fetchLoading, setFetchLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchRecipe, setSearchRecipe] = useState("");
   const [displayRecipes, setDisplayRecipes] = useState();
 
@@ -50,7 +51,7 @@ function MyRecipes() {
     if (!fetchedOnce) {
       const fetchData = async () => {
         try {
-          setFetchLoading(true);
+          setIsLoading(true);
           if (token) {
             const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
             // console.log("res : ", res);
@@ -64,12 +65,12 @@ function MyRecipes() {
             err.response.message,
           );
         } finally {
-          setFetchLoading(false);
+          setIsLoading(false);
         }
       };
       fetchData();
     }
-    setFetchLoading(false);
+    setIsLoading(false);
   }, []);
 
   // ----------------------------- update the display recipe list if search has text --------------------
@@ -121,8 +122,17 @@ function MyRecipes() {
   };
 
   // ------------------------------------------- loading screen ----------------------------------------------
-  if (fetchLoading) {
-    return <h1> Page Loading .............</h1>;
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
   }
   // console.log("data before return html : ", data);
   // console.log("myRecipes before return html :", myRecipes);
