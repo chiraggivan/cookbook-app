@@ -87,6 +87,9 @@ function NewRecipe() {
 
   // Ref to keep track of timeout for ID //clicking outside suggested box of ingredient
   const timeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imageURL, setImageURL] = useState("");
 
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -98,6 +101,36 @@ function NewRecipe() {
       navigate("/login");
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
+
+  // ------------------------------------- Handle image picker function ------------------------------------
+  const handleImagePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  // -------------------------------------------- Handle image Cange  --------------------------------------------
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    console.log("file is :", file);
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+    // console.log("imageUrl", imageUrl);
+    setPreviewImage(imageUrl);
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const sendImage = async () => {
+      try {
+        const res = await axios.post(`${serverURL}/recipe/api/uploadRecipeImage`, formData, config);
+        // console.log("url :", res?.data?.file?.path);
+        setImageURL(res?.data?.file?.path);
+      } catch (err) {
+        console.log("Error while sending image file:", err.response);
+      }
+    };
+    sendImage();
+  };
 
   // ----------------------------- ADD new empty ingredient row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
@@ -714,7 +747,11 @@ function NewRecipe() {
     finalMainRecipe.portion_size = recipeInfo?.portion_size ?? "";
     finalMainRecipe.description = recipeInfo?.description ?? "";
     finalMainRecipe.privacy = recipeInfo?.privacy == "" ? "private" : recipeInfo?.privacy;
-
+    if (imageURL) {
+      finalMainRecipe.imageURL = imageURL;
+    }
+    console.log("finalMainRecipe", finalMainRecipe);
+    return;
     // get components and ingredients info
     const components = [];
     let ing_display_order = 0;
@@ -1039,6 +1076,7 @@ function NewRecipe() {
     dataToSend.privacy = checkData.privacy;
     dataToSend.description = checkData.description;
     dataToSend.steps = checkData.steps;
+    dataToSend.imageURL = checkData.imageURL;
 
     if (
       checkData.components[0].component_text === "" &&
@@ -1173,8 +1211,26 @@ function NewRecipe() {
               </div>
 
               {/* image */}
-              <div className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
-                <GiHotMeal className="h-full w-full" />
+              <div
+                className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
+                onClick={handleImagePicker}
+              >
+                {previewImage ? (
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="h-full w-full object-cover rounded-t-xl md:rounded-lg"
+                  />
+                ) : (
+                  <GiHotMeal className="h-full w-full" />
+                )}
+                <input
+                  className="hidden"
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
               </div>
             </div>
 

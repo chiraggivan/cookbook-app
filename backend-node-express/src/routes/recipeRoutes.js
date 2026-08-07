@@ -6,11 +6,18 @@ const readRecipeController = require("../controllers/recipe/readRecipeController
 const updateRecipeController = require("../controllers/recipe/updateRecipeController");
 const deleteRecipeController = require("../controllers/recipe/deleteRecipeController");
 const authenticateToken = require("../middleware/authenticateToken");
+const upload = require("../middleware/multerConfig");
 
 // api for create recipe
 router.get("/search/ingredient/:q", authenticateToken, createRecipeController.search_ingredients);
 router.get("/search/units/:ing_id/:source", createRecipeController.get_ingredient_units);
 router.post("/new", authenticateToken, createRecipeController.create_recipe);
+router.post(
+  "/uploadRecipeImage",
+  authenticateToken,
+  upload.single("image"),
+  createRecipeController.add_recipe_image,
+);
 
 // api for read recipe
 router.get("/all", authenticateToken, readRecipeController.get_recipes);
@@ -28,6 +35,13 @@ router.get(
 router.get("/units/:ingId/:ingSrc", authenticateToken, updateRecipeController.get_units);
 router.put("/update-privacy/:recipeId", authenticateToken, updateRecipeController.update_privacy);
 router.patch("/update/:recipeId", authenticateToken, updateRecipeController.update_recipe);
+router.post(
+  "/updateRecipeImage/:recipeId",
+  authenticateToken,
+  upload.single("image"),
+  updateRecipeController.update_recipe_image,
+);
+
 // api for delete recipe
 router.delete("/delete/:recipeId", authenticateToken, deleteRecipeController.delete_recipe);
 

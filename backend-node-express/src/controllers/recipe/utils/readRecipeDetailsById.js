@@ -7,7 +7,7 @@ const { getLastRecordOfRecipeCreated } = require("./getLastRecordRecipeCreated")
 exports.getRecipeDetailsById = async (recipeId, userId) => {
   try {
     const [recipeResult] = await db.query(
-      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.created_at, r.user_id, u.username, u.display_name
+      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.image_url, r.created_at, r.user_id, u.username, u.display_name
         FROM recipes r JOIN users u ON r.user_id = u.user_id 
         WHERE r.recipe_id = ? 
         AND r.is_active = 1

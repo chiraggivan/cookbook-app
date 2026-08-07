@@ -112,6 +112,7 @@ exports.create_recipe = async (req, res) => {
   try {
     const data = normalizeRecipeIngredientData(req.body);
     const error = validateRecipeIngredient(data);
+
     // return res.json({ success: true, message: `reached here till now`, data, error });
     if (error) {
       return res.status(400).json({
@@ -124,9 +125,16 @@ exports.create_recipe = async (req, res) => {
     const portion_size = data.portion_size;
     const privacy = data.privacy;
     const description = data.description;
+    const imageURL = typeof data.imageURL === "string" ? data.imageURL.trim() || null : null;
     const components = data.components;
     const steps = data.steps;
 
+    console.log("data is :", data);
+    return res.json({
+      success: true,
+      message: "reached here without issue",
+      data: data,
+    });
     // ------------------validation of every field of data done, now cross check db -------------------------------
 
     // Validate user_id exists
@@ -231,10 +239,10 @@ exports.create_recipe = async (req, res) => {
 
       // Insert into recipes
       const [recipeResult] = await conn.query(
-        `INSERT INTO recipes (name, portion_size, user_id, privacy, description, is_active, created_at)
-        VALUES (?, ?, ?, ?, ?, TRUE, CURRENT_TIMESTAMP)
+        `INSERT INTO recipes (name, portion_size, user_id, privacy, description, image_url, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, TRUE, CURRENT_TIMESTAMP)
         `,
-        [name, portion_size, user.id, privacy, description],
+        [name, portion_size, user.id, privacy, description, imageURL],
       );
       recipeId = recipeResult.insertId;
       // console.log("recipeId is:", recipeId);
@@ -336,4 +344,16 @@ exports.create_recipe = async (req, res) => {
       message: "Server error",
     });
   }
+};
+
+exports.add_recipe_image = async (req, res) => {
+  // console.log("USER:", req.user);
+
+  // console.log("FILE:", req.file);
+
+  res.json({
+    success: true,
+    message: "Image uploaded successfully",
+    file: req.file,
+  });
 };

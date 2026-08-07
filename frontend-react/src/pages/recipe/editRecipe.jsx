@@ -81,6 +81,11 @@ function EditRecipe() {
 
   // Ref to keep track of timeout for ID //clicking outside suggested box of ingredient
   const timeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imageURL, setImageURL] = useState("");
+  const imageBaseURL = "/uploadedImages/";
+  const [imageError, setImageError] = useState(false);
 
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -93,6 +98,58 @@ function EditRecipe() {
       navigate("/login");
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
+
+  // ------------------------------------- Handle image picker function ------------------------------------
+  const handleImagePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  // -------------------------------------------- Handle image Cange  --------------------------------------------
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    console.log("file is :", file);
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+    // console.log("imageUrl", imageUrl);
+    setPreviewImage(imageUrl);
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const sendImage = async () => {
+      try {
+        const res = await axios.post(
+          `${serverURL}/recipe/api/updateRecipeImage/${id}`,
+          formData,
+          config,
+        );
+        // console.log("url :", res?.data?.file?.path);
+        setImageURL(res?.data?.file?.path);
+      } catch (err) {
+        console.log("Error while sending image file:", err.response);
+      }
+    };
+    sendImage();
+  };
+
+  // --------------------------------------------- update db for image selected -------------------------------------
+  // useEffect(() => {
+  //   if (imageURL) {
+  //     const url = `${serverURL}/recipe/api/updateRecipeImage/${id}`;
+  //     const body = { imageURL: imageURL };
+
+  //     const updateImageURL = async () => {
+  //       try {
+  //         const res = await axios.post(url, body, config);
+  //       } catch (err) {
+  //         console.log("Error in editRecipe while updating image in backend", err.response);
+  //       }
+  //     };
+
+  //     updateImageURL();
+  //   }
+  // }, [setImageURL]);
 
   // --------------------------------- function for getting base units ----------------------------------------
   const getBaseUnits = (unit, measuringUnits) => {
@@ -141,6 +198,10 @@ function EditRecipe() {
         // console.log("Data from the backend of recipe :", tempRecipe);
         tempRecipe?.recipe?.privacy === "private" ? setIsPrivate(true) : setIsPrivate(false);
         const recipeData = { ...tempRecipe.recipe };
+        // updating previewImage use state if recipe iamge available
+        if (recipeData?.image_url) {
+          setPreviewImage(serverURL + imageBaseURL + recipeData?.image_url);
+        }
         setRecipeInfo((prev) => ({ ...prev, recipe: { ...tempRecipe.recipe } }));
         const components = [];
         const ingredientData = [...tempRecipe?.ingredients];
@@ -1146,7 +1207,7 @@ function EditRecipe() {
 
           {/* recipe details and image */}
           <div className=" mt-2 border-2 rounded-xl m-1 border-app-primary md:border-none">
-            <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between">
+            <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between lg:max-w-200">
               {/* recipe details */}
               <div className="flex flex-col justify-between h-40">
                 {/* recipe name section */}
@@ -1233,15 +1294,34 @@ function EditRecipe() {
               </div>
 
               {/* image */}
-              <div className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0">
-                <GiHotMeal className="h-full w-full" />
+              <div
+                className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
+                onClick={handleImagePicker}
+              >
+                {!imageError ? (
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    onError={() => setImageError(true)}
+                    className="h-full w-full object-cover rounded-t-xl md:rounded-lg"
+                  />
+                ) : (
+                  <GiHotMeal className="h-full w-full" />
+                )}
+                <input
+                  className="hidden"
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
               </div>
             </div>
 
             {/* recipe description */}
-            <div className="flex flex-col mt-5">
+            <div className="flex flex-col mt-5 lg:max-w-200">
               <div className="flex font-semibold justify-end w-27">Description:</div>
-              <div className="mx-1.75">
+              <div className="mx-1.75 md:mr-0">
                 <Textarea
                   className="w-full h-40 border-gray-300 rounded-lg resize-none placeholder:text-gray-400"
                   value={recipeInfo?.recipe?.description ?? ""}

@@ -12,6 +12,7 @@ import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
 import { FaSearchengin } from "react-icons/fa6";
+import { GiHotMeal } from "react-icons/gi";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -23,6 +24,9 @@ function MyRecipes() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [searchRecipe, setSearchRecipe] = useState("");
   const [displayRecipes, setDisplayRecipes] = useState();
+
+  const imageBaseURL = "/uploadedImages/";
+  const [imageError, setImageError] = useState(false);
 
   //-------------------------------- Redirect to home if token not found -----------------------------------
   useEffect(() => {
@@ -68,7 +72,7 @@ function MyRecipes() {
     setFetchLoading(false);
   }, []);
 
-  // ----------------------------- update the displayDishes list if searchDish has text --------------------
+  // ----------------------------- update the display recipe list if search has text --------------------
   // As currently we have useContext and all the dishes are stored and accessed later onwards, we will fetch the
   // searchIng list from the context variable itself.
   useEffect(() => {
@@ -87,9 +91,19 @@ function MyRecipes() {
     }
   }, [searchRecipe, myRecipes]);
 
+  // ------------------------------ creating variable to store which recipe have images and valid --------
+  const [failedImages, setFailedImages] = useState({});
+
+  const handleImageError = (recipeId) => {
+    setFailedImages((prev) => ({
+      ...prev,
+      [recipeId]: true,
+    }));
+  };
+
   // -------------------------- using search button for dishes --------------------------------------------
-  // currently the dishes are auto searched when typed, if search button should only give result,
-  // then remove the "searchDish" variable from the above useEffect
+  // currently the recipes are auto searched when typed, if search button should only give result,
+  // then remove the "searchRecipes" variable from the above useEffect
   const searchRecipeButton = () => {
     const string = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
     if (!string) {
@@ -113,6 +127,7 @@ function MyRecipes() {
   // console.log("data before return html : ", data);
   // console.log("myRecipes before return html :", myRecipes);
   // console.log("searchRecipe", searchRecipe);
+  // console.log("displayRecipes :", displayRecipes);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
@@ -165,7 +180,19 @@ function MyRecipes() {
                         hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
               onClick={() => navigate(`/recipe/${i.recipe_id}`)}
             >
-              <div className="h-full aspect-5/4 bg-gray-400 rounded"></div>
+              <div className="h-full aspect-5/4 bg-gray-400 rounded">
+                {failedImages[i.recipe_id] || !i?.image_url ? (
+                  <GiHotMeal className="h-full w-full bg-gray-200" />
+                ) : (
+                  <img
+                    className="h-full w-full md:rounded-md"
+                    src={serverURL + imageBaseURL + i?.image_url}
+                    alt="Recipe Image"
+                    onError={() => handleImageError(i.recipe_id)}
+                  />
+                )}
+              </div>
+
               <div className="p-3">
                 <p className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer">
                   {i.name}

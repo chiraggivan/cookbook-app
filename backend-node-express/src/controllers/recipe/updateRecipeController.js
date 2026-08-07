@@ -21,7 +21,7 @@ exports.get_recipe_details_for_update = async (req, res) => {
 
     // Get recipe info and it also checks if the user is the rightful owner of the recipe
     const [recipeResult] = await db.query(
-      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.created_at, r.user_id, u.username
+      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.image_url, r.created_at, r.user_id, u.username
         FROM recipes r JOIN users u ON r.user_id = u.user_id 
         WHERE r.recipe_id = ? 
         AND r.is_active = 1
@@ -176,6 +176,35 @@ exports.update_privacy = async (req, res) => {
     });
   } finally {
   }
+};
+
+// update recipe image
+exports.update_recipe_image = async (req, res) => {
+  console.log("USER:", req.user);
+
+  console.log("FILE:", req.file);
+
+  const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+  const recipeId = req.params.recipeId;
+
+  // ------------------------------------ enter in db the value of file name in recipe table for column image_url ------------------------------------
+  try {
+    const res = await db.query(
+      `UPDATE recipes SET image_url = ? WHERE recipe_id = ? AND user_id = ?`,
+      [req.file.filename, recipeId, user.id],
+    );
+  } catch (err) {
+    console.log("error while updating recipe image in db", err.response);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating image.",
+    });
+  }
+
+  res.json({
+    success: true,
+    message: "Image uploaded successfully",
+  });
 };
 
 // Update recipe (PATCH)

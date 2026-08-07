@@ -8,7 +8,7 @@ function normalizeRecipeIngredientData(data) {
   const normaliseString = (value) => value.trim().replace(/\s+/g, " ").toLowerCase();
 
   // String fields
-  const strFields = ["name", "portion_size", "privacy", "description"];
+  const strFields = ["name", "portion_size", "privacy", "description", "imageURL"];
   strFields.forEach((field) => {
     const value = data[field];
     if (typeof value === "string") {

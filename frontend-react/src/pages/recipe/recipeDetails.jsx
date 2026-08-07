@@ -13,9 +13,9 @@ import LeftSideBar from "../../components/leftSideBar";
 import ConfirmModal from "../../components/confirmModal";
 import DishesModal from "../../components/dishesModal";
 import { capitaliseWords } from "../../utils/appUtils";
-import { Alert, ToggleSwitch, TabItem, Tabs, Button } from "flowbite-react";
+import { Alert, ToggleSwitch, TabItem, Tabs, Button, Dropdown, DropdownItem } from "flowbite-react";
 import { SlOptionsVertical } from "react-icons/sl";
-import { HiTrash, HiClipboardList } from "react-icons/hi";
+import { HiTrash, HiClipboardList, HiShare, HiPrinter } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
@@ -48,6 +48,9 @@ function RecipeDetails() {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  const imageBaseURL = "/uploadedImages/";
+  const [imageError, setImageError] = useState(false);
 
   //----------------------------------------- Redirect effect --------------------------------------------------
   useEffect(() => {
@@ -110,6 +113,7 @@ function RecipeDetails() {
     } else {
       setIsRecipeOwner(false);
     }
+    setImageError(false);
   }, [foundRecipeDetails]);
 
   //-------------------------------------- get the total cost of recipe -----------------------------------
@@ -350,13 +354,18 @@ function RecipeDetails() {
   }
 
   // console.log("HiTrash :", HiTrash);
-  // console.log("data is :", foundRecipeDetails);
+  console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);
   // console.log("isDishModalOpen : ", isDishModalOpen);
   // console.log("isRecipeOwner :", isRecipeOwner);
   // console.log("recipeData : ", state?.recipeData);
+  console.log(
+    "image url for src :",
+    serverURL + imageBaseURL + foundRecipeDetails?.recipe?.image_url,
+  );
+  console.log("imageError is:", imageError);
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>
@@ -369,7 +378,7 @@ function RecipeDetails() {
             <div
               className={
                 isRecipeOwner
-                  ? `flex pl-2 pr-6 max-w-sm font-extrabold text-xl 
+                  ? `flex pl-2 pr-8 max-w-sm font-extrabold text-xl 
                               md:text-2xl md:max-w-lg
                               lg:text-3xl lg:max-w-xl`
                   : `flex pl-2 pr-6 pb-6 max-w-sm font-extrabold text-xl 
@@ -390,18 +399,46 @@ function RecipeDetails() {
 
             {/* show triple option for delete recipe for owner */}
             {isRecipeOwner === true && (
-              <div className="absolute right-2 top-1 text-app-primary scale-125 ">
+              <div className="absolute right-2 top-0 text-app-primary scale-125 hover:bg-amber-100 p-2 rounded-full transition duration-300">
                 {
                   // top-1/2 -translate-y-1/2
                 }
 
-                <SlOptionsVertical />
+                <Dropdown
+                  label=""
+                  dismissOnClick={false}
+                  renderTrigger={() => (
+                    <span>
+                      <SlOptionsVertical />
+                    </span>
+                  )}
+                >
+                  <DropdownItem
+                    className="flex gap-2"
+                    onClick={() => navigate(`/recipe/edit/${id}`)}
+                  >
+                    <MdOutlineEditNote className="w-4 h-4" /> Edit
+                  </DropdownItem>
+                  <DropdownItem className="flex gap-2 text-gray-300">
+                    <HiPrinter className="w-4 h-4" /> Print
+                  </DropdownItem>
+                  <DropdownItem className="flex gap-2 text-gray-300">
+                    <HiShare className="w-4 h-4" /> Share
+                  </DropdownItem>
+                  <DropdownItem
+                    className="flex gap-2 text-sm text-app-danger"
+                    onClick={() => setIsConfirmModalOpen(true)}
+                  >
+                    <HiTrash className=" w-4 h-4" />
+                    Delete
+                  </DropdownItem>
+                </Dropdown>
               </div>
             )}
           </div>
 
           {/* Recipe Details and image */}
-          <div className="flex  flex-col-reverse mt-2 lg:max-h-60 lg:flex-row lg:w-full lg:justify-between">
+          <div className="flex  flex-col-reverse mt-4 lg:max-h-60 lg:flex-row lg:w-full  lg:justify-between">
             {/* recipe details */}
             <div className="flex flex-col w-full justify-center lg:max-w-lg">
               {/* portion-size, privacy and cost */}
@@ -496,15 +533,24 @@ function RecipeDetails() {
             </div>
 
             {/* recipe image */}
-            <div className="flex h-60 items-center justify-center rounded-md bg-gray-200  md:w-2/5 md:mr-2">
-              <GiHotMeal className="h-[80%] w-[80%] " />
+            <div className="flex w-full h-60 sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
+              {!imageError ? (
+                <img
+                  className="h-full w-full md:rounded-md"
+                  src={serverURL + imageBaseURL + foundRecipeDetails?.recipe?.image_url}
+                  alt="Recipe Image"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
+              )}
             </div>
           </div>
 
           {/* description of recipe */}
           <div
-            className="flex  max-w-xl px-2 mt-2 text-sm 
-                          md:text-md lg:text-lg"
+            className="flex px-2 mt-2 text-sm 
+                          md:text-md lg:text-lg lg:max-w-2/3 "
           >
             <div>
               <span className="font-semibold">Description: </span>{" "}
@@ -514,7 +560,7 @@ function RecipeDetails() {
 
           {/* Buttons for owner */}
           {isRecipeOwner && (
-            <div className="flex justify-between p-2">
+            <div className="hidden lg:flex justify-between p-2">
               {/* Create edit button */}
               <div className="">
                 <Button
@@ -554,7 +600,7 @@ function RecipeDetails() {
                 },
               },
             }}
-            className="flex lg:hidden"
+            className="flex lg:hidden mt-2"
             aria-label="Tabs with icons"
             variant="fullWidth"
           >

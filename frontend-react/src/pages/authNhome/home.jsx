@@ -14,6 +14,7 @@ import {
   JWTunverifiedMsg,
   getInitials,
 } from "../../utils/appUtils";
+import { GiHotMeal } from "react-icons/gi";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -33,6 +34,9 @@ function Home() {
   const config = {
     headers: { Authorization: `Bearer ${token}` },
   };
+
+  const imageBaseURL = "/uploadedImages/";
+  const [imageError, setImageError] = useState(false);
 
   // Redirect effects
   useEffect(() => {
@@ -57,11 +61,22 @@ function Home() {
           }
         } finally {
           setIsLoading(false);
+          setImageError(false);
         }
       }
     };
     fetchData();
   }, [token, searchRecipe]);
+
+  // ------------------------------ creating variable to store which recipe have images and valid --------
+  const [failedImages, setFailedImages] = useState({});
+
+  const handleImageError = (recipeId) => {
+    setFailedImages((prev) => ({
+      ...prev,
+      [recipeId]: true,
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -87,9 +102,20 @@ function Home() {
             >
               {/*  within card creating 2 sections: one for image and second one for info */}
               <div
-                className="aspect-video bg-gray-300 md:rounded-t-3xl"
+                className="aspect-video md:rounded-t-3xl"
                 onClick={() => navigate(`/recipe/${i.recipe_id}`)}
-              ></div>
+              >
+                {failedImages[i.recipe_id] || !i?.image_url ? (
+                  <GiHotMeal className="h-full w-full bg-gray-200" />
+                ) : (
+                  <img
+                    className="h-full w-full md:rounded-md"
+                    src={serverURL + imageBaseURL + i?.image_url}
+                    alt="Recipe Image"
+                    onError={() => handleImageError(i.recipe_id)}
+                  />
+                )}
+              </div>
 
               <div className=" flex rounded-b-3xl">
                 <div className="px-1 py-2">

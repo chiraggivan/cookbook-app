@@ -10,7 +10,7 @@ exports.get_recipes = async (req, res) => {
 
     const [result] = await db.query(
       `
-        SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, u.username, u.display_name 
+        SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.image_url, r.description, u.username, u.display_name 
         FROM recipes r JOIN users u ON r.user_id = u.user_id
         WHERE r.is_active = TRUE
         AND (r.user_id = ? OR r.privacy = 'public') 
@@ -115,7 +115,7 @@ exports.get_my_recipes = async (req, res) => {
 
     // find all the recipes of logged in user
     const [finalResult] = await db.query(
-      `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, u.username
+      `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, r.image_url, u.username
         FROM recipes r 
         JOIN users u ON r.user_id = u.user_id
         WHERE r.is_active = TRUE

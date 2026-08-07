@@ -24,6 +24,7 @@ app.use("/ingredient/api", ingredientRoutes);
 app.use("/useringredient/api", userIngRoutes);
 // app.use("/foodplan/api", foodPlanRoutes);
 app.use("/weeklydashboard/api", weeklyDashboardRoutes);
+app.use("/uploadedImages", express.static("uploadedImages"));
 
 // Test route
 app.get("/", (req, res) => {
