@@ -530,7 +530,7 @@ function RecipeDetails() {
             </div>
 
             {/* recipe image */}
-            <div className="flex w-full h-60 sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
+            <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
               {foundRecipeDetails?.recipe?.image_url && !imageError ? (
                 <img
                   className="h-full w-full md:rounded-md"

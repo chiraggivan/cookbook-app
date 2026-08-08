@@ -182,39 +182,82 @@ function MyRecipes() {
         </div>
 
         {/* recipe list */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-4  p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4  p-4">
           {displayRecipes?.map((i) => (
-            <div
-              key={i.recipe_id}
-              className="flex h-40 rounded-r-2xl shadow-sm
+            <>
+              {/* <div
+                key={i.recipe_id}
+                className="flex h-40 rounded-r-2xl shadow-sm
                         hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
-              onClick={() => navigate(`/recipe/${i.recipe_id}`)}
-            >
-              <div className="h-full aspect-5/4 bg-gray-400 rounded">
-                {failedImages[i.recipe_id] || !i?.image_url ? (
-                  <GiHotMeal className="h-full w-full bg-gray-200" />
-                ) : (
-                  <img
-                    className="h-full w-full md:rounded-md"
-                    src={i?.image_url}
-                    alt="Recipe Image"
-                    onError={() => handleImageError(i.recipe_id)}
-                  />
-                )}
-              </div>
+                onClick={() => navigate(`/recipe/${i.recipe_id}`)}
+              >
+                <div className="h-full aspect-square bg-gray-400 rounded">
+                  {failedImages[i.recipe_id] || !i?.image_url ? (
+                    <GiHotMeal className="h-full w-full bg-gray-200" />
+                  ) : (
+                    <img
+                      className="h-full w-full md:rounded-md"
+                      src={i?.image_url}
+                      alt="Recipe Image"
+                      onError={() => handleImageError(i.recipe_id)}
+                    />
+                  )}
+                </div>
 
-              <div className="p-3">
-                <p className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer">
+                <div className="p-3">
+                  <p className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer">
+                    {i.name}
+                  </p>
+                  <p className="text-sm line-clamp-1 font-semibold text-gray-600 ">
+                    portion : {i.portion_size}
+                  </p>
+                  <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
+                    Description : <span className=" font-normal">{i.description}</span>{" "}
+                  </p>
+                </div>
+              </div> */}
+              <div
+                key={i.recipe_id}
+                onClick={() => navigate(`/recipe/${i.recipe_id}`)}
+                className="flex flex-col max-h-40 rounded-r-2xl shadow-sm justify-between
+                        hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
+              >
+                <div className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
                   {i.name}
-                </p>
-                <p className="text-sm line-clamp-1 font-semibold text-gray-600 ">
-                  portion : {i.portion_size}
-                </p>
-                <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
-                  Description : <span className=" font-normal">{i.description}</span>{" "}
-                </p>
+                </div>
+                <div className="">
+                  <div className="flex items-center">
+                    <div className="grow border-t border-gray-200"></div>
+                  </div>
+                  <div className="flex h-25 gap-1 ml-1">
+                    <div className="flex flex-col flex-1 gap-1 ">
+                      <div className="">
+                        <p className="text-sm line-clamp-1 font-semibold text-gray-600 mt-1 ">
+                          portion : {i.portion_size}
+                        </p>
+                      </div>
+                      <div className="">
+                        <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
+                          Description : <span className=" font-normal">{i.description}</span>{" "}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="aspect-video">
+                      {failedImages[i.recipe_id] || !i?.image_url ? (
+                        <GiHotMeal className="h-full w-full bg-gray-200 rounded-br-2xl" />
+                      ) : (
+                        <img
+                          className="h-full w-full rounded-br-2xl"
+                          src={i?.image_url}
+                          alt="Recipe Image"
+                          onError={() => handleImageError(i.recipe_id)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           ))}
         </div>
       </div>

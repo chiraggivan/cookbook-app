@@ -1329,7 +1329,7 @@ function EditRecipe() {
 
               {/* image */}
               <div
-                className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
+                className="max-w-full aspect-video md:max-h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
                 onClick={handleImagePicker}
               >
                 {previewImage && !imageError ? (
