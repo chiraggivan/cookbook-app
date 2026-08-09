@@ -10,7 +10,7 @@ import { HandleDishDelete } from "./utils/handleDishDelete";
 import { DishContext } from "../../context/dishContext";
 import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { HiOutlineSearch } from "react-icons/hi";
-import { GiHotMeal } from "react-icons/gi";
+import { GiMeal } from "react-icons/gi";
 
 function MyDishes() {
   const token = localStorage.getItem("token");
@@ -27,6 +27,8 @@ function MyDishes() {
   const id = searchParams.get("id");
   const [searchDish, setSearchDish] = useState("");
   const [displayDishes, setDisplayDishes] = useState();
+
+  const [imageError, setImageError] = useState(false);
 
   // ------------------------------------ Redirect effect ----------------------------------------------------
   useEffect(() => {
@@ -193,7 +195,17 @@ function MyDishes() {
             >
               {/* image section - left */}
               <div className="min-w-40 min-h-40 max-w-40 max-h-40 border-0 ">
-                <GiHotMeal className=" h-full w-full bg-gray-300" />
+                {i.image_url && !imageError ? (
+                  <img
+                    className="h-full w-full object-cover md:rounded-md"
+                    src={i.image_url}
+                    alt="Recipe Image"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <GiMeal className="h-full w-full bg-gray-200" />
+                )}
+                {/* <GiHotMeal className=" h-full w-full bg-gray-300" /> */}
               </div>
               {/* details section right */}
               <div className="px-2 pb-2">
@@ -212,25 +224,6 @@ function MyDishes() {
             </div>
           ))}
         </div>
-        {/*<div className=" w-ful h-15 mt-4 bg-amber-200 border-y border-gray-500"></div>
-        <div className=" w-ful h-15 bg-amber-400 border-y border-gray-500"></div>
-        <h1>Welcome to My Saved Dishes</h1>
-        <div className=" w-ful h-15 mt-4 bg-amber-200 border-y border-gray-500"></div>
-        <div className=" w-ful h-15 bg-amber-400 border-y border-gray-500"></div>
-         
-        {dishes?.map((i) => (
-          <div key={i.dish_id}>
-            <h2 onClick={() => navigate(`/dish/${i.dish_id}`)}>{i.recipe_name}</h2>
-            <h4>portion : {i.portion_size}</h4>
-            <h4>Date Prepared : {i.preparation_date.split("T")[0]}</h4>
-            <h4>Time Prepared : {i.time_prepared}</h4>
-            <h4>Cost : £{i.total_cost}</h4>
-            <h4>Comment : {i.comment}</h4>
-            <h4>Meal Type : {i.meal}</h4>
-            <Button children={"Delete"} onClick={(e) => handleDelete(e, i, token, navigate)} />
-            <p></p>
-          </div>
-        ))} */}
       </div>
     </>
   );

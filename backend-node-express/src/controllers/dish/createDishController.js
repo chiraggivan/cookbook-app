@@ -39,6 +39,7 @@ exports.create_dish = async (req, res) => {
   const components = recipe_details.components;
   const preparationDate = recipe_details.preparation_date;
   const timePrepared = recipe_details.time_prepared;
+  const imageURL = recipe_details.image_url;
 
   const meal = recipe_details.meal;
   const totalCost = recipe_details.total_cost;
@@ -130,7 +131,8 @@ exports.create_dish = async (req, res) => {
           total_cost, 
           meal, 
           recipe_by, 
-          comment) 
+          comment,
+          image_url) 
         VALUES (?,?,?,?,?,?,?,?,?,?)`,
       [
         user.id,
@@ -143,6 +145,7 @@ exports.create_dish = async (req, res) => {
         meal,
         recipeBy,
         comment,
+        imageURL,
       ],
     );
 

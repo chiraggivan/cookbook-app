@@ -103,18 +103,18 @@ function Home() {
             // for each record creating card
             <div
               key={i.recipe_id}
-              className=" md:rounded-3xl  hover:cursor-pointer hover:ring-10 hover:bg-amber-100  hover:ring-amber-100 transition duration-500"
+              className=" md:rounded-xl  hover:cursor-pointer hover:ring-10 hover:bg-amber-100  hover:ring-amber-100 transition duration-500"
             >
               {/*  within card creating 2 sections: one for image and second one for info */}
               <div
-                className="aspect-video md:rounded-t-3xl"
+                className="aspect-video md:rounded-t-xl"
                 onClick={() => navigate(`/recipe/${i.recipe_id}`)}
               >
                 {failedImages[i.recipe_id] || !i?.image_url ? (
-                  <GiHotMeal className="h-full w-full bg-gray-200" />
+                  <GiHotMeal className="h-full w-full bg-gray-200 md:rounded-xl" />
                 ) : (
                   <img
-                    className="h-full w-full md:rounded-md"
+                    className="h-full w-full md:rounded-xl"
                     src={i?.image_url}
                     alt="Recipe Image"
                     onError={() => handleImageError(i.recipe_id)}

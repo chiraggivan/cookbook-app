@@ -66,7 +66,7 @@ exports.get_user_recipes = async (req, res) => {
 
     // search list of public recipes of a particular user
     const [finalResult] = await db.query(
-      `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, u.username
+      `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, r.image_url, u.username
             FROM recipes r 
             JOIN users u ON r.user_id = u.user_id
             WHERE r.is_active = TRUE

@@ -9,6 +9,8 @@ import { GiHotMeal, GiHotSpices, GiMeal } from "react-icons/gi";
 function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
   const token = localStorage.getItem("token");
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <>
       <div className="flex px-2 w-full max-w-xl mx-auto flex-col mt-4">
@@ -27,8 +29,18 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
               Prepared on : {data?.dish?.preparation_date} @ {data?.dish?.time_prepared}
             </p>
           </div>
-          <div className="flex w-40 h-40 bg-gray-200 rounded-lg md:items-end md:mx-0">
-            <GiMeal className="w-full h-full" />
+          <div className="flex aspect-video bg-gray-200 rounded-lg md:h-35">
+            {/* <GiMeal className="flex mx-auto w-auto h-full justify-center" /> */}
+            {data?.dish?.image_url && !imageError ? (
+              <img
+                className="object-cover rounded-md"
+                src={data?.dish?.image_url}
+                alt="Recipe Image"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <GiMeal className="flex mx-auto w-auto h-full justify-center bg-gray-200" />
+            )}
           </div>
         </div>
         {/* comment and delete button  */}

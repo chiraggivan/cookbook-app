@@ -10,11 +10,14 @@ import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
 import Input from "../../components/input";
 import { HiSearch } from "react-icons/hi";
+import { GiHotMeal } from "react-icons/gi";
+import { useState } from "react";
 
 function UserRecipes() {
   const { id } = useParams();
   const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
   if (!user) {
     console.log("user not stored in localStorage");
@@ -61,13 +64,16 @@ function UserRecipes() {
             <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full pb-3 bg-amber-200 text-8xl">
               {getInitials(data?.userInfo.username)}
             </div>
-            <div className=" px-2">
-              <p className="text-5xl mb-2">
-                {data?.userInfo.username.charAt(0).toUpperCase() + data?.userInfo.username.slice(1)}
-              </p>
-              <p className="text-1xl px-1">@{data?.userInfo.username}</p>
-              <p className="text-1xl mb-2 px-1 text-gray-400">More about me</p>
-            </div>
+            {data?.userInfo && (
+              <div className=" px-2">
+                <p className="text-5xl mb-2">
+                  {data?.userInfo.username.charAt(0).toUpperCase() +
+                    data?.userInfo.username.slice(1)}
+                </p>
+                <p className="text-1xl px-1">@{data?.userInfo.username}</p>
+                <p className="text-1xl mb-2 px-1 text-gray-400">More about me</p>
+              </div>
+            )}
           </div>
 
           <div className="py-2 lg:py-0 lg:pl-40">
@@ -104,7 +110,19 @@ function UserRecipes() {
                         hover:cursor-pointer hover:ring-10 hover:ring-green-100 hover:bg-green-100 transition duration-500"
               onClick={() => navigate(`/recipe/${i.recipe_id}`)}
             >
-              <div className="h-full aspect-5/4 bg-gray-400 rounded"></div>
+              <div className="h-full aspect-5/4 rounded overflow-hidden">
+                {i.image_url && !imageError ? (
+                  <img
+                    className="h-full w-full object-cover md:rounded-md"
+                    src={i.image_url}
+                    alt="Recipe Image"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <GiHotMeal className="h-full w-full bg-gray-200" />
+                )}
+              </div>
+
               <div className="p-3">
                 <p className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer">
                   {i.name}

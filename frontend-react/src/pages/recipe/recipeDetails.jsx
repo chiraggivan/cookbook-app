@@ -265,6 +265,7 @@ function RecipeDetails() {
     details4Dish.recipe_by = foundRecipeDetails.recipe.user_id;
     details4Dish.total_cost = totalCost;
     details4Dish.meal = "lunch";
+    details4Dish.image_url = foundRecipeDetails.recipe.image_url;
     details4Dish.comment = "";
     details4Dish.components = [];
     // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -361,8 +362,8 @@ function RecipeDetails() {
   // console.log("isDishModalOpen : ", isDishModalOpen);
   // console.log("isRecipeOwner :", isRecipeOwner);
   // console.log("recipeData : ", state?.recipeData);
-  console.log("image url for src :", foundRecipeDetails?.recipe?.image_url);
-  console.log("imageError is:", imageError);
+  // console.log("image url for src :", foundRecipeDetails?.recipe?.image_url);
+  // console.log("imageError is:", imageError);
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>

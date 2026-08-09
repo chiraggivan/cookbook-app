@@ -9,7 +9,7 @@ exports.get_dishes = async (req, res) => {
     // console.log("searchString", searchString);
     // Get all the dishes for the users
     const [dishesResult] = await db.query(
-      `SELECT dish_id, recipe_id, recipe_name, portion_size, preparation_date, total_cost, comment, time_prepared, meal, recipe_by, created_at
+      `SELECT dish_id, recipe_id, recipe_name, portion_size, preparation_date, total_cost, comment, image_url, time_prepared, meal, recipe_by, created_at
         FROM dishes 
         WHERE (LOWER(recipe_name) LIKE ? OR comment LIKE ?) AND user_id = ? AND is_active = 1
         ORDER BY preparation_date DESC`,
@@ -73,7 +73,7 @@ exports.get_dish_details = async (req, res) => {
     // get dish details
     const [dishResult] = await db.query(
       `SELECT d.dish_id, d.recipe_id, d.recipe_name, d.portion_size, d.preparation_date, 
-              d.total_cost, d.comment, d.time_prepared, d.meal, d.recipe_by, d.created_at, u.username AS recipe_by_name
+              d.total_cost, d.comment,d.image_url, d.time_prepared, d.meal, d.recipe_by, d.created_at, u.username AS recipe_by_name
       FROM dishes d JOIN users u ON d.recipe_by = u.user_id
       WHERE d.dish_id = ? AND d.is_active = 1`,
       [dishId],
