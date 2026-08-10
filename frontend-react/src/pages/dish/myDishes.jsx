@@ -11,6 +11,7 @@ import { DishContext } from "../../context/dishContext";
 import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { HiOutlineSearch } from "react-icons/hi";
 import { GiMeal } from "react-icons/gi";
+import formattedDate from "../../utils/formattedDate";
 
 function MyDishes() {
   const token = localStorage.getItem("token");
@@ -48,7 +49,14 @@ function MyDishes() {
         setFetchLoading(true);
         if (token) {
           const res = await axios[method](url, config);
-          setDishes(res?.data.data);
+          const tempData = res.data.data;
+          // return;
+          const formattedData = tempData.map((i) => ({
+            ...i,
+            preparation_date: formattedDate(i.preparation_date),
+          }));
+
+          setDishes(formattedData);
           // setFetchedOnce(true);
         }
       } catch (err) {
@@ -62,6 +70,39 @@ function MyDishes() {
     setFetchLoading(false);
   }, []);
 
+  // ---------------------------- format date and time received from backend to look human friendly -----------------
+  // const formattedDate = (val) => {
+  //   const dishDate = new Date(val);
+  //   const day = dishDate.getDate();
+  //   const todayDate = new Date();
+  //   const yesterdayDate = new Date(todayDate);
+  //   yesterdayDate.setDate(todayDate.getDate() - 1);
+
+  //   if (
+  //     dishDate.getDate() === todayDate.getDate() &&
+  //     dishDate.getMonth() === todayDate.getMonth() &&
+  //     dishDate.getFullYear() === todayDate.getFullYear()
+  //   ) {
+  //     return "Today";
+  //   } else if (
+  //     dishDate.getDate() === yesterdayDate.getDate() &&
+  //     dishDate.getMonth() === yesterdayDate.getMonth() &&
+  //     dishDate.getFullYear() === yesterdayDate.getFullYear()
+  //   ) {
+  //     return "Yesterday";
+  //   } else {
+  //     const suffix =
+  //       day % 10 === 1 && day !== 11
+  //         ? "st"
+  //         : day % 10 === 2 && day !== 12
+  //           ? "nd"
+  //           : day % 10 === 3 && day !== 13
+  //             ? "rd"
+  //             : "th";
+
+  //     return `${day}${suffix} ${dishDate.toLocaleString("en-GB", { month: "short" })} ${String(dishDate.getFullYear()).slice(-2)}`;
+  //   }
+  // };
   //--------------------------- update dish list if changed  ---------------------------------------------
   useEffect(() => {
     if (!id) return;
@@ -214,7 +255,7 @@ function MyDishes() {
                 </p>
                 <p className="leading-5"> Portion: {capitaliseWords(i.portion_size)}</p>
                 <p className=" text-sm text-gray-500 line-clamp-1">
-                  {i.preparation_date.split("T")[0]} @ {i.time_prepared} for {i.meal}
+                  Prepared: {i.preparation_date} for {i.meal}
                 </p>
                 <p className="text-sm text-gray-500">Costing: £ {i.total_cost}</p>
                 <p className="text-sm text-gray-500 font-semibold line-clamp-2">

@@ -12,7 +12,7 @@ exports.get_dishes = async (req, res) => {
       `SELECT dish_id, recipe_id, recipe_name, portion_size, preparation_date, total_cost, comment, image_url, time_prepared, meal, recipe_by, created_at
         FROM dishes 
         WHERE (LOWER(recipe_name) LIKE ? OR comment LIKE ?) AND user_id = ? AND is_active = 1
-        ORDER BY preparation_date DESC`,
+        ORDER BY preparation_date DESC, time_prepared DESC`,
       [searchString, searchString, user.id],
     );
 
@@ -73,7 +73,7 @@ exports.get_dish_details = async (req, res) => {
     // get dish details
     const [dishResult] = await db.query(
       `SELECT d.dish_id, d.recipe_id, d.recipe_name, d.portion_size, d.preparation_date, 
-              d.total_cost, d.comment,d.image_url, d.time_prepared, d.meal, d.recipe_by, d.created_at, u.username AS recipe_by_name
+              d.total_cost, d.comment, d.image_url, d.time_prepared, d.meal, d.recipe_by, d.created_at, u.username AS recipe_by_name
       FROM dishes d JOIN users u ON d.recipe_by = u.user_id
       WHERE d.dish_id = ? AND d.is_active = 1`,
       [dishId],
@@ -85,14 +85,14 @@ exports.get_dish_details = async (req, res) => {
       });
     }
     const dish = dishResult[0];
-    dish.preparation_date = new Date(dish.preparation_date).toISOString().split("T")[0];
-    dish.created_at = new Date(dish.created_at).toISOString();
+    // dish.preparation_date = new Date(dish.preparation_date);
+    // dish.created_at = new Date(dish.created_at);
     dish.total_cost = parseFloat(dish.total_cost);
 
     // get dish ingredients
     const [ingResult] = await db.query(
       `SELECT component_display_order, component_text, ingredient_display_order, ingredient_id, ingredient_name, quantity,
-            unit_id, unit_name, cost, base_price, base_unit, ingredient_source
+            unit_id, unit_name, cost, base_quantity, base_price, base_unit, ingredient_source
         FROM dish_ingredients
         WHERE dish_id = ? AND is_active = 1`,
       [dishId],

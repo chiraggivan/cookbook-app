@@ -206,12 +206,14 @@ function RecipeDetails() {
     details4Dish.time_prepared = currentTime;
 
     // console.log("currentTime :", currentTime);
+    // console.log("details for dish :", details4Dish);
     // return;
     // if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {
     const createURL = `${serverURL}/dish/api/create`;
 
     try {
       const res = await axios.post(createURL, details4Dish, config);
+      console.log("response for create dish is:", res);
       if (res?.data?.success === true) {
         // alert(res?.data?.message);
         // update the recipeDetails Context (cache) on local machine
@@ -336,12 +338,14 @@ function RecipeDetails() {
 
         // --------------Below for create dish---------------------------
         const ings = {};
+
+        ings.base_quantity = i.base_quantity;
+        ings.base_unit = i.unit;
         ings.base_price = i.cost;
         ings.ingredient_id = i.ingredient_id;
         ings.name = i.name;
         ings.cost = i.price;
         ings.quantity = i.quantity;
-        ings.base_unit = i.unit;
         ings.unit_id = i.unit_id;
         ings.unit_name = i.unit_name;
         ings.display_order = i.ingredient_display_order;

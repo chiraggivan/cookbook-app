@@ -11,6 +11,7 @@ exports.create_dish = async (req, res) => {
       message: "Data not sent with the body.",
     });
   }
+
   // ----------------------------- normalize and validate data ---------------------------
   const { cleaned, error } = normaliseIngredientData(req.body);
   const data = cleaned;
@@ -30,7 +31,8 @@ exports.create_dish = async (req, res) => {
   }
 
   // ---------------------- data normalised and validated  ---------------------------------
-
+  console.log("data is :", data);
+  return;
   const recipe_details = data;
   const recipeId = recipe_details.recipe_id;
   const recipeName = recipe_details.recipe_name;
@@ -104,12 +106,6 @@ exports.create_dish = async (req, res) => {
     }
   }
 
-  return res.json({
-    success: true,
-    message: `Everything looks great but not done insert in db.`,
-    data: recipe_details,
-  });
-
   // ---------------------------------  Data checked against DB rules and about to be inserted in db  ---------------------
 
   const conn = await db.getConnection();
@@ -133,7 +129,7 @@ exports.create_dish = async (req, res) => {
           recipe_by, 
           comment,
           image_url) 
-        VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
       [
         user.id,
         recipeId,
@@ -171,7 +167,8 @@ exports.create_dish = async (req, res) => {
                 unit_name, 
                 cost, 
                 base_price, 
-                base_unit)
+                base_unit,
+                base_quantity)
               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [
             dishId,
@@ -187,6 +184,7 @@ exports.create_dish = async (req, res) => {
             ing.cost,
             ing.base_price,
             ing.base_unit,
+            ing.base_quantity,
           ],
         );
       }

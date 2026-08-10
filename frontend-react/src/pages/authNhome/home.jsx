@@ -45,7 +45,7 @@ function Home() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  //  verify token (valid or expired)
+  //  verify token (valid or expired) and search recipe
   useEffect(() => {
     const fetchData = async () => {
       if (token) {

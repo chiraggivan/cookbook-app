@@ -9,6 +9,7 @@ import { HandleDishDelete } from "./utils/handleDishDelete";
 import DishDetailsPage from "./-dishDetailsPage";
 import { DishContext } from "../../context/dishContext";
 import { capitaliseWords, serverURL } from "../../utils/appUtils";
+import formattedDate from "../../utils/formattedDate";
 
 function DishDetails() {
   const { id } = useParams();
@@ -89,6 +90,9 @@ function DishDetails() {
 
   //---------------- Create html for table with components and ingredients rows ---------------------------------
   if (foundDish) {
+    // console.log("date in found dish is :", foundDish.dish.preparation_date);
+    // console.log("type of date is :", typeof foundDish.dish.preparation_date);
+    foundDish.dish.preparation_date = formattedDate(foundDish.dish.preparation_date);
     const recipeData = foundDish?.ingredients;
 
     const uniqueComp = [...new Set(recipeData?.map((i) => i.component_display_order))].sort(
@@ -142,7 +146,7 @@ function DishDetails() {
               <div className="flex flex-col my-0.5">
                 <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost.toFixed(3)}</div>
                 <div className="flex min-w-7 text-sm justify-end mr-1 text-gray-500">
-                  £{i.base_price}/{i.base_unit}
+                  £{i.base_price}/{Number(i.base_quantity)} {i.base_unit}
                 </div>
               </div>
             </div>

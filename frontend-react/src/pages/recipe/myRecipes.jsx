@@ -77,19 +77,28 @@ function MyRecipes() {
   // As currently we have useContext and all the dishes are stored and accessed later onwards, we will fetch the
   // searchIng list from the context variable itself.
   useEffect(() => {
+    let timer;
     const string = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
     if (!string) {
       setDisplayRecipes(myRecipes);
     } else {
-      setDisplayRecipes(
-        myRecipes.filter(
-          (item) =>
-            item.name.toLowerCase().includes(string) ||
-            item.description?.toLowerCase().includes(string) ||
-            item.portion_size?.toLowerCase().includes(string),
-        ),
+      timer = setTimeout(
+        () =>
+          setDisplayRecipes(
+            myRecipes.filter(
+              (item) =>
+                item.name.toLowerCase().includes(string) ||
+                item.description?.toLowerCase().includes(string) ||
+                item.portion_size?.toLowerCase().includes(string),
+            ),
+          ),
+        500,
       );
     }
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [searchRecipe, myRecipes]);
 
   // ------------------------------ creating variable to store which recipe have images and valid --------

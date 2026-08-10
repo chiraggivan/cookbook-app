@@ -57,6 +57,14 @@ function TopBar() {
     },
   };
 
+  // handle logout function
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate(`/login`);
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 z-50 w-full h-(--top-bar-height) bg-white ">
@@ -167,7 +175,7 @@ function TopBar() {
                     <SidebarItem href="#" icon={GiSettingsKnobs}>
                       Setting
                     </SidebarItem>
-                    <SidebarItem href="#" icon={HiLogout}>
+                    <SidebarItem href="#" icon={HiLogout} onClick={handleLogout}>
                       Sign out
                     </SidebarItem>
                   </SidebarItemGroup>

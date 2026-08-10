@@ -1,3 +1,4 @@
+// normalise the dish ingredient data
 function normaliseIngredientData(data) {
   const cleaned = {};
 
@@ -22,6 +23,7 @@ function normaliseIngredientData(data) {
     "recipe_by",
     "comment",
     "total_cost",
+    "image_url",
   ];
 
   for (const field of recipe_fields) {
@@ -70,6 +72,7 @@ function normaliseIngredientData(data) {
         "unit_id",
         "unit_name",
         "cost",
+        "base_quantity",
         "base_price",
         "base_unit",
         "display_order",
@@ -99,6 +102,7 @@ function normaliseIngredientData(data) {
   return { cleaned, error: null };
 }
 
+//  validate the dish ingredient data
 function validateIngredient(data) {
   // recipe = data.get("recipe")
   // --- recipe_id ---
@@ -191,12 +195,6 @@ function validateIngredient(data) {
     // --- ingredients ---
     const ingredients = component.ingredients;
     for (const ing of ingredients) {
-      // --- cost ---
-      const base_price = ing.base_price;
-      if (typeof base_price !== "number" || base_price <= 0 || base_price > 1000000) {
-        return "Invalid base_price: must be a int between 0 and 1000000";
-      }
-
       // --- ingredient_id ---
       const ingredient_id = ing.ingredient_id;
       if (!Number.isInteger(ingredient_id) || ingredient_id <= 0) {
@@ -233,10 +231,22 @@ function validateIngredient(data) {
         return "Invalid unit_id: must be a int > 0";
       }
 
+      // --- base_quantity ---
+      const base_quantity = ing.base_quantity;
+      if (typeof base_quantity !== "number" || base_quantity <= 0 || base_quantity > 1000000) {
+        return "Invalid base_quantity: must be a number between 0 and 1000000";
+      }
+
       // --- base_unit ---
       const base_unit = ing.base_unit;
       if (typeof base_unit !== "string" || base_unit.length > 1000000) {
         return "Invalid base unit: must be of length < 1000000";
+      }
+
+      // --- cost (base_price) ---
+      const base_price = ing.base_price;
+      if (typeof base_price !== "number" || base_price <= 0 || base_price > 1000000) {
+        return "Invalid base_price: must be a number between 0 and 1000000";
       }
 
       // --- unit_name ---
