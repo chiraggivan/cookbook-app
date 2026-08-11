@@ -393,9 +393,13 @@ function RecipeDetails() {
 
             {/* Show recipe owner details if different from user */}
             {isRecipeOwner === false && (
-              <div className="absolute flex space-x-2 right-3 bottom-0">
-                <div className="font-semibold">By :</div>
-                <p>{foundRecipeDetails?.recipe.user_id}</p>
+              <div className="absolute flex space-x-1 right-3 bottom-0 hover:cursor-pointer">
+                <div className="font-semibold">-</div>
+                <p onClick={() => navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`)}>
+                  {foundRecipeDetails?.recipe.username ??
+                    foundRecipeDetails?.recipe.dislay_name ??
+                    foundRecipeDetails?.recipe.email}
+                </p>
               </div>
             )}
 

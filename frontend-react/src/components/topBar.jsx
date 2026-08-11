@@ -40,6 +40,9 @@ function TopBar() {
     }
   }, []);
 
+  // zero down to one single userName
+  const userName = user.username ?? user.display_name ?? user.email;
+
   // for menu button (hamburger) in screen smaller than md
   const [searchText, SetSearchText] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -58,11 +61,23 @@ function TopBar() {
   };
 
   // handle logout function
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate(`/login`);
+  };
+
+  // this is created for drawer dropdown for hamburger
+  const ProfileIcon = () => {
+    if (user?.picture_url) {
+      <img className="rounded-full w-6 h-6" src={user?.picture_url} alt={getInitials(userName)} />;
+    } else {
+      return (
+        <div className="flex items-center justify-center rounded-full w-6 h-6 bg-blue-300 text-xs">
+          {getInitials(userName)}
+        </div>
+      );
+    }
   };
 
   return (
@@ -100,7 +115,7 @@ function TopBar() {
             <div className="hidden md:flex items-center justify-center w-full p-2">
               <input
                 value={searchInput}
-                className="border rounded-l-full border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 h-10 w-100 px-4 pb-1 m-1"
+                className="border rounded-l-full border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 h-10 w-80 px-4 pb-1 m-1"
                 onChange={(e) => setSearchInput(e.target.value)}
               />
               <button
@@ -123,8 +138,21 @@ function TopBar() {
             >
               + Create
             </button>
-            <div className="flex w-9 h-9 rounded-full bg-blue-400 items-center justify-center">
-              {getInitials(user?.username)}
+            <div className="flex mim-w-9 min-h-9 h-9 w-9 rounded-full bg-blue-300 items-center justify-center">
+              {user?.picture_url ? (
+                <div className="w-full h-full">
+                  <img
+                    className="rounded-full"
+                    src={user?.picture_url}
+                    alt={getInitials(userName)}
+                    // onError={(e) => {
+                    //   console.log("Image failed:", e.currentTarget.src);
+                    // }}
+                  />
+                </div>
+              ) : (
+                getInitials(userName)
+              )}
             </div>
           </div>
         </div>
@@ -169,7 +197,7 @@ function TopBar() {
                     </SidebarItem>
                   </SidebarItemGroup>
                   <SidebarItemGroup>
-                    <SidebarItem href="#" icon={HiUser}>
+                    <SidebarItem href="#" icon={ProfileIcon}>
                       Account
                     </SidebarItem>
                     <SidebarItem href="#" icon={GiSettingsKnobs}>

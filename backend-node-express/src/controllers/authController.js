@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username specified
     const [rows] = await db.query(
-      `SELECT user_id, username, password, role FROM users WHERE username = ? AND is_active = 1`,
+      `SELECT user_id, username, display_name, password, picture_url, role FROM users WHERE username = ? AND is_active = 1`,
       [username],
     );
     if (rows.length === 0) {
@@ -63,6 +63,8 @@ exports.login = async (req, res) => {
         user_id: user.user_id,
         username: user.username,
         role: user.role,
+        display_name: user.display_name,
+        picture_url: user.picture_url,
       },
     });
   } catch (error) {
@@ -221,7 +223,7 @@ exports.googleSignin = async (req, res) => {
     // check if user emailId exists to login directly or create new user and login after that
     const [userResult] = await db.query(
       `
-        SELECT user_id, display_name, role, picture_url, google_sub, is_active
+        SELECT user_id, username, display_name, role, picture_url, email, google_sub, is_active
         FROM users WHERE email = ?     
       `,
       [email],
@@ -263,8 +265,11 @@ exports.googleSignin = async (req, res) => {
         token,
         user: {
           user_id: user.user_id,
-          username: user.username ?? user.display_name,
+          username: user.username,
           role: user.role,
+          display_name: user.display_name,
+          picture_url: user.picture_url,
+          email: user.email,
         },
       });
     } else {

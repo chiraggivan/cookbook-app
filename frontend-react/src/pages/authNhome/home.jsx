@@ -90,7 +90,7 @@ function Home() {
       </div>
     );
   }
-  // console.log("data before return html : ", fetchData);
+  console.log("data before return html : ", data);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
@@ -123,15 +123,27 @@ function Home() {
               </div>
 
               <div className=" flex rounded-b-3xl">
+                {/* profile image of recipe creator */}
                 <div className="px-1 py-2">
                   <div
-                    className="p-2 flex aspect-square w-10 h-10 rounded-full bg-amber-200 items-center justify-center"
+                    className="flex aspect-square w-10 h-10 rounded-full bg-amber-200 items-center justify-center"
                     onClick={() => navigate(`/recipesBy/${i.user_id}`)}
                   >
-                    {i.username.slice(0, 2).toUpperCase() ?? getInitials(i.display_name)}
+                    {i.picture_url ? (
+                      <img
+                        className="rounded-full aspect-square"
+                        src={i.picture_url}
+                        alt={getInitials(i.username ?? i.display_name ?? i.email)}
+                      />
+                    ) : (
+                      <div className="p-1">
+                        {getInitials(i.username ?? i.display_name ?? i.email)}
+                      </div>
+                    )}
                   </div>
                 </div>
 
+                {/* details of recipe */}
                 <div className="mx-1 my-2 w-full">
                   <div
                     className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer"
@@ -150,7 +162,7 @@ function Home() {
                     className="text-sm line-clamp-1 font-semibold text-gray-600 "
                     onClick={() => navigate(`/recipesBy/${i.user_id}`)}
                   >
-                    by : {i.user_id}
+                    by : {i.username ?? i.display_name ?? i.email}
                   </p>
                   <p></p>
                 </div>
