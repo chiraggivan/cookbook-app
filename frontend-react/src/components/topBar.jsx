@@ -3,6 +3,7 @@ import { getInitials } from "../utils/appUtils";
 import Input from "./input";
 import { useEffect, useState } from "react";
 import { GiCarrot, GiHamburgerMenu, GiSettingsKnobs } from "react-icons/gi";
+import { useSearch } from "../context/globalSearchContext";
 
 import {
   HiBookmark,
@@ -32,7 +33,8 @@ import { FaPlus } from "react-icons/fa6";
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user")) ?? "";
   const navigate = new useNavigate();
-  const [searchInput, setSearchInput] = useState("");
+  // const [searchInput, setSearchInput] = useState("");
+  const { setSearchRecipe, searchInput, setSearchInput } = useSearch();
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -50,7 +52,10 @@ function TopBar() {
   const handleSearch = (e) => {
     e.preventDefault();
     setIsOpen(false);
-    navigate(`/?q=${searchInput.trim().replace(/\s+/g, " ").toLowerCase()}`);
+    if (searchInput.trim().replace(/\s+/g, " ").toLowerCase()) {
+      setSearchRecipe(searchInput.trim().replace(/\s+/g, " ").toLowerCase());
+      navigate("/");
+    }
   };
 
   // change theme of 'drawer' to make sure dark backdrop is above the topBar
@@ -80,6 +85,8 @@ function TopBar() {
     }
   };
 
+  console.log("searchInput : ", searchInput);
+
   return (
     <>
       <header className="fixed top-0 left-0 z-50 w-full h-(--top-bar-height) bg-white ">
@@ -96,7 +103,11 @@ function TopBar() {
             {/* logo section */}
             <div
               className=" flex flex-1 font-extrabold text-2xl tracking-tighter  px-4 py-2 items-center justify-center md:flex-none md:justify-start"
-              onClick={() => navigate("/")}
+              onClick={() => {
+                setSearchRecipe("");
+                setSearchInput("");
+                navigate("/");
+              }}
             >
               eatReci
             </div>
@@ -121,9 +132,11 @@ function TopBar() {
               <button
                 className="border text-xl rounded-r-full border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 m-1 
                             hover:cursor-pointer hover:ring-2 hover:ring-gray-600"
-                onClick={() =>
-                  navigate(`/?q=${searchInput.trim().replace(/\s+/g, " ").toLowerCase()}`)
-                }
+                onClick={() => {
+                  if (searchInput.trim().replace(/\s+/g, " ").toLowerCase()) {
+                    setSearchRecipe(searchInput.trim().replace(/\s+/g, " ").toLowerCase());
+                  }
+                }}
               >
                 search
               </button>
@@ -180,7 +193,15 @@ function TopBar() {
                 </form>
                 <SidebarItems>
                   <SidebarItemGroup>
-                    <SidebarItem href="/" icon={HiHome}>
+                    <SidebarItem
+                      onClick={() => {
+                        setSearchRecipe("");
+                        setSearchInput("");
+                        setIsOpen(false);
+                      }}
+                      icon={HiHome}
+                      href="/"
+                    >
                       Home
                     </SidebarItem>
                     <SidebarItem href="/MyRecipes" icon={HiClipboardList}>

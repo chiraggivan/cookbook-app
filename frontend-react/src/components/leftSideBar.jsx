@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { Link, useNavigate, NavLink } from "react-router-dom";
+import { useSearch } from "../context/globalSearchContext";
 
 function LeftSideBar() {
   const navigate = new useNavigate();
   const role = JSON.parse(localStorage.getItem("user"))?.role ?? "";
+  const { setSearchRecipe, setSearchInput } = useSearch();
   useEffect(() => {
     if (!role) {
       navigate("/login");
@@ -20,6 +22,10 @@ function LeftSideBar() {
               <li>
                 <NavLink
                   to="/"
+                  onClick={() => {
+                    setSearchRecipe("");
+                    setSearchInput("");
+                  }}
                   className={({ isActive }) =>
                     `block font-medium transition duration-200 ${
                       isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary"

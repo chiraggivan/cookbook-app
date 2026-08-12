@@ -9,6 +9,8 @@ import { DishProvider } from "./context/dishContext.jsx";
 import { MyIngredientProvider } from "./context/myIngredientContext.jsx";
 import { MyRecipeProvider } from "./context/myRecipeContext.jsx";
 import { google_client_id } from "./config.js";
+import { GlobalSearchProvider } from "./context/globalSearchContext.jsx";
+
 import "@fontsource/inter";
 
 createRoot(document.getElementById("root")).render(
@@ -17,7 +19,9 @@ createRoot(document.getElementById("root")).render(
       <MyRecipeProvider>
         <MyIngredientProvider>
           <GoogleOAuthProvider clientId={google_client_id}>
-            <App />
+            <GlobalSearchProvider>
+              <App />
+            </GlobalSearchProvider>
           </GoogleOAuthProvider>
         </MyIngredientProvider>
       </MyRecipeProvider>

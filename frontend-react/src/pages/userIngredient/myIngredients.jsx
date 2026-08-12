@@ -164,7 +164,7 @@ function MyIngredients() {
               <div className="px-2">
                 <p className="text-lg font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
                 <p className="text-gray-500 italic text-md line-clamp-1">
-                  Priced £{i.display_price} for {i.display_quantity} {i.display_unit}{" "}
+                  £{i.display_price} for {i.display_quantity} {i.display_unit}{" "}
                 </p>
                 <div className="flex items-center line-clamp-2">
                   <TbBowlSpoonFilled className="text-gray-500" />

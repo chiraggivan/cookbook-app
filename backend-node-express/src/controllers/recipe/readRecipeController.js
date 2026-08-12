@@ -7,6 +7,10 @@ exports.get_recipes = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const searchString = "%" + (req.query.q || "").trim().toLowerCase() + "%";
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const queryLimit = limit + 1;
+    const offset = (page - 1) * limit;
 
     const [result] = await db.query(
       `
@@ -16,14 +20,19 @@ exports.get_recipes = async (req, res) => {
         AND (r.user_id = ? OR r.privacy = 'public') 
         AND (LOWER(r.name) LIKE ? OR LOWER(r.description) LIKE ?)
         ORDER BY r.created_at DESC
+        LIMIT  ? OFFSET  ?
         `,
-      [user.id, searchString, searchString],
+      [user.id, searchString, searchString, queryLimit, offset],
     );
+
+    const hasMore = result.length > limit;
+    const data = result.slice(0, limit);
 
     res.json({
       success: true,
-      message: `All recipes found`,
-      data: result,
+      message: `Recipes found`,
+      data,
+      hasMore,
     });
   } catch (err) {
     console.error("Error in readRecipeController - get_recipes is : ", err);

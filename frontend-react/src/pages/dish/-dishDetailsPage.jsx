@@ -24,9 +24,9 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
             <p>Portion size: {data?.dish?.portion_size}</p>
 
             <p>Meal type: {data?.dish?.meal}</p>
-            <p>Cost : £ {data?.dish?.total_cost}</p>
+            <p>Cost: £ {data?.dish?.total_cost}</p>
             <p>
-              Prepared on : {data?.dish?.preparation_date} for {data?.dish?.meal}
+              Prepared: {data?.dish?.preparation_date} for {data?.dish?.meal}
             </p>
           </div>
           <div className="flex aspect-video bg-gray-200 rounded-lg md:h-35">

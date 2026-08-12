@@ -15,28 +15,39 @@ import {
   getInitials,
 } from "../../utils/appUtils";
 import { GiHotMeal } from "react-icons/gi";
+import { useSearch } from "../../context/globalSearchContext";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const searchRecipe = searchParams.get("q");
+  // const [searchParams] = useSearchParams();
+  // const searchRecipe = searchParams.get("q");
+  const { searchRecipe } = useSearch();
   const [data, setData] = useState();
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const scrollwindowPercent = 99;
+  const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const method = "get";
-  let url;
-  if (searchRecipe) {
-    url = `${serverURL}/recipe/api/all/?q=${searchRecipe}`;
-  } else {
-    url = `${serverURL}/recipe/api/all`;
-  }
-  const config = {
-    headers: { Authorization: `Bearer ${token}` },
-  };
-
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
+
+  const method = "get";
+  // let url;
+  // if (searchRecipe) {
+  //   url = `${serverURL}/recipe/api/all/?q=${searchRecipe}`;
+  // } else {
+  const url = `${serverURL}/recipe/api/all`;
+  // }
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      q: searchRecipe || undefined,
+      page,
+      limit,
+    },
+  };
 
   // Redirect effects
   useEffect(() => {
@@ -52,7 +63,12 @@ function Home() {
         try {
           setIsLoading(true);
           const res = await axios[method](url, config);
-          setData(res?.data.data);
+          if (page === 1) {
+            setData(res?.data.data);
+          } else {
+            setData((prev) => [...prev, ...res?.data.data]);
+          }
+          setHasMore(res?.data.hasMore ?? false);
         } catch (err) {
           // console.log("Error while fetching all recipes", err);
           if (err.response?.data.message === JWTunverifiedMsg) {
@@ -66,8 +82,63 @@ function Home() {
       }
     };
     fetchData();
-  }, [token, searchRecipe]);
+  }, [token]);
 
+  // for search recipe state change
+  useEffect(() => {
+    setData([]);
+    setPage[1];
+  }, [searchRecipe]);
+
+  // scroll listener
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
+      // console.log("scroll % :", scrollPercentage);
+      if (scrollPercentage >= scrollwindowPercent && hasMore && !isLoadingMore) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasMore, isLoadingMore]);
+
+  // to fetch more recipes for infinite scroll as page changes due above scroll listener
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+    const fetchData = async () => {
+      try {
+        setIsLoadingMore(true);
+        const res = await axios[method](url, config);
+        if (page === 1) {
+          setData(res?.data.data);
+        } else {
+          setData((prev) => [...prev, ...res?.data.data]);
+        }
+        setHasMore(res?.data.hasMore ?? false);
+      } catch (err) {
+        console.log("Error while fetching all recipes", err);
+        if (err.response?.data.message === JWTunverifiedMsg) {
+          localStorage.removeItem("token");
+          navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
+        }
+      } finally {
+        setIsLoadingMore(false);
+        setImageError(false);
+      }
+    };
+    fetchData();
+  }, [page, searchRecipe]);
   // ------------------------------ creating variable to store which recipe have images and valid --------
   const [failedImages, setFailedImages] = useState({});
 
@@ -77,6 +148,8 @@ function Home() {
       [recipeId]: true,
     }));
   };
+
+  // console.log("data is :", data);
 
   if (isLoading) {
     return (
@@ -90,7 +163,8 @@ function Home() {
       </div>
     );
   }
-  console.log("data before return html : ", data);
+  // console.log("data before return html : ", data);
+  console.log("page no. ", page);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
@@ -170,6 +244,18 @@ function Home() {
             </div>
           ))}
         </div>
+
+        {/* loading more -spinner */}
+        {isLoadingMore && (
+          <div className="flex w-full h-30 items-center justify-center">
+            <Spinner
+              theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+              color="default"
+              aria-label="Loading"
+              size="xl"
+            />
+          </div>
+        )}
       </div>
       {/* </div> */}
     </>

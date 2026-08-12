@@ -52,7 +52,7 @@ function UserRecipes() {
   if (loading) {
     return <h1> Page Loading .............</h1>;
   }
-  // console.log("data before return html : ", data);
+  console.log("data before return html : ", data);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
@@ -61,8 +61,20 @@ function UserRecipes() {
         {/*header and search */}
         <div className="flex flex-col pb-5 lg:flex-row lg:items-end sticky top-0 z-8 bg-white">
           <div className="flex items-center justify-center">
-            <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full pb-3 bg-amber-200 text-8xl">
-              {getInitials(data?.userInfo.username)}
+            <div className="flex shrink-0 items-center justify-center w-40 h-40 rounded-full  bg-amber-200 text-8xl">
+              {data?.userInfo.picture_url ? (
+                <img
+                  className="rounded-full aspect-square"
+                  src={data?.userInfo.picture_url}
+                  alt={getInitials(
+                    data?.userInfo.username ?? data?.userInfo.display_name ?? data?.userInfo.email,
+                  )}
+                />
+              ) : (
+                getInitials(
+                  data?.userInfo.username ?? data?.userInfo.display_name ?? data?.userInfo.email,
+                )
+              )}
             </div>
             {data?.userInfo && (
               <div className=" px-2">

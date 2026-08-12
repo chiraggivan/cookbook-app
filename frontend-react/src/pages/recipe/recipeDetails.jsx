@@ -64,16 +64,16 @@ function RecipeDetails() {
   const url = `${serverURL}/recipe/api/${id}`;
   const body = null;
 
-  const searchMyRecipes = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
-  // console.log("searchMyRecipes :", searchMyRecipes);
+  const recipeFound = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
+  // console.log("recipeFound :", recipeFound);
   // ----------------------------- fetch data from backend only for once -------------------------------------
   // useEffect(() => {
-  //   setFoundRecipeDetails(searchMyRecipes);
+  //   setFoundRecipeDetails(recipeFound);
   // }, [recipeDetails]);
 
   useEffect(() => {
-    if (!searchMyRecipes) {
-      // console.log("when searchMyRecipe not found recipeDetails");
+    if (!recipeFound) {
+      // console.log("when recipeFound not found recipeDetails");
       const fetchData = async () => {
         try {
           setFetchLoading(true);
@@ -97,6 +97,8 @@ function RecipeDetails() {
       };
 
       fetchData();
+    } else {
+      setFoundRecipeDetails(recipeFound);
     }
     setFetchLoading(false);
   }, []);
@@ -359,7 +361,7 @@ function RecipeDetails() {
   }
 
   // console.log("HiTrash :", HiTrash);
-  console.log("foundRecipeDetails is :", foundRecipeDetails);
+  // console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);
@@ -425,10 +427,10 @@ function RecipeDetails() {
                   >
                     <MdOutlineEditNote className="w-4 h-4" /> Edit
                   </DropdownItem>
-                  <DropdownItem className="flex gap-2 text-gray-300">
+                  <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
                     <HiPrinter className="w-4 h-4" /> Print
                   </DropdownItem>
-                  <DropdownItem className="flex gap-2 text-gray-300">
+                  <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
                     <HiShare className="w-4 h-4" /> Share
                   </DropdownItem>
                   <DropdownItem
