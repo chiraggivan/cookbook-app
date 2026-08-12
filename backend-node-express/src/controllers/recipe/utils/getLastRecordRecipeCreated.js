@@ -4,7 +4,7 @@ exports.getLastRecordOfRecipeCreated = async (recipeId, userId) => {
   try {
     // check db to get the dish prepared in the past
     const [lastPrepared] = await db.query(
-      `SELECT preparation_date, time_prepared, created_at 
+      `SELECT preparation_date, time_prepared, meal, created_at 
         FROM dishes 
         WHERE recipe_id =  ? AND user_id = ? AND is_active = 1 ORDER BY preparation_date DESC, time_prepared DESC LIMIT 1`,
       [recipeId, userId],
@@ -13,22 +13,25 @@ exports.getLastRecordOfRecipeCreated = async (recipeId, userId) => {
       lastPrepared[0].preparation_date = new Date(lastPrepared[0].preparation_date).toISOString();
     }
 
-    let date_prepared;
-    let time_prepared;
-    let created_at;
-    if (lastPrepared.length === 0) {
-      last_prepared_date = "";
-      last_prepared_time = "";
-    } else {
-      last_prepared_date = lastPrepared[0].preparation_date.split("T")[0];
-      last_prepared_time = lastPrepared[0].time_prepared;
-    }
+    // let date_prepared;
+    // let time_prepared;
+    // let created_at;
+    // if (lastPrepared.length === 0) {
+    //   last_prepared_date = "";
+    //   last_prepared_time = "";
+    // } else {
+    //   last_prepared_date = lastPrepared[0].preparation_date.split("T")[0];
+    //   last_prepared_time = lastPrepared[0].time_prepared;
+    // }
+    const last_prepared_date = lastPrepared.length === 0 ? "" : lastPrepared[0].preparation_date;
+    const last_prepared_time = lastPrepared.length === 0 ? "" : lastPrepared[0].time_prepared;
+    const meal = lastPrepared.length === 0 ? "" : lastPrepared[0].meal;
 
     // return data
     return {
       success: true,
       message: `found last record(even if empty)`,
-      data: { last_prepared_date, last_prepared_time },
+      data: { last_prepared_date, last_prepared_time, meal },
     };
   } catch (err) {
     console.log("error during getLastRecordOfRecipeCreated :", err);

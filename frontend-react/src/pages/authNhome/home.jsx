@@ -164,7 +164,7 @@ function Home() {
     );
   }
   // console.log("data before return html : ", data);
-  console.log("page no. ", page);
+  // console.log("page no. ", page);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 

@@ -83,7 +83,7 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
 
     recipeResult[0].last_prepared_time = data.last_prepared_time;
     recipeResult[0].last_prepared_date = data.last_prepared_date;
-
+    recipeResult[0].meal = data.meal;
     // return data
     return {
       success: true,

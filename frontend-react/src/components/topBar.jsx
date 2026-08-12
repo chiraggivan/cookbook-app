@@ -85,7 +85,7 @@ function TopBar() {
     }
   };
 
-  console.log("searchInput : ", searchInput);
+  // console.log("searchInput : ", searchInput);
 
   return (
     <>

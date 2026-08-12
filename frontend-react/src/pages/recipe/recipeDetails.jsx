@@ -21,6 +21,7 @@ import { MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
 
 import ToggleSwitchC from "../../components/toggleSwitch";
+import formattedDate from "../../utils/formattedDate";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -274,6 +275,10 @@ function RecipeDetails() {
     details4Dish.components = [];
     // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
+    foundRecipeDetails.recipe.last_prepared_date = foundRecipeDetails?.recipe?.last_prepared_date
+      ? formattedDate(foundRecipeDetails?.recipe?.last_prepared_date)
+      : "";
+
     const recipeData = foundRecipeDetails?.ingredients;
 
     const uniqueComp = [...new Set(recipeData?.map((i) => i.component_display_order))].sort(
@@ -505,10 +510,13 @@ function RecipeDetails() {
               {isRecipeOwner && (
                 <div className="flex justify-between mt-2 px-2">
                   <div className="flex flex-col space-x-2">
-                    <div className="font-semibold">Last Prepared on :</div>
+                    <div className="font-semibold">Last Prepared:</div>
                     <p>
-                      {foundRecipeDetails?.recipe.last_prepared_date} @{" "}
-                      {foundRecipeDetails?.recipe.last_prepared_time}
+                      {(foundRecipeDetails?.recipe.last_prepared_date &&
+                        foundRecipeDetails?.recipe.last_prepared_date +
+                          " for " +
+                          foundRecipeDetails?.recipe.meal) ||
+                        "No record of past"}
                     </p>
                   </div>
                   {/* Create dish button */}
