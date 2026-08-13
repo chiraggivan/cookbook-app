@@ -275,12 +275,8 @@ function RecipeDetails() {
     details4Dish.components = [];
     // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-    foundRecipeDetails.recipe.last_prepared_date = foundRecipeDetails?.recipe?.last_prepared_date
-      ? formattedDate(foundRecipeDetails?.recipe?.last_prepared_date)
-      : "";
-
+    // get all the ingredients and club it according to its (component) heading display order
     const recipeData = foundRecipeDetails?.ingredients;
-
     const uniqueComp = [...new Set(recipeData?.map((i) => i.component_display_order))].sort(
       (a, b) => a - b,
     );
@@ -513,7 +509,7 @@ function RecipeDetails() {
                     <div className="font-semibold">Last Prepared:</div>
                     <p>
                       {(foundRecipeDetails?.recipe.last_prepared_date &&
-                        foundRecipeDetails?.recipe.last_prepared_date +
+                        formattedDate(foundRecipeDetails?.recipe.last_prepared_date) +
                           " for " +
                           foundRecipeDetails?.recipe.meal) ||
                         "No record of past"}
