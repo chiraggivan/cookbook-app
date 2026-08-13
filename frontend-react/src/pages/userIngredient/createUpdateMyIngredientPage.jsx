@@ -280,7 +280,7 @@ function CreateUpdateMyIngredientPage({
           </div>
 
           {/* buttons for update, delete and cancel */}
-          <div className="flex justify-between my-3">
+          <div className="flex justify-between mt-3 mb-10">
             <div
               className={
                 mode === "edit" ? "flex gap-x-2 lg:gap-x-6" : "flex w-full justify-between"

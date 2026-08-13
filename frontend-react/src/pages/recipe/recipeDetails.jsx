@@ -383,7 +383,7 @@ function RecipeDetails() {
             <div
               className={
                 isRecipeOwner
-                  ? `flex pl-2 pr-8 max-w-sm font-extrabold text-xl 
+                  ? `flex pl-2 pr-12 max-w-sm font-extrabold text-xl 
                               md:text-2xl md:max-w-lg
                               lg:text-3xl lg:max-w-xl`
                   : `flex pl-2 pr-6 pb-6 max-w-sm font-extrabold text-xl 
@@ -466,7 +466,7 @@ function RecipeDetails() {
                       <div>
                         {!changePrvcyLoading && (
                           <Toggle
-                            title=""
+                            title="Private"
                             checked={
                               foundRecipeDetails?.recipe.privacy === "private" ? true : false
                             }
@@ -474,6 +474,13 @@ function RecipeDetails() {
                             offText="Private"
                             onChange={(e) => {
                               setChangePrvcyLoading(true);
+                              setFoundRecipeDetails((prev) => ({
+                                ...prev,
+                                recipe: {
+                                  ...prev.recipe,
+                                  privacy: prev.recipe.privacy === "private" ? "public" : "private",
+                                },
+                              }));
                               setRecipeDetails((prev) =>
                                 prev.map((item) =>
                                   item.recipe.recipe_id === Number(id)
@@ -719,39 +726,6 @@ function RecipeDetails() {
             </Tabs>
           </div>
         </div>
-
-        <div>
-          {!changePrvcyLoading && (
-            <ToggleSwitch
-              theme={{
-                toggle: { checked: { color: { default: "bg-blue-900" } } },
-              }}
-              checked={foundRecipeDetails?.recipe.privacy === "private" ? true : false}
-              // checked={false}
-              label="Private"
-              onChange={(flag) => {
-                setChangePrvcyLoading(true);
-                setRecipeDetails((prev) =>
-                  prev.map((item) =>
-                    item.recipe.recipe_id === Number(id)
-                      ? {
-                          ...item,
-                          recipe: {
-                            ...item.recipe,
-                            privacy: flag ? "private" : "public",
-                          },
-                        }
-                      : item,
-                  ),
-                );
-                changePrivacy(flag ? "private" : "public");
-                setChangePrvcyLoading(false);
-              }}
-            />
-          )}
-          {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-        </div>
-        <ToggleSwitchC />
       </div>
 
       {isConfirmModalOpen && (

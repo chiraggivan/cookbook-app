@@ -139,13 +139,13 @@ function DishDetails() {
                 <div className="flex min-w-12 text-md items-start justify-start mr-1">
                   {capitaliseWords(i.unit_name)}
                 </div>
-                <div className="flex min-w-20 text-md items-start justify-start mr-2">
+                <div className="flex text-md items-start justify-start mr-2">
                   {capitaliseWords(i.ingredient_name)}
                 </div>
               </div>
-              <div className="flex flex-col my-0.5">
-                <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost.toFixed(3)}</div>
-                <div className="flex min-w-7 text-sm justify-end mr-1 text-gray-500">
+              <div className="flex flex-col min-w-15 my-0.5">
+                <div className="flex w-full text-md justify-end mr-1">£ {i.cost.toFixed(3)}</div>
+                <div className="flex w-full text-sm justify-end mr-1 text-gray-500">
                   £{i.base_price}/{Number(i.base_quantity)} {i.base_unit}
                 </div>
               </div>

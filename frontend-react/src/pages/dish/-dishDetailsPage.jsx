@@ -1,10 +1,11 @@
 // import Button from "../../components/button";
-import { Button } from "flowbite-react";
+import { Button, Dropdown, DropdownItem } from "flowbite-react";
 import { capitaliseWords } from "../../utils/appUtils";
-import { HiTrash } from "react-icons/hi";
+import { HiPrinter, HiTrash } from "react-icons/hi";
 import ConfirmModal from "../../components/confirmModal";
 import { useState } from "react";
 import { GiHotMeal, GiHotSpices, GiMeal } from "react-icons/gi";
+import { SlOptionsVertical } from "react-icons/sl";
 
 function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
   const token = localStorage.getItem("token");
@@ -13,11 +14,45 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
 
   return (
     <>
-      <div className="flex px-2 w-full max-w-xl mx-auto flex-col mt-4">
-        {/* Dish name header */}
-        <div className=" flex mr-auto text-3xl font-semibold">
-          {capitaliseWords(data?.dish?.recipe_name)}
+      <div className="flex flex-col px-2 w-full max-w-xl mx-auto  mt-4">
+        {/* Dish name header  and option button*/}
+        <div className="flex">
+          {/* Dish name header */}
+          <div className="flex flex-1 mr-auto text-3xl font-semibold">
+            {capitaliseWords(data?.dish?.recipe_name)}
+          </div>
+
+          {/* option button */}
+          <div className="flex w-10 h-10  text-app-primary hover:bg-gray-300 rounded-full transition duration-300">
+            {
+              // top-1/2 -translate-y-1/2
+            }
+
+            <Dropdown
+              className=""
+              label=""
+              dismissOnClick={false}
+              renderTrigger={() => (
+                <span className="flex w-full h-full items-center justify-center ">
+                  <SlOptionsVertical className="w-6 h-6 " />
+                </span>
+              )}
+            >
+              <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
+                <HiPrinter className="w-4 h-4" /> Print
+              </DropdownItem>
+
+              <DropdownItem
+                className="flex gap-2 text-sm text-app-danger"
+                onClick={() => setIsConfirmModalOpen(true)}
+              >
+                <HiTrash className=" w-4 h-4" />
+                Delete
+              </DropdownItem>
+            </Dropdown>
+          </div>
         </div>
+
         {/* dish description + image */}
         <div className="flex flex-col-reverse mt-3 md:w-full md:flex-row md:justify-between">
           <div className="">
@@ -51,8 +86,9 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
               <span className="text-lg font-bold">Comment:</span> {data?.dish?.comment}
             </p>
           </div>
+
           {/* delete button */}
-          <div className="items-start ">
+          {/* <div className="items-start ">
             <Button
               className="cursor-pointer w-38"
               color="red"
@@ -61,7 +97,7 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
               <HiTrash className="mr-2 w-5 h-5" />
               Delete Dish
             </Button>
-          </div>
+          </div> */}
         </div>
 
         {/* Top Line Separator */}

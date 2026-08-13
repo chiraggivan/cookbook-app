@@ -7,7 +7,7 @@ import Button from "../../components/button";
 import TopBar from "../../components/topBar";
 import LeftSideBar from "../../components/leftSideBar";
 import Navbar from "../../components/navbarOld";
-import { Spinner } from "flowbite-react";
+import { Dropdown, DropdownItem, Spinner } from "flowbite-react";
 import {
   serverURL,
   showTokenErrMsgOnScreen,
@@ -16,6 +16,8 @@ import {
 } from "../../utils/appUtils";
 import { GiHotMeal } from "react-icons/gi";
 import { useSearch } from "../../context/globalSearchContext";
+import { SlOptionsVertical } from "react-icons/sl";
+import { MdOutlineEditNote, MdOutlineMenuBook } from "react-icons/md";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -240,6 +242,31 @@ function Home() {
                   </p>
                   <p></p>
                 </div>
+
+                {/* option button */}
+                <div className="flex w-10 h-8 mt-2 text-app-primary hover:bg-gray-300 rounded-full transition duration-300">
+                  {
+                    // top-1/2 -translate-y-1/2
+                  }
+
+                  <Dropdown
+                    className=""
+                    label=""
+                    dismissOnClick={false}
+                    renderTrigger={() => (
+                      <span className="flex w-full h-full items-center justify-center ">
+                        <SlOptionsVertical className="w-6 h-6 " />
+                      </span>
+                    )}
+                  >
+                    <DropdownItem
+                      className="flex gap-2"
+                      onClick={() => navigate(`/recipe/${i.recipe_id}`)}
+                    >
+                      <MdOutlineMenuBook className="w-4 h-4" /> Open
+                    </DropdownItem>
+                  </Dropdown>
+                </div>
               </div>
             </div>
           ))}
@@ -256,6 +283,8 @@ function Home() {
             />
           </div>
         )}
+
+        <div className="h-20"></div>
       </div>
       {/* </div> */}
     </>
