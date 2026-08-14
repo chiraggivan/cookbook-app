@@ -18,9 +18,10 @@ import DropdownArray from "../../components/dropdownArray";
 import TopBar from "../../components/topBar";
 import { TextInput, Button, Tabs, TabItem } from "flowbite-react";
 import { GiAvocado, GiHotMeal } from "react-icons/gi";
-import { HiTrash } from "react-icons/hi";
+import { HiClipboardList, HiTrash } from "react-icons/hi";
 import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 import { TbFoodsteps } from "react-icons/tb";
+import EditBaseValuesModal from "../../components/editBaseValuesModal";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -90,6 +91,14 @@ function NewRecipe() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [imageURL, setImageURL] = useState("");
+
+  const [isEditBaseValuesOpen, setIsEditBaseValuesOpen] = useState(false);
+  const [quantityValue, setQuantityValue] = useState(0);
+  const [unitValue, setUnitValue] = useState("");
+  const [baseUnits, setBaseUnits] = useState([]);
+  const [priceValue, setPriceValue] = useState(0);
+  const [compUid, setCompUid] = useState(null);
+  const [ingUid, setIngUid] = useState(null);
 
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -738,6 +747,31 @@ function NewRecipe() {
     }
   };
 
+  // -------------------- update the base values of ingredient thru modal for small screen -----------------------
+  const updateBaseValues = (compUid, ingUid, updateQuantity, updateUnit, updatePrice) => {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.uid === compUid
+          ? {
+              ...section,
+              ingredients: section.ingredients.map((ingredient) =>
+                ingredient.uid === ingUid
+                  ? {
+                      ...ingredient,
+                      displayUnit: updateUnit,
+                      displayQuantity: Number(updateQuantity),
+                      displayPrice: Number(updatePrice),
+                    }
+                  : ingredient,
+              ),
+            }
+          : section,
+      ),
+    );
+
+    setIsEditBaseValuesOpen(false);
+  };
+
   // ---------------------------- console to show recipe for every input ----------------------------------
   const handleSubmit = () => {
     // console.log("recipeInfo", recipeInfo);
@@ -1102,13 +1136,13 @@ function NewRecipe() {
         const body = dataToSend;
 
         const res = await axios[method](url, body, config);
-        console.log("res: ", res);
+        // console.log("res: ", res);
         const newData = res?.data?.data;
         if (newData) {
           setRecipeDetails((prev) => [...prev, newData]);
           setMyRecipes((prev) => [newData.recipe, ...prev]);
         }
-        console.log("about to navigate");
+        // console.log("about to navigate");
         navigate(`/recipe/${newData.recipe.recipe_id}`);
       } catch (err) {
         console.log("err found during saving new recipe api: ", err.response.data);
@@ -1422,180 +1456,208 @@ function NewRecipe() {
                               )}
                             </div>
 
-                            {/* col 3,4,5,6 in one div */}
-                            <div className="flex flex-6">
-                              {/* 3rd column - ing name */}
-                              <div className="relative flex flex-8 pt-1 items-start justify-start ">
-                                <Input
-                                  className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500"
-                                  value={ing.name ?? ""}
-                                  onFocus={(e) => {
-                                    setActiveInputId(ing.uid);
-                                    searchIng(e.target.value);
-                                  }}
-                                  onChange={(e) => {
-                                    setSections((prev) =>
-                                      prev.map((section) =>
-                                        section.uid === comp.uid
-                                          ? {
-                                              ...section,
-                                              ingredients: section.ingredients.map((i) =>
-                                                i.uid === ing.uid
-                                                  ? {
-                                                      ...i,
-                                                      name: e.target.value,
-                                                      displayQuantity: "",
-                                                      displayUnit: "",
-                                                      displayPrice: "",
-                                                      ingredientSource: "",
-                                                      ingredientId: "",
-                                                      measuringUnits: [],
-                                                      baseUnits: [],
-                                                      unit: "",
-                                                      quantity: "",
-                                                      ogDisplayPrice: "",
-                                                      ogDisplayQuantity: "",
-                                                      ogDisplayUnit: "",
-                                                      errors: {},
-                                                    }
-                                                  : i,
-                                              ),
-                                            }
-                                          : section,
-                                      ),
-                                    );
-                                    searchIng(e.target.value);
-                                    addNewIngRow(comp.uid, index);
-                                    if (!activeInputId) {
+                            {/* col 3,4,5,6 in one div and base values for small screen */}
+                            <div className="flex flex-col flex-6">
+                              <div className="flex flex-6">
+                                {/* 3rd column - ing name */}
+                                <div className="relative flex flex-8 pt-1 items-start justify-start ">
+                                  <Input
+                                    className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500"
+                                    value={ing.name ?? ""}
+                                    onFocus={(e) => {
                                       setActiveInputId(ing.uid);
-                                    }
-                                    // if (
-                                    //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                    //     ing.uid
-                                    //   ]?.name
-                                    // ) {
-                                    //   const x = checkFinalData.errors.components[comp.uid];
-                                    //   x.ingredients[ing.uid].name = "";
-                                    // }
-                                  }}
-                                  onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
-                                  placeholder={"milk, blue cheese, etc.."}
-                                  error={
-                                    ing?.errors?.errorName ?? ""
-                                    // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.name ?? ""
-                                  }
-                                  onBlur={() => {
-                                    blurTimeout = setTimeout(() => {
-                                      hideSuggestions(comp.uid, ing.uid);
-                                    }, 100);
-                                  }}
-                                />
-                                {activeInputId === ing.uid &&
-                                  suggestedIng.length > 0 && ( // inputText[index] &&
-                                    <div className="flex flex-8 items-center justify-center">
-                                      <div
-                                        className="absolute top-8.25 left-0 w-full min-w-18  text-sm max-h-25 overflow-auto z-10 
-                                        border-2 border-gray-500 rounded lg:w-38"
-                                      >
-                                        {suggestedIng.map((ingredient, index) => (
-                                          <div
-                                            key={ingredient.ingredient_id + "-" + index}
-                                            ref={(el) => (itemRefs.current[index] = el)}
-                                            style={{
-                                              backgroundColor:
-                                                index === highlightedIndex ? "#f0f0f0" : "white",
-                                              // padding: "10px",
-                                              cursor: "pointer",
-                                            }}
-                                            onClick={() => {
-                                              clearTimeout(blurTimeout);
-                                              handleSelectedIng(comp.uid, ing.uid, ingredient);
-                                            }}
-                                          >
-                                            {ingredient.name}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                              </div>
-
-                              {/* 4th column - quantity */}
-                              <div className="flex flex-3 p-1 min-w-7 justify-center ">
-                                <Input
-                                  className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
-                                  value={ing?.quantity ?? ""}
-                                  onChange={(e) => {
-                                    validateInput(
-                                      "quantity",
-                                      e.target.value,
-                                      3,
-                                      5,
-                                      comp.uid,
-                                      ing.uid,
-                                    );
-                                  }}
-                                  onBlur={(e) => updateQuantity(comp.uid, ing.uid, e.target.value)}
-                                  error={
-                                    ing?.errors?.errorQuantity ?? ""
-                                    // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.quantity ?? ""
-                                  }
-                                />
-                              </div>
-
-                              {/* 5th column */}
-                              <div className="flex flex-4 pt-1 justify-center">
-                                <Dropdown
-                                  className="flex rounded w-14 md:min-w-18 text-sm h-7.5 pl-1 pr-7 py-0"
-                                  options={ing?.measuringUnits}
-                                  value={ing?.unitId}
-                                  onChange={(e) => {
-                                    updateUnit(comp.uid, ing.uid, e.target.value);
-                                    // if (
-                                    //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
-                                    //     ing.uid
-                                    //   ]?.unit
-                                    // ) {
-                                    //   const x = checkFinalData.errors.components[comp.uid];
-                                    //   x.ingredients[ing.uid].unit = "";
-                                    // }
-                                    setSections((prev) =>
-                                      prev.map((component) =>
-                                        component.uid === comp.uid
-                                          ? {
-                                              ...component,
-                                              ingredients: component.ingredients.map(
-                                                (ingredient) =>
-                                                  ingredient.uid === ing.uid
+                                      searchIng(e.target.value);
+                                    }}
+                                    onChange={(e) => {
+                                      setSections((prev) =>
+                                        prev.map((section) =>
+                                          section.uid === comp.uid
+                                            ? {
+                                                ...section,
+                                                ingredients: section.ingredients.map((i) =>
+                                                  i.uid === ing.uid
                                                     ? {
-                                                        ...ingredient,
-                                                        errors: {
-                                                          ...ingredient.errors,
-                                                          errorUnit: "",
-                                                        },
+                                                        ...i,
+                                                        name: e.target.value,
+                                                        displayQuantity: "",
+                                                        displayUnit: "",
+                                                        displayPrice: "",
+                                                        ingredientSource: "",
+                                                        ingredientId: "",
+                                                        measuringUnits: [],
+                                                        baseUnits: [],
+                                                        unit: "",
+                                                        quantity: "",
+                                                        ogDisplayPrice: "",
+                                                        ogDisplayQuantity: "",
+                                                        ogDisplayUnit: "",
+                                                        errors: {},
                                                       }
-                                                    : ingredient,
-                                              ),
-                                            }
-                                          : component,
-                                      ),
-                                    );
-                                  }}
-                                  error={
-                                    ing?.errors?.errorUnit ?? ""
-                                    // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.unit ?? ""
-                                  }
-                                />
+                                                    : i,
+                                                ),
+                                              }
+                                            : section,
+                                        ),
+                                      );
+                                      searchIng(e.target.value);
+                                      addNewIngRow(comp.uid, index);
+                                      if (!activeInputId) {
+                                        setActiveInputId(ing.uid);
+                                      }
+                                      // if (
+                                      //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                      //     ing.uid
+                                      //   ]?.name
+                                      // ) {
+                                      //   const x = checkFinalData.errors.components[comp.uid];
+                                      //   x.ingredients[ing.uid].name = "";
+                                      // }
+                                    }}
+                                    onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
+                                    placeholder={"milk, blue cheese, etc.."}
+                                    error={
+                                      ing?.errors?.errorName ?? ""
+                                      // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.name ?? ""
+                                    }
+                                    onBlur={() => {
+                                      blurTimeout = setTimeout(() => {
+                                        hideSuggestions(comp.uid, ing.uid);
+                                      }, 100);
+                                    }}
+                                  />
+                                  {activeInputId === ing.uid &&
+                                    suggestedIng.length > 0 && ( // inputText[index] &&
+                                      <div className="flex flex-8 items-center justify-center">
+                                        <div
+                                          className="absolute top-8.25 left-0 w-full min-w-18  text-sm max-h-25 overflow-auto z-10 
+                                        border-2 border-gray-500 rounded lg:w-38"
+                                        >
+                                          {suggestedIng.map((ingredient, index) => (
+                                            <div
+                                              key={ingredient.ingredient_id + "-" + index}
+                                              ref={(el) => (itemRefs.current[index] = el)}
+                                              style={{
+                                                backgroundColor:
+                                                  index === highlightedIndex ? "#f0f0f0" : "white",
+                                                // padding: "10px",
+                                                cursor: "pointer",
+                                              }}
+                                              onClick={() => {
+                                                clearTimeout(blurTimeout);
+                                                handleSelectedIng(comp.uid, ing.uid, ingredient);
+                                              }}
+                                            >
+                                              {ingredient.name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                </div>
+
+                                {/* 4th column - quantity */}
+                                <div className="flex flex-3 p-1 min-w-7 justify-center ">
+                                  <Input
+                                    className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
+                                    value={ing?.quantity ?? ""}
+                                    onChange={(e) => {
+                                      validateInput(
+                                        "quantity",
+                                        e.target.value,
+                                        3,
+                                        5,
+                                        comp.uid,
+                                        ing.uid,
+                                      );
+                                    }}
+                                    onBlur={(e) =>
+                                      updateQuantity(comp.uid, ing.uid, e.target.value)
+                                    }
+                                    error={
+                                      ing?.errors?.errorQuantity ?? ""
+                                      // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.quantity ?? ""
+                                    }
+                                  />
+                                </div>
+
+                                {/* 5th column */}
+                                <div className="flex flex-4 pt-1 justify-center">
+                                  <Dropdown
+                                    className="flex rounded w-14 md:min-w-18 text-sm h-7.5 pl-1 pr-7 py-0"
+                                    options={ing?.measuringUnits}
+                                    value={ing?.unitId}
+                                    onChange={(e) => {
+                                      updateUnit(comp.uid, ing.uid, e.target.value);
+                                      // if (
+                                      //   checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[
+                                      //     ing.uid
+                                      //   ]?.unit
+                                      // ) {
+                                      //   const x = checkFinalData.errors.components[comp.uid];
+                                      //   x.ingredients[ing.uid].unit = "";
+                                      // }
+                                      setSections((prev) =>
+                                        prev.map((component) =>
+                                          component.uid === comp.uid
+                                            ? {
+                                                ...component,
+                                                ingredients: component.ingredients.map(
+                                                  (ingredient) =>
+                                                    ingredient.uid === ing.uid
+                                                      ? {
+                                                          ...ingredient,
+                                                          errors: {
+                                                            ...ingredient.errors,
+                                                            errorUnit: "",
+                                                          },
+                                                        }
+                                                      : ingredient,
+                                                ),
+                                              }
+                                            : component,
+                                        ),
+                                      );
+                                    }}
+                                    error={
+                                      ing?.errors?.errorUnit ?? ""
+                                      // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.unit ?? ""
+                                    }
+                                  />
+                                </div>
+
+                                {/* 6th column */}
+                                {/* created 2 div- one for mobile(less than sm), 2nd for wider than mobile - for sm and more) */}
+                                <div className="hidden sm:flex flex-3 justify-center items-center text-sm">
+                                  {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
+                                </div>
+                                <div className="sm:hidden flex flex-3 justify-center items-center text-sm">
+                                  {ing?.cost ? Number(Number(ing?.cost).toFixed(3)) : ""}
+                                </div>
                               </div>
 
-                              {/* 6th column */}
-                              {/* created 2 div- one for mobile(less than sm), 2nd for wider than mobile - for sm and more) */}
-                              <div className="hidden sm:flex flex-3 justify-center items-center text-sm">
-                                {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
-                              </div>
-                              <div className="sm:hidden flex flex-3 justify-center items-center text-sm">
-                                {ing?.cost ? Number(Number(ing?.cost).toFixed(3)) : ""}
-                              </div>
+                              {/* button for base values for small screen less than lg */}
+                              {ing.name && ing.displayQuantity && (
+                                <div className="flex lg:hidden">
+                                  <div
+                                    className="flex items-center justify-center h-5 w-25 bg-gray-200 rounded-md text-xs mb-1 hover:cursor-pointer"
+                                    onClick={() => {
+                                      setCompUid(comp.uid);
+                                      setIngUid(ing.uid);
+                                      setQuantityValue(ing?.displayQuantity);
+                                      setUnitValue(ing?.displayUnit);
+                                      setBaseUnits(ing?.baseUnits);
+                                      setPriceValue(ing?.displayPrice);
+                                      setIsEditBaseValuesOpen(true);
+                                    }}
+                                  >
+                                    <span>Edit Base Price</span>
+                                  </div>
+                                  <div className="flex h-5 items-end pl-2 text-xs text-gray-400">
+                                    £ {ing?.displayPrice}/ {ing?.displayQuantity}{" "}
+                                    {ing?.displayUnit}{" "}
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* col 7,8,9 in one div */}
@@ -1839,6 +1901,27 @@ function NewRecipe() {
           </div>
         </div>
       </div>
+
+      {isEditBaseValuesOpen && (
+        <EditBaseValuesModal
+          isOpen={isEditBaseValuesOpen}
+          onClose={() => setIsEditBaseValuesOpen(false)}
+          onConfirm={(compUid, ingUid, updateQuantity, updateUnit, updatePrice) =>
+            updateBaseValues(compUid, ingUid, updateQuantity, updateUnit, updatePrice)
+          }
+          title={"Created This Dish On:"}
+          message={`Update values of ingredient bought`}
+          cancelText={"Cancel"}
+          OKtext={"Update"}
+          OKtextIcon={HiClipboardList}
+          quantityValue={quantityValue}
+          unitValue={unitValue}
+          baseUnits={baseUnits}
+          priceValue={priceValue}
+          compUid={compUid}
+          ingUid={ingUid}
+        />
+      )}
     </>
   );
 }

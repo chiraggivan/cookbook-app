@@ -93,7 +93,7 @@ function TopBar() {
         <div className="flex flex-col w-full bg-white md:flex-row md:justify-between">
           <div className="flex w-full md:w-auto">
             {/* hamburger */}
-            <div className="block pl-2 min-w-10 min-h-10 md:hidden">
+            <div className="block ml-4 min-w-8 min-h-8 md:hidden">
               <GiHamburgerMenu
                 className="h-full w-full hover:cursor-pointer"
                 onClick={() => setIsOpen(true)}
@@ -113,7 +113,7 @@ function TopBar() {
             </div>
 
             {/* add new recipe + */}
-            <div className="block pr-2 min-w-10 min-h-10 md:hidden">
+            <div className="block mr-4 min-w-8 min-h-8 md:hidden">
               <FaPlus
                 className="h-full w-full text-app-primary"
                 onClick={() => navigate("/recipe/new")}
