@@ -244,7 +244,7 @@ function Home() {
                 </div>
 
                 {/* option button */}
-                <div className="flex w-10 h-8 mt-2 mr-2 text-app-primary hover:bg-gray-300 rounded-full transition duration-300">
+                <div className="flex w-10 h-8 mt-2 mr-2 min-w-8 hover:bg-gray-300 rounded-full transition duration-300">
                   {
                     // top-1/2 -translate-y-1/2
                   }

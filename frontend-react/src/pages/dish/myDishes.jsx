@@ -50,8 +50,6 @@ function MyDishes() {
         if (token) {
           const res = await axios[method](url, config);
           const tempData = res.data.data;
-          console.log("tempData :", tempData);
-          // return;
           const formattedData = tempData.map((i) => ({
             ...i,
             preparation_date: formattedDate(i.preparation_date),

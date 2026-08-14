@@ -1585,6 +1585,8 @@ function NewRecipe() {
                                   <Dropdown
                                     className="flex rounded w-14 md:min-w-18 text-sm h-7.5 pl-1 pr-7 py-0"
                                     options={ing?.measuringUnits}
+                                    optionValueText={"unit_id"}
+                                    optionText={"unit_name"}
                                     value={ing?.unitId}
                                     onChange={(e) => {
                                       updateUnit(comp.uid, ing.uid, e.target.value);

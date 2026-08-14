@@ -1,6 +1,7 @@
 import { Modal, Button, ModalHeader, ModalBody, ModalFooter, Datepicker } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import Dropdown from "./dropdown";
 
 export default function DishesModal({
   isOpen,
@@ -11,6 +12,9 @@ export default function DishesModal({
   OKtext,
   OKtextIcon,
   cancelText,
+  meals,
+  selectedMeal,
+  setSelectedMeal,
 }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [customMsg, setCustomMsg] = useState("");
@@ -38,11 +42,6 @@ export default function DishesModal({
               setSelectedDate(date.toISOString().split("T")[0]);
             }}
           />
-
-          {/* <div className="flex">
-            <div>Time Date: </div>
-            <input type="time" className=" px-2 text-amber-200" placeholder="" />
-          </div> */}
         </div>
         <div>
           <p className="mt-2">Comment/Message :</p>
@@ -54,18 +53,36 @@ export default function DishesModal({
             }}
           />
         </div>
+        <div>
+          <Dropdown
+            className=" rounded-md border border-gray-400 mt-2"
+            title={"Meal: "}
+            options={meals}
+            optionValueText={"meal_id"}
+            optionText={"name"}
+            value={selectedMeal}
+            onChange={(e) => setSelectedMeal(e.target.value)}
+          />
+        </div>
+        <select>
+          <option value="">first</option>
+          <option value="">second</option>
+          <option value="">third</option>
+          <option value="">fourth</option>
+          <option value="">fifth</option>
+        </select>
       </ModalBody>
       <ModalFooter>
-        <Button color="gray" onClick={onClose}>
-          {cancelText}
-        </Button>
         <Button
           className="border"
           color="success"
-          onClick={() => onConfirm({ date: selectedDate, comment: customMsg })}
+          onClick={() => onConfirm({ date: selectedDate, comment: customMsg, meal: selectedMeal })}
         >
           <OKtextIcon className="mr-2 w-5 h-5" />
           {OKtext}
+        </Button>
+        <Button color="gray" onClick={onClose}>
+          {cancelText}
         </Button>
       </ModalFooter>
     </Modal>

@@ -69,6 +69,13 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
       [recipeId],
     );
 
+    // get meals list for create dish feature in recipe details
+    const [mealResult] = await db.query(
+      `SELECT meal_id, name, short_name
+      FROM meals
+      WHERE is_active = 1`,
+    );
+
     // console.log("reached here");
     // get the last record of this dish created
     const { success, message, data } = await getLastRecordOfRecipeCreated(recipeId, userId);
@@ -88,7 +95,12 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
     return {
       success: true,
       message: `Recipe details found`,
-      data: { recipe: recipeResult[0], ingredients: updtdIngredientResult, steps: stepResult },
+      data: {
+        recipe: recipeResult[0],
+        ingredients: updtdIngredientResult,
+        steps: stepResult,
+        meals: mealResult,
+      },
     };
   } catch (err) {
     console.log("error found in getRecipeDetailsById : ", err);

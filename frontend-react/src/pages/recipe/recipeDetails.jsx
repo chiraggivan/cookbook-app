@@ -40,6 +40,7 @@ function RecipeDetails() {
   const [isAlert, setIsAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
   const [switch1, setSwitch1] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState("");
 
   const navigate = useNavigate();
   const recipeRows = [];
@@ -68,10 +69,6 @@ function RecipeDetails() {
   const recipeFound = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
   // console.log("recipeFound :", recipeFound);
   // ----------------------------- fetch data from backend only for once -------------------------------------
-  // useEffect(() => {
-  //   setFoundRecipeDetails(recipeFound);
-  // }, [recipeDetails]);
-
   useEffect(() => {
     if (!recipeFound) {
       // console.log("when recipeFound not found recipeDetails");
@@ -206,17 +203,18 @@ function RecipeDetails() {
 
     details4Dish.preparation_date = additionalData.date;
     details4Dish.comment = additionalData.comment;
+    details4Dish.meal = additionalData.meal;
     details4Dish.time_prepared = currentTime;
 
     // console.log("currentTime :", currentTime);
-    // console.log("details for dish :", details4Dish);
-    // return;
+    console.log("details for dish :", details4Dish);
+    return;
     // if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {
     const createURL = `${serverURL}/dish/api/create`;
 
     try {
       const res = await axios.post(createURL, details4Dish, config);
-      console.log("response for create dish is:", res);
+      // console.log("response for create dish is:", res);
       if (res?.data?.success === true) {
         // alert(res?.data?.message);
         // update the recipeDetails Context (cache) on local machine
@@ -269,7 +267,7 @@ function RecipeDetails() {
     details4Dish.portion_size = foundRecipeDetails.recipe.portion_size;
     details4Dish.recipe_by = foundRecipeDetails.recipe.user_id;
     details4Dish.total_cost = totalCost;
-    details4Dish.meal = "lunch";
+    // details4Dish.meal = "lunch";
     details4Dish.image_url = foundRecipeDetails.recipe.image_url;
     details4Dish.comment = "";
     details4Dish.components = [];
@@ -408,7 +406,7 @@ function RecipeDetails() {
 
             {/* show triple option for delete recipe for owner */}
             {isRecipeOwner === true && (
-              <div className="absolute right-2 top-0 text-app-primary scale-125 hover:bg-amber-100 p-2 rounded-full transition duration-300">
+              <div className="absolute right-2 top-0 scale-125 hover:bg-amber-100 p-2 rounded-full transition duration-300">
                 {
                   // top-1/2 -translate-y-1/2
                 }
@@ -749,6 +747,12 @@ function RecipeDetails() {
           cancelText={"Cancel"}
           OKtext={"Create Dish"}
           OKtextIcon={HiClipboardList}
+          meals={foundRecipeDetails.meals}
+          selectedMeal={selectedMeal}
+          setSelectedMeal={setSelectedMeal}
+          optionValueText={"unit_id"}
+          optionText={"unit_name"}
+          onChange={setSelectedMeal}
         />
       )}
       {isAlert && <Alert message={alertMsg} />}
