@@ -15,7 +15,7 @@ const Dropdown = ({
       <select value={value} onChange={onChange} {...props}>
         <option value="">{placeholder}</option>
         {options.map((option, index) => (
-          <option key={index} value={option[optionText]}>
+          <option key={index} value={option[optionValueText]}>
             {option[optionText]}
           </option>
         ))}

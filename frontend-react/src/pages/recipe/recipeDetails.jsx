@@ -203,12 +203,17 @@ function RecipeDetails() {
 
     details4Dish.preparation_date = additionalData.date;
     details4Dish.comment = additionalData.comment;
-    details4Dish.meal = additionalData.meal;
+    // need to get meal name from meal_id
+    const mealObject = foundRecipeDetails.meals.find(
+      (meal) => meal.meal_id === Number(additionalData.meal),
+    );
+
+    details4Dish.meal = mealObject.name;
     details4Dish.time_prepared = currentTime;
 
     // console.log("currentTime :", currentTime);
-    console.log("details for dish :", details4Dish);
-    return;
+    // console.log("details for dish :", details4Dish);
+    // return;
     // if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {
     const createURL = `${serverURL}/dish/api/create`;
 

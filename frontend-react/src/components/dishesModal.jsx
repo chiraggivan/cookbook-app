@@ -64,13 +64,6 @@ export default function DishesModal({
             onChange={(e) => setSelectedMeal(e.target.value)}
           />
         </div>
-        <select>
-          <option value="">first</option>
-          <option value="">second</option>
-          <option value="">third</option>
-          <option value="">fourth</option>
-          <option value="">fifth</option>
-        </select>
       </ModalBody>
       <ModalFooter>
         <Button
