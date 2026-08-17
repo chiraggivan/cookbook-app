@@ -141,6 +141,7 @@ function Home() {
     };
     fetchData();
   }, [page, searchRecipe]);
+
   // ------------------------------ creating variable to store which recipe have images and valid --------
   const [failedImages, setFailedImages] = useState({});
 
