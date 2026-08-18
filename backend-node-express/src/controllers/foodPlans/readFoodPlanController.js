@@ -5,12 +5,14 @@ exports.get_food_plan = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const data = {};
+    // console.log("user is :", user);
+
     //  validate user is valid and active
     const [userRow] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
       user.id,
     ]);
     if (userRow.length === 0) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
         message: `User not found or not active`,
       });
@@ -55,9 +57,9 @@ exports.get_food_plan = async (req, res) => {
 
       const [dayRows] = await db.query(
         `SELECT food_plan_day_id, day_no 
-     FROM food_plan_days 
-     WHERE food_plan_week_id = ? AND is_active = 1 
-     ORDER BY day_no`,
+        FROM food_plan_days 
+        WHERE food_plan_week_id = ? AND is_active = 1 
+        ORDER BY day_no`,
         [week.food_plan_week_id],
       );
 
@@ -123,10 +125,10 @@ exports.get_food_plan = async (req, res) => {
                 LEFT JOIN ingredients i ON ri.ingredient_id = i.ingredient_id AND ri.ingredient_source = 'main'
                 LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = ri.ingredient_id AND ri.ingredient_source = 'user'
                 JOIN units u ON ri.unit_id = u.unit_id
-                LEFT JOIN user_prices up ON up.user_id = 2 AND up.ingredient_id = i.ingredient_id AND up.is_active = TRUE
-              WHERE ri.recipe_id = 36 AND ri.is_active = 1
-              GROUP BY r.name;`,
-              [(user.id, recipe.recipe_id)],
+                LEFT JOIN user_prices up ON up.user_id = ? AND up.ingredient_id = i.ingredient_id AND up.is_active = TRUE
+              WHERE ri.recipe_id = ? AND ri.is_active = 1
+              GROUP BY r.name`,
+              [user.id, recipe.recipe_id],
             );
 
             const row = priceRows[0];

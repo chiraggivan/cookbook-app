@@ -49,7 +49,7 @@ function LeftSideBar() {
               </li>
               <li>
                 <NavLink
-                  to="#"
+                  to="/foodplan"
                   className={({ isActive }) =>
                     `block font-medium transition duration-200 ${
                       isActive ? "text-gray-700" : "text-gray-700 hover:text-app-primary"

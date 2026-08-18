@@ -12,7 +12,7 @@ router.get("/check-user", authToken, createFoodPlanController.check_user_has_pla
 router.get("/createfoodplanid", authToken, createFoodPlanController.create_food_plan_id);
 
 // Read api for Food plan
-router.get("/", authToken, readFoodPlanController.get_food_plan);
+router.get("/view", authToken, readFoodPlanController.get_food_plan);
 
 // Update api for Food plan
 router.put("/update", authToken, updateFoodPlanController.update_day_food_plan);
