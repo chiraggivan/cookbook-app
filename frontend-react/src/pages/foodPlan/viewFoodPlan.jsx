@@ -9,6 +9,7 @@ function ViewFoodPlan() {
   const [foodplanData, setFoodplanData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [dayData, setDayData] = useState(null);
 
   const method = "get";
   const url = `/foodplan/api/view`;
@@ -29,7 +30,7 @@ function ViewFoodPlan() {
       setIsLoading(true);
       try {
         const res = await api[method](url);
-        console.log("res is :", res);
+        // console.log("res is :", res);
         setFoodplanData(res.data?.data);
       } catch (error) {
         console.log("Error while fetching data in viewFoodPlan page:", error.response);
@@ -54,7 +55,8 @@ function ViewFoodPlan() {
     );
   }
 
-  console.log("foodplanData is :", foodplanData);
+  // console.log("foodplanData is :", foodplanData);
+  // console.log("dayData is :", dayData);
 
   return (
     <>
@@ -66,7 +68,7 @@ function ViewFoodPlan() {
                 <AccordionTitle>Week {week?.week_no}</AccordionTitle>
                 <AccordionContent>
                   {week?.weekly_meals.map((day) => (
-                    <div className="m-1">
+                    <div key={day.day_no} className="my-5">
                       <div className="flex flex-col border border-app-primary">
                         {/* day name */}
                         <div className="flex py-1 px-2 bg-app-primary text-white font-semibold">
@@ -99,7 +101,10 @@ function ViewFoodPlan() {
                         <div className="flex p-2 justify-end">
                           <div
                             className="rounded bg-app-primary text-white px-3 py-1 hover:cursor-pointer hover:bg-green-800"
-                            onClick={() => setIsOpen(true)}
+                            onClick={() => {
+                              setDayData(day);
+                              setIsOpen(true);
+                            }}
                           >
                             Edit
                           </div>
@@ -119,6 +124,8 @@ function ViewFoodPlan() {
           onClose={() => setIsOpen(false)}
           title={"Food Planing"}
           OKtext={"save"}
+          dayData={dayData}
+          meals={foodplanData.meals}
         />
       )}
     </>

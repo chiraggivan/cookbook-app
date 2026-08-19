@@ -36,9 +36,9 @@ exports.get_food_plan = async (req, res) => {
     // get the food_plan_week_ids of the food_plan_id
     const [weekRows] = await db.query(
       `SELECT food_plan_week_id, week_no 
-   FROM food_plan_weeks 
-   WHERE food_plan_id = ? AND is_active = 1 
-   ORDER BY week_no`,
+        FROM food_plan_weeks 
+        WHERE food_plan_id = ? AND is_active = 1 
+        ORDER BY week_no`,
       [food_plan_id],
     );
 
@@ -161,6 +161,13 @@ exports.get_food_plan = async (req, res) => {
     }
 
     data["food_plan"] = food_plan;
+
+    // finding all the active meals
+    const [mealRows] = await db.query(
+      `SELECT meal_id, name, short_name FROM meals WHERE is_active = 1`,
+    );
+
+    data["meals"] = mealRows || [];
 
     // FINAL response
     res.json({
