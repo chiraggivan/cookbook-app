@@ -10,6 +10,8 @@ function ViewFoodPlan() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [dayData, setDayData] = useState(null);
+  const [weekData, setWeekData] = useState(null);
+  const [fooplanId, setFooplanId] = useState();
 
   const method = "get";
   const url = `/foodplan/api/view`;
@@ -32,6 +34,7 @@ function ViewFoodPlan() {
         const res = await api[method](url);
         // console.log("res is :", res);
         setFoodplanData(res.data?.data);
+        setFooplanId(res.data?.data.food_plan_id);
       } catch (error) {
         console.log("Error while fetching data in viewFoodPlan page:", error.response);
       } finally {
@@ -57,6 +60,7 @@ function ViewFoodPlan() {
 
   // console.log("foodplanData is :", foodplanData);
   // console.log("dayData is :", dayData);
+  // console.log("food plan id is :", fooplanId);
 
   return (
     <>
@@ -103,6 +107,7 @@ function ViewFoodPlan() {
                             className="rounded bg-app-primary text-white px-3 py-1 hover:cursor-pointer hover:bg-green-800"
                             onClick={() => {
                               setDayData(day);
+                              setWeekData(week);
                               setIsOpen(true);
                             }}
                           >
@@ -125,6 +130,8 @@ function ViewFoodPlan() {
           title={"Food Planing"}
           OKtext={"save"}
           dayData={dayData}
+          weekData={weekData}
+          foodplanId={fooplanId}
           meals={foodplanData.meals}
         />
       )}

@@ -1,7 +1,7 @@
 import { Modal, Button, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import Dropdown from "./dropdown";
 import Input from "../components/input";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 
 function EditFoodplanModal({
@@ -14,10 +14,16 @@ function EditFoodplanModal({
   cancelText,
   meals,
   dayData,
+  weekData,
+  foodplanId,
   selectedMeal,
   setSelectedMeal,
 }) {
-  const [data, setData] = useState(dayData);
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    setData({ food_plan_id: foodplanId, food_plan: [{ ...weekData, weekly_meals: [dayData] }] });
+  }, [weekData]);
+
   const [mealType, setMealType] = useState("");
   const [searchText, setSearchText] = useState("");
   const [recipeList, setRecipeList] = useState([]);
@@ -29,14 +35,26 @@ function EditFoodplanModal({
   const removeRecipe = (fpm_id, fpr_id) => {
     const newDailyMeal = {
       ...data,
-      daily_meals: data.daily_meals.map((meal) =>
-        meal.food_plan_meal_id === fpm_id
-          ? {
-              ...meal,
-              recipes: meal.recipes.filter((recipe) => recipe.food_plan_recipe_id !== fpr_id),
-            }
-          : meal,
-      ),
+      food_plan: [
+        {
+          ...data.food_plan,
+          weekly_meals: [
+            {
+              ...data.food_plan[0].weekly_meals,
+              daily_meals: data.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
+                meal.food_plan_meal_id === fpm_id
+                  ? {
+                      ...meal,
+                      recipes: meal.recipes.filter(
+                        (recipe) => recipe.food_plan_recipe_id !== fpr_id,
+                      ),
+                    }
+                  : meal,
+              ),
+            },
+          ],
+        },
+      ],
     };
     setData(newDailyMeal);
   };
@@ -134,7 +152,9 @@ function EditFoodplanModal({
     // need to make changes in db to save meal_id rather than name. currently check name BUT in future need to check mealID
     const mealSelected = meals.find((meal) => meal.meal_id === Number(mealType)).name;
 
-    const mealReicpes = data.daily_meals.find((meal) => meal.meal_type === mealSelected).recipes;
+    const mealReicpes = data.food_plan[0].weekly_meals[0].daily_meals.find(
+      (meal) => meal.meal_type === mealSelected,
+    ).recipes;
     const alreadyThereRecipe = mealReicpes.find((rec) => rec.recipe_id === recipe.recipe_id);
 
     if (alreadyThereRecipe) {
@@ -145,7 +165,9 @@ function EditFoodplanModal({
       recipe_id: recipe.recipe_id,
       recipe_name: recipe.recipe_name,
       cost: Number(Number(recipe.price).toFixed(2)),
-      display_order: data.daily_meals.find((m) => m.meal_type === mealSelected).recipes.length + 1,
+      display_order:
+        data.food_plan[0].weekly_meals[0].daily_meals.find((m) => m.meal_type === mealSelected)
+          .recipes.length + 1,
     };
 
     // console.log("newRecipe :", newRecipe);
@@ -154,14 +176,31 @@ function EditFoodplanModal({
     setRecipeList([]);
     setData((prev) => ({
       ...prev,
-      daily_meals: prev.daily_meals.map((m) =>
-        m.meal_type === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
-      ),
+      food_plan: [
+        {
+          ...prev.food_plan[0],
+          weekly_meals: [
+            {
+              ...prev.food_plan[0].weekly_meals[0],
+              daily_meals: prev.food_plan[0].weekly_meals[0].daily_meals.map((m) =>
+                m.meal_type === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
+              ),
+            },
+          ],
+        },
+      ],
     }));
+    // setData((prev) => ({
+    //   ...prev,
+    //   daily_meals: prev.daily_meals.map((m) =>
+    //     m.meal_type === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
+    //   ),
+    // }));
   };
   // console.log("searchText is:", searchText);
   // console.log("meal Type is :", mealType);
   // console.log("recipeList is :", recipeList);
+  // console.log("week data :", weekData);
   console.log("data is :", data);
 
   return (
@@ -234,7 +273,7 @@ function EditFoodplanModal({
           <div className="flex flex-1 justify-center">
             <div className="w-full h-40 overflow-y-auto scrollbar-gutter-stable">
               {data &&
-                data.daily_meals.map((meal) =>
+                data?.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
                   meal.recipes.length > 0 ? (
                     <div>
                       <div className="px-1 text-sm font-semibold text-blue-400">
