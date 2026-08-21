@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { Spinner } from "flowbite-react";
+import { MdEditNote } from "react-icons/md";
 import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from "flowbite-react";
 import EditFoodplanModal from "../../components/editFoodplanModal";
 
@@ -43,6 +44,26 @@ function ViewFoodPlan() {
     };
     fetchData();
   }, []);
+
+  // ----------------------------------------------- handle edited day plan via API ----------------------------------------
+  const handleEditedDayPlan = (data) => {
+    const editURL = `/foodplan/api/update`;
+    const editMethod = `put`;
+
+    const submitData = async () => {
+      setIsLoading(true);
+      try {
+        // console.log("data just before api call :", data);
+        const res = await api[editMethod](editURL, data);
+        console.log("response after updating dayplan is :", res);
+      } catch (error) {
+        console.log("Error while saving edited dayplan data in viewFoodPlan page:", error.response);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    submitData();
+  };
 
   // ------------------------------------------- loading screen ---------------------------------------------------
   if (isLoading) {
@@ -127,8 +148,11 @@ function ViewFoodPlan() {
         <EditFoodplanModal
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
+          onConfirm={handleEditedDayPlan}
           title={"Food Planing"}
           OKtext={"save"}
+          OKtextIcon={MdEditNote}
+          cancelText={"cancel"}
           dayData={dayData}
           weekData={weekData}
           foodplanId={fooplanId}

@@ -37,10 +37,10 @@ function EditFoodplanModal({
       ...data,
       food_plan: [
         {
-          ...data.food_plan,
+          ...data.food_plan[0],
           weekly_meals: [
             {
-              ...data.food_plan[0].weekly_meals,
+              ...data.food_plan[0].weekly_meals[0],
               daily_meals: data.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
                 meal.food_plan_meal_id === fpm_id
                   ? {
@@ -126,6 +126,7 @@ function EditFoodplanModal({
           e.preventDefault();
           e.stopPropagation();
           // setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+          setErrMsg("");
           handleSelectedRecipe(recipeList[highlightedIndex]); // Select the item
         }
         break;
@@ -134,6 +135,7 @@ function EditFoodplanModal({
         if (highlightedIndex >= 0) {
           // e.preventDefault();
           e.stopPropagation();
+          setErrMsg("");
           handleSelectedRecipe(recipeList[highlightedIndex]); // Select the item
         }
         break;
@@ -149,24 +151,30 @@ function EditFoodplanModal({
       setErrMsg("select the meal");
       return;
     }
-    // need to make changes in db to save meal_id rather than name. currently check name BUT in future need to check mealID
-    const mealSelected = meals.find((meal) => meal.meal_id === Number(mealType)).name;
 
+    const mealSelected = Number(mealType);
+
+    // get all the recipes of that particular meal selected for that day
     const mealReicpes = data.food_plan[0].weekly_meals[0].daily_meals.find(
-      (meal) => meal.meal_type === mealSelected,
+      (meal) => meal.meal_id === mealSelected,
     ).recipes;
+
+    // check if the new recipe selected for that particular meal already exist in that meal.
+    // if yes then stop and let user know about it. Cant add same recipe for the same meal on same day
     const alreadyThereRecipe = mealReicpes.find((rec) => rec.recipe_id === recipe.recipe_id);
 
     if (alreadyThereRecipe) {
       setErrMsg("Recipe already present for the selected meal");
       return;
     }
+
+    // new recipe object to be added in meal
     const newRecipe = {
       recipe_id: recipe.recipe_id,
       recipe_name: recipe.recipe_name,
       cost: Number(Number(recipe.price).toFixed(2)),
       display_order:
-        data.food_plan[0].weekly_meals[0].daily_meals.find((m) => m.meal_type === mealSelected)
+        data.food_plan[0].weekly_meals[0].daily_meals.find((m) => m.meal_id === mealSelected)
           .recipes.length + 1,
     };
 
@@ -174,6 +182,7 @@ function EditFoodplanModal({
     // return;
     setSearchText("");
     setRecipeList([]);
+    setHighlightedIndex(0);
     setData((prev) => ({
       ...prev,
       food_plan: [
@@ -183,25 +192,20 @@ function EditFoodplanModal({
             {
               ...prev.food_plan[0].weekly_meals[0],
               daily_meals: prev.food_plan[0].weekly_meals[0].daily_meals.map((m) =>
-                m.meal_type === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
+                m.meal_id === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
               ),
             },
           ],
         },
       ],
     }));
-    // setData((prev) => ({
-    //   ...prev,
-    //   daily_meals: prev.daily_meals.map((m) =>
-    //     m.meal_type === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
-    //   ),
-    // }));
   };
+
   // console.log("searchText is:", searchText);
   // console.log("meal Type is :", mealType);
   // console.log("recipeList is :", recipeList);
   // console.log("week data :", weekData);
-  console.log("data is :", data);
+  // console.log("data is :", data);
 
   return (
     <Modal size="lg" show={isOpen} onClose={onClose} popup>
@@ -210,6 +214,7 @@ function EditFoodplanModal({
         <div className="flex w-full">
           {/* left column in modal */}
           <div className="flex flex-1 flex-col">
+            <div className="m-2 text-blue-400 text-sm font-semibold">Select the Meal first</div>
             {/* select meal */}
             <div className="flex">
               {/* <div className="flex items-center">Meal</div> */}
@@ -220,7 +225,10 @@ function EditFoodplanModal({
                 optionValueText={"meal_id"}
                 optionText={"name"}
                 value={mealType}
-                onChange={(e) => setMealType(e.target.value)}
+                onChange={(e) => {
+                  setMealType(e.target.value);
+                  setErrMsg("");
+                }}
               />
             </div>
 
@@ -238,11 +246,13 @@ function EditFoodplanModal({
                   onChange={(e) => {
                     setSearchText(e.target.value);
                     searchRecipe(e.target.value);
+                    setErrMsg("");
                   }}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onBlur={() => {
-                    // setSearchText("");
-                    // setRecipeList([]);
+                    setSearchText("");
+                    setRecipeList([]);
+                    setHighlightedIndex(0);
                   }}
                 />
                 {recipeList.length > 0 && (
@@ -307,12 +317,17 @@ function EditFoodplanModal({
       </ModalBody>
       <ModalFooter>
         <div className="flex justify-between w-full text-sm">
-          <div className="px-3 py-1 bg-app-primary rounded text-white">Save</div>
+          <div
+            className=" flex  items-center px-3 py-1 bg-app-primary rounded text-white hover:cursor-pointer"
+            onClick={() => onConfirm(data)}
+          >
+            <OKtextIcon className=" flex w-5 h-5 pr-1" /> {OKtext}
+          </div>
           <div
             className="flex py-1 justify-end bg-gray-200 rounded px-3 hover:cursor-pointer hover:bg-gray-400"
             onClick={onClose}
           >
-            Cancel
+            {cancelText}
           </div>
         </div>
       </ModalFooter>
