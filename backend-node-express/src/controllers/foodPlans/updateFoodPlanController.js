@@ -471,7 +471,9 @@ exports.update_day_food_plan = async (req, res) => {
       });
     }
 
-    // check if the supplied day , meal, recipe ids for update are genuine and valid and exist in db
+    //-------- check if the supplied day , meal, recipe ids for update are genuine and valid and exist in db --------------
+    //  *** Note: if there are no food_plan_week_id or food_plan_day_id or food_plan_meal_id or food_plan_recipe_id
+    //            then its to add and not to update so the below code will ignore those to validate from db
     const food_plan_week_rows = new Set();
     const food_plan_day_rows = new Set();
     const food_plan_meal_rows = new Set();
@@ -481,7 +483,7 @@ exports.update_day_food_plan = async (req, res) => {
       const week_no = week.week_no;
 
       if (week.food_plan_week_id) {
-        food_plan_week_rows.add(JSON.stringify([week.food_plan_week_id, food_plan_id, week_no]));
+        food_plan_week_rows.add(JSON.stringify([week.food_plan_week_id, foodPlanId, week_no]));
       }
 
       for (const day of week.weekly_meals) {
@@ -494,11 +496,12 @@ exports.update_day_food_plan = async (req, res) => {
         }
 
         for (const meal of day.daily_meals) {
-          const meal_type = meal.meal_type;
+          // const meal_type = meal.meal_type;
+          const meal_id = meal.meal_id;
 
           if (meal.food_plan_meal_id) {
             food_plan_meal_rows.add(
-              JSON.stringify([meal.food_plan_meal_id, day.food_plan_day_id, meal_type]),
+              JSON.stringify([meal.food_plan_meal_id, day.food_plan_day_id, meal_id]),
             );
           }
 
@@ -515,7 +518,7 @@ exports.update_day_food_plan = async (req, res) => {
       }
     }
 
-    // console.log("Food plan id :", food_plan_id);
+    // console.log("Food plan id :", foodPlanId);
     // console.log("Food plan week ids :", food_plan_week_rows);
     // console.log("Food plan day ids :", food_plan_day_rows);
     // console.log("Food plan meal ids :", food_plan_meal_rows);
@@ -585,11 +588,12 @@ exports.update_day_food_plan = async (req, res) => {
 
     // check if food_plan_day_id and food_plan_meal_id match in table
     for (const item of food_plan_meal_rows) {
-      const [meal_id, day_id, meal_type] = JSON.parse(item);
+      const [food_plan_meal_id, day_id, meal_id] = JSON.parse(item);
+
       const [rows] = await db.query(
         `SELECT 1 FROM food_plan_meals 
-     WHERE food_plan_meal_id = ? AND food_plan_day_id = ? AND meal_type = ?`,
-        [meal_id, day_id, meal_type],
+        WHERE food_plan_meal_id = ? AND meal_id = ? AND food_plan_day_id = ? `,
+        [food_plan_meal_id, meal_id, day_id],
       );
       if (!rows.length) {
         return res.status(404).json({
@@ -612,7 +616,7 @@ exports.update_day_food_plan = async (req, res) => {
         });
       }
     }
-
+    console.log("data is :", data);
     return res.json({
       success: true,
       message: `about to update food plan.`,
@@ -634,55 +638,60 @@ exports.update_day_food_plan = async (req, res) => {
           const weeklyMeals = week.weekly_meals;
 
           // -------- update food_plan_days table to make it in-active for that day
-          if (weeklyMeals.length !== 0) {
+          if (weeklyMeals.length !== 0 && foodPlanWeekId) {
             for (const day of weeklyMeals) {
               const dayNo = day.day_no;
               const foodPlanDayId = day.food_plan_day_id;
               const dailyMeals = day.daily_meals;
-              const [updtFPD] = await conn.query(
-                `UPDATE food_plan_days 
+
+              if (foodPlanDayId) {
+                const [updtFPD] = await conn.query(
+                  `UPDATE food_plan_days 
                   SET is_active = 0, updated_at = CURRENT_TIMESTAMP
                   WHERE food_plan_day_id = ?`,
-                [foodPlanDayId],
-              );
+                  [foodPlanDayId],
+                );
 
-              //  -------- find all the meals corresponding to the above foodPlanDayId
-              const [mealRows] = await conn.query(
-                `SELECT food_plan_meal_id 
+                //  -------- find all the meals corresponding to the above foodPlanDayId
+                const [mealRows] = await conn.query(
+                  `SELECT food_plan_meal_id 
                   FROM food_plan_meals 
                   WHERE food_plan_day_id = ? AND is_active = 1`,
-                [foodPlanDayId],
-              );
+                  [foodPlanDayId],
+                );
 
-              //  --------- there can be multiple meals for that day. get all of them and make them inactive
-              if (mealRows.length !== 0) {
-                for (const meal of mealRows) {
-                  const foodPlanMealId = meal.food_plan_meal_id;
-                  const [updtFPM] = await conn.query(
-                    `UPDATE food_plan_meals
+                //  --------- there can be multiple meals for that day. get all of them and make them inactive
+                if (mealRows.length !== 0) {
+                  for (const meal of mealRows) {
+                    const foodPlanMealId = meal.food_plan_meal_id;
+                    const [updtFPM] = await conn.query(
+                      `UPDATE food_plan_meals
                       SET is_active = 0, updated_at = CURRENT_TIMESTAMP 
                       WHERE food_plan_meal_id = ?`,
-                    [foodPlanMealId],
-                  );
+                      [foodPlanMealId],
+                    );
 
-                  // -------- find all the recipes corresponding to the above meal
-                  const [recipeRows] = await conn.query(
-                    `SELECT food_plan_recipe_id 
+                    // -------- find all the recipes corresponding to the above meal
+                    const [recipeRows] = await conn.query(
+                      `SELECT food_plan_recipe_id 
                       FROM food_plan_recipes 
                       WHERE food_plan_meal_id = ? AND is_active = 1`,
-                    [foodPlanMealId],
-                  );
+                      [foodPlanMealId],
+                    );
 
-                  //  --------- there can be multiple recipes for that day. get all of them and make them inactive
-                  if (recipeRows.length !== 0) {
-                    for (const recipe of recipeRows) {
-                      const foodPlanRecipeId = recipe.food_plan_recipe_id;
-                      const [updtFPR] = await conn.query(
-                        `UPDATE food_plan_recipes
-                          SET is_active = 0, updated_at = CURRENT_TIMESTAMP 
-                          WHERE food_plan_recipe_id = ?`,
-                        [foodPlanRecipeId],
-                      );
+                    //  --------- there can be multiple recipes for that day. get all of them and make them inactive
+                    if (recipeRows.length !== 0) {
+                      for (const recipe of recipeRows) {
+                        const foodPlanRecipeId = recipe.food_plan_recipe_id;
+                        if (foodPlanRecipeId) {
+                          const [updtFPR] = await conn.query(
+                            `UPDATE food_plan_recipes
+                            SET is_active = 0, updated_at = CURRENT_TIMESTAMP 
+                            WHERE food_plan_recipe_id = ?`,
+                            [foodPlanRecipeId],
+                          );
+                        }
+                      }
                     }
                   }
                 }

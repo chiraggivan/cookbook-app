@@ -195,14 +195,24 @@ function validateFoodPlan(data, meals) {
             };
           }
         }
+        // ------need to remove the bottom
+        // const meal_type = meal.meal_type;
+        // if (!meal_type || typeof meal_type !== "string" || !meals.includes(meal_type)) {
+        //   return {
+        //     error: `Invalid meal type (${meal_type}): missing, should be string and one of the saved meals`,
+        //     recipeIds: null,
+        //   };
+        // }
+        // ------ need to remove the above
 
-        const meal_type = meal.meal_type;
-        if (!meal_type || typeof meal_type !== "string" || !meals.includes(meal_type)) {
+        const meal_id = meal.meal_id;
+        if (!meal_id || typeof meal_id !== "number") {
           return {
-            error: `Invalid meal type (${meal_type}): missing, should be string and one of the saved meals`,
+            error: `Invalid meal type (${meal_id}): missing or should be number and one of the saved meals`,
             recipeIds: null,
           };
         }
+        // console.log(("type of meal_id is :", typeof meal_id));
 
         const recipes = meal.recipes;
         if (!recipes || !Array.isArray(recipes)) {

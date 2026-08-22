@@ -79,7 +79,7 @@ function ViewFoodPlan() {
     );
   }
 
-  // console.log("foodplanData is :", foodplanData);
+  console.log("foodplanData is :", foodplanData);
   // console.log("dayData is :", dayData);
   // console.log("food plan id is :", fooplanId);
 
@@ -105,7 +105,7 @@ function ViewFoodPlan() {
                             <div className="">
                               {/* header */}
                               <div className="flex mx-2 text-sm font-semibold">
-                                {meal.meal_type}
+                                {foodplanData.meals.find((i) => i.meal_id === meal.meal_id).name}
                               </div>
                               {meal.recipes.map((item, index) => (
                                 <div className="flex  text-sm">

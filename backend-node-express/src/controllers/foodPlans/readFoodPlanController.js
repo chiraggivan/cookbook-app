@@ -76,17 +76,17 @@ exports.get_food_plan = async (req, res) => {
         each_food_day_plan["food_plan_day_id"] = day.food_plan_day_id;
         each_food_day_plan["day_no"] = day.day_no;
 
-        // Below query makes sure that if the recipe is deleted after it was put in to the food plan. then it this will take care of
+        // Below query makes sure that if the recipe is deleted after it was put in to the food plan. then this will take care of
         // making sure not to show meal_id or meal_type if that recipe was the only recipe in the meal and has been deleted
         const [mealRows] = await db.query(
           `
-      SELECT fpm.food_plan_meal_id, fpm.meal_type, count(fpr.recipe_id)
-      FROM food_plan_meals fpm 
-        JOIN food_plan_recipes fpr ON fpr.food_plan_meal_id = fpm.food_plan_meal_id and fpr.is_active = 1
-        JOIN recipes r ON r.recipe_id = fpr.recipe_id AND r.is_active = 1
-      WHERE fpm.food_plan_day_id = ? AND fpm.is_active = 1
-      GROUP BY fpm.food_plan_meal_id, fpm.meal_type
-      `,
+          SELECT fpm.food_plan_meal_id, fpm.meal_id, count(fpr.recipe_id)
+          FROM food_plan_meals fpm 
+            JOIN food_plan_recipes fpr ON fpr.food_plan_meal_id = fpm.food_plan_meal_id and fpr.is_active = 1
+            JOIN recipes r ON r.recipe_id = fpr.recipe_id AND r.is_active = 1
+          WHERE fpm.food_plan_day_id = ? AND fpm.is_active = 1
+          GROUP BY fpm.food_plan_meal_id, fpm.meal_type
+          `,
           [day.food_plan_day_id],
         );
 
@@ -97,16 +97,17 @@ exports.get_food_plan = async (req, res) => {
         for (const meal of food_plan_meal_rows) {
           const each_food_meal_plan = {};
           each_food_meal_plan["food_plan_meal_id"] = meal.food_plan_meal_id;
-          each_food_meal_plan["meal_type"] = meal.meal_type;
+          // each_food_meal_plan["meal_type"] = meal.meal_type;
+          each_food_meal_plan["meal_id"] = meal.meal_id;
 
           const [recipeRows] = await db.query(
             `
-        SELECT fpr.food_plan_recipe_id, fpr.recipe_id, fpr.display_order 
-        FROM food_plan_recipes fpr
-          JOIN recipes r ON fpr.recipe_id = r.recipe_id AND r.is_active = 1
-        WHERE fpr.food_plan_meal_id = ? AND fpr.is_active = 1 
-        ORDER BY fpr.display_order
-        `,
+              SELECT fpr.food_plan_recipe_id, fpr.recipe_id, fpr.display_order 
+              FROM food_plan_recipes fpr
+                JOIN recipes r ON fpr.recipe_id = r.recipe_id AND r.is_active = 1
+              WHERE fpr.food_plan_meal_id = ? AND fpr.is_active = 1 
+              ORDER BY fpr.display_order
+            `,
             [meal.food_plan_meal_id],
           );
 

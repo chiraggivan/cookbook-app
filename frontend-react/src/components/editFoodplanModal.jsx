@@ -287,7 +287,7 @@ function EditFoodplanModal({
                   meal.recipes.length > 0 ? (
                     <div>
                       <div className="px-1 text-sm font-semibold text-blue-400">
-                        {meal.meal_type}
+                        {meals.find((i) => i.meal_id === meal.meal_id).name}
                       </div>
                       {meal.recipes.map((recipe, index) => (
                         <div className="flex text-xs">
