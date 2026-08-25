@@ -20,8 +20,19 @@ function EditFoodplanModal({
   setSelectedMeal,
 }) {
   const [data, setData] = useState(null);
+  //  the data along with newDayData is used to render the page for modal's right side section
+  const newDayData = {
+    ...dayData,
+    daily_meals: dayData.daily_meals.map((data) => ({
+      ...data,
+      m_uid: Math.floor(Math.random() * 1000000), // helps when x is clicked to remove the recipe from list
+      recipes: data.recipes.map((r) => ({ ...r, r_uid: Math.floor(Math.random() * 1000000) })),
+    })),
+  };
+
+  // making sure that only the day's(single day) data is available to render and update it later in backend
   useEffect(() => {
-    setData({ food_plan_id: foodplanId, food_plan: [{ ...weekData, weekly_meals: [dayData] }] });
+    setData({ food_plan_id: foodplanId, food_plan: [{ ...weekData, weekly_meals: [newDayData] }] });
   }, [weekData]);
 
   const [mealType, setMealType] = useState("");
@@ -30,9 +41,12 @@ function EditFoodplanModal({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const timeoutRef = useRef();
   const [errMsg, setErrMsg] = useState("");
+  const recipeRefs = useRef([]); // to scroll into view
 
   // ------------- function to remove recipe from the day list ---------------------------------
-  const removeRecipe = (fpm_id, fpr_id) => {
+  const removeRecipe = (m_uid, r_uid) => {
+    console.log("values for removing recipe from day are :", m_uid, r_uid);
+    // return;
     const newDailyMeal = {
       ...data,
       food_plan: [
@@ -42,12 +56,10 @@ function EditFoodplanModal({
             {
               ...data.food_plan[0].weekly_meals[0],
               daily_meals: data.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
-                meal.food_plan_meal_id === fpm_id
+                meal.m_uid === m_uid
                   ? {
                       ...meal,
-                      recipes: meal.recipes.filter(
-                        (recipe) => recipe.food_plan_recipe_id !== fpr_id,
-                      ),
+                      recipes: meal.recipes.filter((recipe) => recipe.r_uid !== r_uid),
                     }
                   : meal,
               ),
@@ -145,44 +157,71 @@ function EditFoodplanModal({
     }
   };
 
+  // -------------------- to keep the highlightedIndex in view for scrollIntoView -----------------------------
+  useEffect(() => {
+    recipeRefs.current[highlightedIndex]?.scrollIntoView({
+      block: "nearest",
+    });
+  }, [highlightedIndex]);
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedRecipe = (recipe) => {
+    //  check if trhe meal is selected or not
     if (!mealType) {
       setErrMsg("select the meal");
+      setRecipeList([]);
       return;
     }
-
     const mealSelected = Number(mealType);
 
-    // get all the recipes of that particular meal selected for that day
-    const mealReicpes = data.food_plan[0].weekly_meals[0].daily_meals.find(
-      (meal) => meal.meal_id === mealSelected,
-    ).recipes;
+    // get the daily meal of that day
+    const dailyMeals = data.food_plan[0].weekly_meals[0].daily_meals;
 
-    // check if the new recipe selected for that particular meal already exist in that meal.
-    // if yes then stop and let user know about it. Cant add same recipe for the same meal on same day
-    const alreadyThereRecipe = mealReicpes.find((rec) => rec.recipe_id === recipe.recipe_id);
+    // create an empty meal(eg lunch, dinner,etc) obj incase not found in dailyMeals
+    const newDailyMealObj = {};
 
-    if (alreadyThereRecipe) {
-      setErrMsg("Recipe already present for the selected meal");
-      return;
+    // get all the recipes of that particular meal selected for that day, if there is any meal's data
+    if (dailyMeals.length > 0) {
+      const mealData = dailyMeals.find((meal) => meal.meal_id === mealSelected);
+
+      if (mealData) {
+        const mealReicpes = mealData.recipes;
+        // check if the new recipe selected for that particular meal already exist in that meal.
+        // if yes then stop and let user know about it. Cant add same recipe for the same meal on same day
+        const alreadyThereRecipe = mealReicpes.find((rec) => rec.recipe_id === recipe.recipe_id);
+
+        if (alreadyThereRecipe) {
+          setErrMsg("Recipe already present for the selected meal");
+          setRecipeList([]);
+          return;
+        }
+      } else {
+        //selected meal not found in dailyMeals, create empty meal obj for that selected meals
+        newDailyMealObj.meal_id = mealSelected;
+        newDailyMealObj.m_uid = Math.random(); // helps when x is clicked to remove the recipe from list
+        newDailyMealObj.recipes = [];
+      }
+    } else {
+      //dailyMeals is empty, create empty meal obj for that selected meals
+      newDailyMealObj.meal_id = mealSelected;
+      newDailyMealObj.m_uid = Math.random(); // helps when x is clicked to remove the recipe from list
+      newDailyMealObj.recipes = [];
     }
 
     // new recipe object to be added in meal
     const newRecipe = {
       recipe_id: recipe.recipe_id,
+      r_uid: Math.random(), // helps when x is clicked to remove the recipe from list
       recipe_name: recipe.recipe_name,
       cost: Number(Number(recipe.price).toFixed(2)),
-      display_order:
-        data.food_plan[0].weekly_meals[0].daily_meals.find((m) => m.meal_id === mealSelected)
-          .recipes.length + 1,
+      display_order: newDailyMealObj.meal_id
+        ? 1
+        : dailyMeals.find((m) => m.meal_id === mealSelected).recipes.length + 1,
     };
 
-    // console.log("newRecipe :", newRecipe);
-    // return;
     setSearchText("");
     setRecipeList([]);
     setHighlightedIndex(0);
+    // return;
     setData((prev) => ({
       ...prev,
       food_plan: [
@@ -191,9 +230,16 @@ function EditFoodplanModal({
           weekly_meals: [
             {
               ...prev.food_plan[0].weekly_meals[0],
-              daily_meals: prev.food_plan[0].weekly_meals[0].daily_meals.map((m) =>
-                m.meal_id === mealSelected ? { ...m, recipes: [...m.recipes, newRecipe] } : m,
-              ),
+              daily_meals:
+                dailyMeals.length > 0
+                  ? newDailyMealObj.meal_id
+                    ? [...dailyMeals, { ...newDailyMealObj, recipes: [newRecipe] }]
+                    : dailyMeals.map((m) =>
+                        m.meal_id === mealSelected
+                          ? { ...m, recipes: [...m.recipes, newRecipe] }
+                          : m,
+                      )
+                  : [{ ...newDailyMealObj, recipes: [newRecipe] }],
             },
           ],
         },
@@ -238,7 +284,7 @@ function EditFoodplanModal({
             {/* recipe search field */}
             <div className="mt-2">
               <div className="text-sm">Recipe:</div>
-              <div className="relative h-40">
+              <div className="relative h-10">
                 <Input
                   className="rounded border-gray-300 h-8 w-38 text-sm placeholder:text-gray-300"
                   value={searchText}
@@ -249,22 +295,32 @@ function EditFoodplanModal({
                     setErrMsg("");
                   }}
                   onKeyDown={(e) => handleKeyDown(e)}
-                  onBlur={() => {
-                    setSearchText("");
-                    setRecipeList([]);
-                    setHighlightedIndex(0);
-                  }}
+                  onBlur={() =>
+                    setTimeout(() => {
+                      setSearchText("");
+                      setRecipeList([]);
+                      setHighlightedIndex(0);
+                    }, 300)
+                  }
                 />
                 {recipeList.length > 0 && (
-                  <div className="absolute top-7.5 bg-white left-0 w-38 max-h-35 z-10 overflow-y-auto rounded-b border border-gray-300">
+                  <div className="absolute bottom-full bg-white left-0 w-38 max-h-35 z-10 overflow-y-auto rounded-b border border-gray-300">
                     {recipeList.map((recipe, index) => (
                       <div
                         key={recipe.recipe_id}
+                        ref={(el) => (recipeRefs.current[index] = el)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
                         className={
                           index === highlightedIndex
-                            ? "border-b border-gray-300 bg-gray-100"
-                            : "border-b border-gray-300"
+                            ? "border-b border-gray-300 hover:cursor-pointer bg-gray-100"
+                            : "border-b border-gray-300 hover:cursor-pointer"
                         }
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setErrMsg("");
+                          handleSelectedRecipe(recipeList[highlightedIndex]);
+                        }}
                       >
                         <div className="text-sm font-semibold">{recipe.recipe_name}</div>
                         <div className="italic text-xs text-gray-400">{recipe.portion_size}</div>
@@ -285,20 +341,18 @@ function EditFoodplanModal({
               {data &&
                 data?.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
                   meal.recipes.length > 0 ? (
-                    <div>
+                    <div key={meal.m_uid}>
                       <div className="px-1 text-sm font-semibold text-blue-400">
                         {meals.find((i) => i.meal_id === meal.meal_id).name}
                       </div>
                       {meal.recipes.map((recipe, index) => (
-                        <div className="flex text-xs">
+                        <div key={recipe.r_uid} className="flex text-xs">
                           <div className="px-1"> {index + 1}.</div>
                           <div className="pr-1 flex flex-1">{recipe.recipe_name}</div>
                           <div className="">
                             <div
                               className="flex items-center justify-center text-xs hover:cursor-pointer rounded-full w-3 h-3 pb-px text-red-500"
-                              onClick={() =>
-                                removeRecipe(meal.food_plan_meal_id, recipe.food_plan_recipe_id)
-                              }
+                              onClick={() => removeRecipe(meal.m_uid, recipe.r_uid)}
                             >
                               x
                             </div>
@@ -319,7 +373,12 @@ function EditFoodplanModal({
         <div className="flex justify-between w-full text-sm">
           <div
             className=" flex  items-center px-3 py-1 bg-app-primary rounded text-white hover:cursor-pointer"
-            onClick={() => onConfirm(data)}
+            onClick={() => {
+              onConfirm(data);
+              setSearchText("");
+              setRecipeList([]);
+              onClose();
+            }}
           >
             <OKtextIcon className=" flex w-5 h-5 pr-1" /> {OKtext}
           </div>

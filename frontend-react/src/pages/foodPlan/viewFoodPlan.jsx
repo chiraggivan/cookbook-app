@@ -50,12 +50,19 @@ function ViewFoodPlan() {
     const editURL = `/foodplan/api/update`;
     const editMethod = `put`;
 
+    console.log("data about to send is :", data);
+    // return;
     const submitData = async () => {
       setIsLoading(true);
       try {
         // console.log("data just before api call :", data);
         const res = await api[editMethod](editURL, data);
-        console.log("response after updating dayplan is :", res);
+        console.log("from backend, data is:", res.data);
+
+        // refetch the foodPlan data from backend to get all updated data
+        const response = await api[method](url);
+        setFoodplanData(response.data?.data);
+        setFooplanId(response.data?.data.food_plan_id);
       } catch (error) {
         console.log("Error while saving edited dayplan data in viewFoodPlan page:", error.response);
       } finally {
@@ -79,7 +86,7 @@ function ViewFoodPlan() {
     );
   }
 
-  console.log("foodplanData is :", foodplanData);
+  // console.log("foodplanData is :", foodplanData);
   // console.log("dayData is :", dayData);
   // console.log("food plan id is :", fooplanId);
 
