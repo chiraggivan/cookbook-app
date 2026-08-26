@@ -1,4 +1,4 @@
-const total_weeks = 5;
+const total_weeks = 1;
 const meals = ["breakfast", "lunch", "dinner"];
 
 function normaliseString(value) {
@@ -262,4 +262,4 @@ function validateFoodPlan(data, meals) {
   return { error: null, recipeIds };
 }
 
-module.exports = { meals, normalisePlan, validateFoodPlan };
+module.exports = { meals, total_weeks, normalisePlan, validateFoodPlan };

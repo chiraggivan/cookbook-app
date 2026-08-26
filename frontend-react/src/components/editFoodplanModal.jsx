@@ -45,8 +45,6 @@ function EditFoodplanModal({
 
   // ------------- function to remove recipe from the day list ---------------------------------
   const removeRecipe = (m_uid, r_uid) => {
-    console.log("values for removing recipe from day are :", m_uid, r_uid);
-    // return;
     const newDailyMeal = {
       ...data,
       food_plan: [

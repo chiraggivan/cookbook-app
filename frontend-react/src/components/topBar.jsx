@@ -207,7 +207,7 @@ function TopBar() {
                     <SidebarItem href="/MyRecipes" icon={HiClipboardList}>
                       My Recipes
                     </SidebarItem>
-                    <SidebarItem href="#" icon={HiBookmark}>
+                    <SidebarItem href="/foodplan" icon={HiBookmark}>
                       Weekly Plan
                     </SidebarItem>
                     <SidebarItem href="/myDishes" icon={HiFolder}>

@@ -77,7 +77,7 @@ exports.create_food_plan_id = async (req, res) => {
     if (planRow.length !== 0) {
       const userActive = planRow[0].is_active;
 
-      // if user found check if that food plan id is active or not
+      // if user found, check if that food plan id is active or not
       if (userActive) {
         return res.status(404).json({
           success: false,
@@ -97,21 +97,74 @@ exports.create_food_plan_id = async (req, res) => {
       }
     }
 
+    // return res.json({
+    //   success: true,
+    //   message: `about to start creating food_plan_id and other rows`,
+    // });
+
     //  ------------------ Inserting data in db  ------------------------
-
     // inserting data in food plan table. (as only one table is being used for DML, can do without conn getconnection())
-    const [result] = await db.query(
-      `INSERT INTO food_plans (user_id, total_weeks)
-        VALUES (?,?) `,
-      [user.id, total_weeks],
-    );
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
 
-    // FINAL response
-    res.json({
-      success: true,
-      message: `new food plan id (${result.insertId}) created for user - ${user.id}.`,
-      data,
-    });
+      // insert in food_plans table to get food_plan_id for the user
+      const [foodPlanResult] = await conn.query(
+        `INSERT INTO food_plans (user_id, total_weeks)
+        VALUES (?,?) `,
+        [user.id, total_weeks],
+      );
+      const userFoodPlanId = foodPlanResult.insertId;
+
+      // depending on total_Weeks value, create rows in food_plan_weeks table
+      for (let week = 1; week <= total_weeks; week++) {
+        const [FPWresult] = await conn.query(
+          `INSERT INTO food_plan_weeks (food_plan_id, week_no)
+          VALUES (?,?)`,
+          [userFoodPlanId, week],
+        );
+        const FPWid = FPWresult.insertId;
+
+        // with the help of foodPlanWeekId value, create 7 days of rows in food_plan_days table
+        for (let day = 1; day <= 7; day++) {
+          await conn.query(
+            `INSERT INTO food_plan_days (food_plan_week_id, day_no)
+            VALUES (?,?)`,
+            [FPWid, day],
+          );
+        }
+      }
+
+      await conn.commit();
+
+      // FINAL response
+      res.json({
+        success: true,
+        message: `new food plan id (${userFoodPlanId}) created for user - ${user.id}.`,
+      });
+    } catch (error) {
+      await conn.rollback();
+      console.log("Error in createFoodPlanController while - create food plan id :", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    } finally {
+      conn.release();
+    }
+
+    // const [result] = await db.query(
+    //   `INSERT INTO food_plans (user_id, total_weeks)
+    //     VALUES (?,?) `,
+    //   [user.id, total_weeks],
+    // );
+
+    // // FINAL response
+    // res.json({
+    //   success: true,
+    //   message: `new food plan id (${result.insertId}) created for user - ${user.id}.`,
+    //   data,
+    // });
   } catch (err) {
     console.error("Error in createFoodPlanController - (create_food_plan_id) is : ", err);
     res.status(500).json({

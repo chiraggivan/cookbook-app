@@ -9,11 +9,12 @@ function ViewFoodPlan() {
   //   const token = localStorage.getItem("token");
   const [foodplanData, setFoodplanData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [hasFoodPlan, setHasFoodPlan] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [dayData, setDayData] = useState(null);
   const [weekData, setWeekData] = useState(null);
   const [fooplanId, setFooplanId] = useState();
-
+  const [errMsg, setErrMsg] = useState("");
   const method = "get";
   const url = `/foodplan/api/view`;
 
@@ -32,10 +33,19 @@ function ViewFoodPlan() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const res = await api[method](url);
-        // console.log("res is :", res);
-        setFoodplanData(res.data?.data);
-        setFooplanId(res.data?.data.food_plan_id);
+        // check if user has food_plan
+        const response = await api.get(`/foodplan/api/check-user`);
+
+        // if no food_plan for user
+        if (!response.data.userExist) {
+          setHasFoodPlan(false);
+        } else {
+          // if food_plan exist for user
+          const res = await api[method](url);
+          setFoodplanData(res.data?.data);
+          setFooplanId(res.data?.data.food_plan_id);
+          setHasFoodPlan(true);
+        }
       } catch (error) {
         console.log("Error while fetching data in viewFoodPlan page:", error.response);
       } finally {
@@ -45,19 +55,45 @@ function ViewFoodPlan() {
     fetchData();
   }, []);
 
+  // -----------------------------------create new food plan if it does not exist in food_plan Table -------------------------
+  const createNewFoodPlanForUser = async () => {
+    try {
+      setIsLoading(true);
+      // create a food plan as user doesnt have one.
+      const res = await api.get(`/foodplan/api/createfoodplanid`);
+      // console.log("response from createNewFoodPlanForUser is :", res);
+
+      // Recheck if user has food_plan
+      const response2 = await api.get(`/foodplan/api/check-user`);
+
+      // if no food_plan for user
+      if (!response2.data.userExist) {
+        setHasFoodPlan(false);
+      } else {
+        // if food_plan exist for user
+        const res = await api[method](url);
+        setFoodplanData(res.data?.data);
+        setFooplanId(res.data?.data.food_plan_id);
+        setHasFoodPlan(true);
+      }
+    } catch (error) {
+      console.log("Error while createNewFoodPlanForUser :", error);
+      setErrMsg("Something went wrong while creating food plan.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // ----------------------------------------------- handle edited day plan via API ----------------------------------------
   const handleEditedDayPlan = (data) => {
     const editURL = `/foodplan/api/update`;
     const editMethod = `put`;
 
-    console.log("data about to send is :", data);
-    // return;
     const submitData = async () => {
       setIsLoading(true);
       try {
         // console.log("data just before api call :", data);
         const res = await api[editMethod](editURL, data);
-        console.log("from backend, data is:", res.data);
 
         // refetch the foodPlan data from backend to get all updated data
         const response = await api[method](url);
@@ -71,6 +107,12 @@ function ViewFoodPlan() {
     };
     submitData();
   };
+
+  // console.log("foodplanData is :", foodplanData);
+  // console.log("dayData is :", dayData);
+  // console.log("food plan id is :", fooplanId);
+  // console.log("isLoading is :", isLoading);
+  // console.log("hasFoodPlan is :", hasFoodPlan);
 
   // ------------------------------------------- loading screen ---------------------------------------------------
   if (isLoading) {
@@ -86,9 +128,38 @@ function ViewFoodPlan() {
     );
   }
 
-  // console.log("foodplanData is :", foodplanData);
-  // console.log("dayData is :", dayData);
-  // console.log("food plan id is :", fooplanId);
+  // ---------------------- page for user whose food_plan_id is still not created ----------------------------------
+  if (!hasFoodPlan && !isLoading) {
+    return (
+      <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5 ">
+        <div className="border border-gray-400 rounded-lg mx-3 p-3 text-gray-800">
+          <div className="mt-2 text-xl font-bold">Plan Your Week with Ease</div>
+          <div className="mt-1 flex grow border-b border-app-primary border-2"></div>
+          <div className="mt-2 ">
+            Create a personalised weekly food timetable using the recipes you already have. Once
+            your food plan is created, the dashboard helps you stay organised with useful insights
+            such as grocery lists, cost per meal, and day-by-day food costs.
+          </div>
+          <div className="mt-2 ">
+            Create your food plan to get started and make planning your meals simpler.
+          </div>
+          <div>
+            <div
+              className="mt-4 flex justify-start px-2 py-1 w-41 rounded-lg bg-blue-700 text-white text-center
+                          hover:bg-blue-900 hover:cursor-pointer "
+              onClick={() => {
+                createNewFoodPlanForUser();
+                setErrMsg("");
+              }}
+            >
+              Create Food Plan +
+            </div>
+          </div>
+        </div>
+        <div className="text-sm text-app-danger mx-3 p-3">{errMsg}</div>
+      </div>
+    );
+  }
 
   return (
     <>
