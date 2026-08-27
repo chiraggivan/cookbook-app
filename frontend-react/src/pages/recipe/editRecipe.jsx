@@ -75,7 +75,7 @@ function EditRecipe() {
   const [updateBtn, setUpdateBtn] = useState(true);
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const navigate = useNavigate();
-  let blurTimeout;
+  const blurTimeout = useRef(null);
   const config = {
     headers: { Authorization: `Bearer ${token}` },
   };
@@ -1652,7 +1652,7 @@ function EditRecipe() {
                                         // checkFinalData?.components?.[indexc]?.ingredients?.[index]?.name ?? ""
                                       }
                                       onBlur={() => {
-                                        blurTimeout = setTimeout(() => {
+                                        blurTimeout.current = setTimeout(() => {
                                           console.log("blur fires ");
                                           hideSuggestions(comp.uid, ing.uid);
                                         }, 400);
@@ -1679,7 +1679,8 @@ function EditRecipe() {
                                                 }}
                                                 onMouseEnter={() => setHighlightedIndex(index)}
                                                 onClick={() => {
-                                                  clearTimeout(blurTimeout);
+                                                  clearTimeout(blurTimeout.current);
+                                                  blurTimeout.current = null;
                                                   handleSelectedIng(comp.uid, ing.uid, ingredient);
                                                 }}
                                               >

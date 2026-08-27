@@ -80,7 +80,7 @@ function NewRecipe() {
   const [showTopRow, setShowTopRow] = useState(false);
   let sameSubHeadIds = []; // ---> to save the list of same sub header text which will be used to clear the error onChange
 
-  let blurTimeout;
+  const blurTimeout = useRef(null);
   // config -
   const config = {
     headers: { Authorization: `Bearer ${token}` },
@@ -1520,7 +1520,7 @@ function NewRecipe() {
                                       // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.name ?? ""
                                     }
                                     onBlur={() => {
-                                      blurTimeout = setTimeout(() => {
+                                      blurTimeout.current = setTimeout(() => {
                                         hideSuggestions(comp.uid, ing.uid);
                                       }, 400);
                                     }}
@@ -1544,7 +1544,8 @@ function NewRecipe() {
                                               }}
                                               onMouseEnter={() => setHighlightedIndex(index)}
                                               onClick={() => {
-                                                clearTimeout(blurTimeout);
+                                                clearTimeout(blurTimeout.current);
+                                                blurTimeout.current = null;
                                                 handleSelectedIng(comp.uid, ing.uid, ingredient);
                                               }}
                                             >
