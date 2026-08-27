@@ -1653,8 +1653,9 @@ function EditRecipe() {
                                       }
                                       onBlur={() => {
                                         blurTimeout = setTimeout(() => {
+                                          console.log("blur fires ");
                                           hideSuggestions(comp.uid, ing.uid);
-                                        }, 200);
+                                        }, 400);
                                       }}
                                     />
                                     {activeInputId === ing.uid &&
@@ -1677,7 +1678,7 @@ function EditRecipe() {
                                                   cursor: "pointer",
                                                 }}
                                                 onMouseEnter={() => setHighlightedIndex(index)}
-                                                onPointerDown={() => {
+                                                onClick={() => {
                                                   clearTimeout(blurTimeout);
                                                   handleSelectedIng(comp.uid, ing.uid, ingredient);
                                                 }}

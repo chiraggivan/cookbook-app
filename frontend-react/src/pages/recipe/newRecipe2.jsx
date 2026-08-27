@@ -1522,7 +1522,7 @@ function NewRecipe() {
                                     onBlur={() => {
                                       blurTimeout = setTimeout(() => {
                                         hideSuggestions(comp.uid, ing.uid);
-                                      }, 100);
+                                      }, 400);
                                     }}
                                   />
                                   {activeInputId === ing.uid &&
@@ -1543,7 +1543,7 @@ function NewRecipe() {
                                                 cursor: "pointer",
                                               }}
                                               onMouseEnter={() => setHighlightedIndex(index)}
-                                              onPointerDown={() => {
+                                              onClick={() => {
                                                 clearTimeout(blurTimeout);
                                                 handleSelectedIng(comp.uid, ing.uid, ingredient);
                                               }}
