@@ -167,8 +167,9 @@ function EditFoodplanModal({
   const handleSelectedRecipe = (recipe) => {
     //  check if trhe meal is selected or not
     if (!mealType) {
-      setErrMsg("select the meal");
+      setErrMsg("select meal");
       setRecipeList([]);
+      setSearchText("");
       return;
     }
     const mealSelected = Number(mealType);
