@@ -1,7 +1,7 @@
 import { Modal, Button, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import Dropdown from "./dropdown";
 import Input from "../components/input";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 
 function EditFoodplanModal({
@@ -20,6 +20,8 @@ function EditFoodplanModal({
   setSelectedMeal,
 }) {
   const [data, setData] = useState(null);
+  const blurTimeout = useRef(null);
+
   //  the data along with newDayData is used to render the page for modal's right side section
   const newDayData = {
     ...dayData,
@@ -294,11 +296,11 @@ function EditFoodplanModal({
                   }}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onBlur={() =>
-                    setTimeout(() => {
+                    (blurTimeout.current = setTimeout(() => {
                       setSearchText("");
                       setRecipeList([]);
                       setHighlightedIndex(0);
-                    }, 300)
+                    }, 400))
                   }
                 />
                 {recipeList.length > 0 && (
@@ -307,13 +309,15 @@ function EditFoodplanModal({
                       <div
                         key={recipe.recipe_id}
                         ref={(el) => (recipeRefs.current[index] = el)}
-                        onMouseEnter={() => setHighlightedIndex(index)}
                         className={
                           index === highlightedIndex
                             ? "border-b border-gray-300 hover:cursor-pointer bg-gray-100"
                             : "border-b border-gray-300 hover:cursor-pointer"
                         }
-                        onPointerDown={(e) => {
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        onClick={(e) => {
+                          clearTimeout(blurTimeout.current);
+                          blurTimeout.current = null;
                           e.preventDefault();
                           e.stopPropagation();
                           setErrMsg("");
