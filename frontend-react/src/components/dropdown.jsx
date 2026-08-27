@@ -20,7 +20,7 @@ const Dropdown = ({
           </option>
         ))}
       </select>
-      {error && <p className="text-red-500 text-sm font-semibold px-2">{error} </p>}
+      {error && <p className="text-red-500 text-sm font-normal px-2">{error} </p>}
     </div>
   );
 };

@@ -16,29 +16,25 @@ export default function DishesModal({
   selectedMeal,
   setSelectedMeal,
 }) {
-  const [selectedDate, setSelectedDate] = useState(null);
+  const now = new Date();
+  const [selectedDate, setSelectedDate] = useState(now);
   const [customMsg, setCustomMsg] = useState("");
   const [errMsg, SetErrMsg] = useState("");
-  const now = new Date();
-
-  // ------------------- default select the current date as preparation date
-  useEffect(() => {
-    setSelectedDate(now.toISOString().split("T")[0]);
-  }, []);
 
   // --------- check if all required data is available to run the function for handleCreateDish
-  const checDataBeforeSubmission = () => {
+  const checkDataBeforeSubmission = () => {
     if (!selectedMeal) {
-      SetErrMsg("Select the meal");
+      SetErrMsg("Select meal");
     } else {
       onConfirm({
-        date: selectedDate,
+        date: selectedDate.toISOString().split("T")[0],
         comment: customMsg,
         meal: Number(selectedMeal),
       });
     }
   };
 
+  // console.log("selectedData is :", selectedDate, " and the type is : ", typeof selectedDate);
   return (
     <Modal size="lg" show={isOpen} onClose={onClose} popup>
       <ModalHeader className="m-2">{title}</ModalHeader>
@@ -47,14 +43,15 @@ export default function DishesModal({
         <div className="flex flex-col md:flex-row">
           <Datepicker
             theme={{
-              popup: { footer: { button: { today: "bg-blue-900" } } }, // Tailwind classes for the button
+              popup: { footer: { button: { today: "bg-app-primary" } } }, // Tailwind classes for the button
+              views: { days: { items: { item: { selected: "bg-app-primary" } } } },
             }}
             className="mr-3"
             maxDate={now}
-            value={now}
+            value={selectedDate}
             title="Dish created on"
             onChange={(date) => {
-              setSelectedDate(date.toISOString().split("T")[0]);
+              setSelectedDate(date);
             }}
           />
         </div>
@@ -98,7 +95,7 @@ export default function DishesModal({
           color="success"
           onClick={() => {
             // onConfirm({ date: selectedDate, comment: customMsg, meal: selectedMeal });
-            checDataBeforeSubmission();
+            checkDataBeforeSubmission();
           }}
         >
           <OKtextIcon className="mr-2 w-5 h-5" />

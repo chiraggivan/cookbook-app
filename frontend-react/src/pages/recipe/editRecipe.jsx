@@ -440,6 +440,7 @@ function EditRecipe() {
 
   // ------------------------------ add the selected ingredient in ingRow data --------------------------------
   const handleSelectedIng = (cid, iid, ing) => {
+    // console.log("cid :", cid, " iid :", iid, " ing :", ing);
     // //--------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
@@ -1653,7 +1654,7 @@ function EditRecipe() {
                                       onBlur={() => {
                                         blurTimeout = setTimeout(() => {
                                           hideSuggestions(comp.uid, ing.uid);
-                                        }, 100);
+                                        }, 200);
                                       }}
                                     />
                                     {activeInputId === ing.uid &&
@@ -1675,7 +1676,8 @@ function EditRecipe() {
                                                   // padding: "10px",
                                                   cursor: "pointer",
                                                 }}
-                                                onClick={() => {
+                                                onMouseEnter={() => setHighlightedIndex(index)}
+                                                onPointerDown={() => {
                                                   clearTimeout(blurTimeout);
                                                   handleSelectedIng(comp.uid, ing.uid, ingredient);
                                                 }}

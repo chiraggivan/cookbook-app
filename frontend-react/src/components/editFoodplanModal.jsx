@@ -313,7 +313,7 @@ function EditFoodplanModal({
                             ? "border-b border-gray-300 hover:cursor-pointer bg-gray-100"
                             : "border-b border-gray-300 hover:cursor-pointer"
                         }
-                        onClick={(e) => {
+                        onPointerDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           setErrMsg("");

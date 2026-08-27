@@ -1542,7 +1542,8 @@ function NewRecipe() {
                                                 // padding: "10px",
                                                 cursor: "pointer",
                                               }}
-                                              onClick={() => {
+                                              onMouseEnter={() => setHighlightedIndex(index)}
+                                              onPointerDown={() => {
                                                 clearTimeout(blurTimeout);
                                                 handleSelectedIng(comp.uid, ing.uid, ingredient);
                                               }}
