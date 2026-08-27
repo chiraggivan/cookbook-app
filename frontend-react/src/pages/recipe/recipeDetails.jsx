@@ -211,7 +211,7 @@ function RecipeDetails() {
     details4Dish.meal = mealObject.name;
     details4Dish.time_prepared = currentTime;
 
-    // console.log("currentTime :", currentTime);
+    // console.log("additionalData :", additionalData);
     // console.log("details for dish :", details4Dish);
     // return;
     // if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {

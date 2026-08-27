@@ -61,7 +61,12 @@ function ViewFoodPlan() {
       setIsLoading(true);
       // create a food plan as user doesnt have one.
       const res = await api.get(`/foodplan/api/createfoodplanid`);
-      // console.log("response from createNewFoodPlanForUser is :", res);
+      console.log("response from createNewFoodPlanForUser is :", res);
+
+      if (!res.data?.success) {
+        setErrMsg(res.data?.message);
+        return;
+      }
 
       // Recheck if user has food_plan
       const response2 = await api.get(`/foodplan/api/check-user`);

@@ -53,7 +53,7 @@ function CreateUpdateMyIngredientPage({
                     }}
                     error={ingData?.errors?.name}
                   />
-                  <div className="text-sm font-semibold text-red-700 h-5  max-w-100">
+                  <div className="text-xs font-semibold text-red-700 h-5  max-w-100">
                     {ingData?.errors?.name ? "*Name Required" : ""}
                   </div>
                 </div>
@@ -106,14 +106,14 @@ function CreateUpdateMyIngredientPage({
                   </div>
 
                   {/* new unit section */}
-                  <div className="flex space-x-1 sm:flex-1">
+                  <div className="flex pl-2 space-x-1 sm:flex-1">
                     {/* unit name */}
                     <div className="flex flex-col">
                       <div className="flex items-center h-10">Unit:</div>
                       <div className="h-5"></div>
                     </div>
                     {/* unit dropdown field and error section*/}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col py-1">
                       <Select
                         className="w-19"
                         value={ingData?.display_unit}
@@ -131,7 +131,7 @@ function CreateUpdateMyIngredientPage({
                           </option>
                         ))}
                       </Select>
-                      <div className="flex justify-end text-sm font-semibold  text-red-700 h-5 ">
+                      <div className="flex pt-1 text-xs font-semibold  text-red-700 h-5 ">
                         {ingData?.errors?.display_unit ? "*Required" : ""}
                       </div>
                     </div>
@@ -141,8 +141,12 @@ function CreateUpdateMyIngredientPage({
                 {/* price section */}
                 <div className="flex flex-col sm:flex-1">
                   <div className="flex items-center space-x-1">
-                    <p>Price:</p>
+                    {/* Price name */}
                     <div className="flex flex-col">
+                      <div className="flex items-center h-10">Price:</div>
+                      <div className="h-5"></div>
+                    </div>
+                    <div className="flex flex-col py-1">
                       <TextInput
                         className=" border-gray-300 rounded-lg w-26"
                         value={ingData?.display_price ?? ""}
@@ -168,7 +172,7 @@ function CreateUpdateMyIngredientPage({
                         }}
                         error={ingData?.errors?.display_price}
                       />
-                      <div className="flex justify-end text-sm font-semibold text-red-700 h-5 pr-2">
+                      <div className="flex justify-end text-xs font-semibold text-red-700 h-5 pr-2">
                         {ingData?.errors?.display_price ? "*Required" : ""}
                       </div>
                     </div>

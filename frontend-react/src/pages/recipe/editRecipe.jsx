@@ -1241,7 +1241,7 @@ function EditRecipe() {
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
   // console.log("activeInputId", activeInputId);
-  console.log("recipeInfo :", recipeInfo);
+  // console.log("recipeInfo :", recipeInfo);
   // console.log("OgData :", OgData);
   // console.log("checkFinalData :", checkFinalData);
   // console.log("total cost is :", totalCost);
@@ -1762,7 +1762,7 @@ function EditRecipe() {
                                 </div>
 
                                 {/* button for base values for small screen less than lg */}
-                                {ing.name && ing.displayQuantity && (
+                                {ing.name && (
                                   <div className="flex lg:hidden">
                                     <div
                                       className="flex items-center justify-center h-5 w-25 bg-gray-200 rounded-md text-xs mb-1 hover:cursor-pointer"

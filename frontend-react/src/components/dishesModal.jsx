@@ -18,17 +18,32 @@ export default function DishesModal({
 }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [customMsg, setCustomMsg] = useState("");
+  const [errMsg, SetErrMsg] = useState("");
   const now = new Date();
 
-  // default select the current date as preparation date
+  // ------------------- default select the current date as preparation date
   useEffect(() => {
     setSelectedDate(now.toISOString().split("T")[0]);
   }, []);
 
+  // --------- check if all required data is available to run the function for handleCreateDish
+  const checDataBeforeSubmission = () => {
+    if (!selectedMeal) {
+      SetErrMsg("Select the meal");
+    } else {
+      onConfirm({
+        date: selectedDate,
+        comment: customMsg,
+        meal: Number(selectedMeal),
+      });
+    }
+  };
+
   return (
     <Modal size="lg" show={isOpen} onClose={onClose} popup>
       <ModalHeader className="m-2">{title}</ModalHeader>
-      <ModalBody>
+      <ModalBody className="">
+        {/* date picker */}
         <div className="flex flex-col md:flex-row">
           <Datepicker
             theme={{
@@ -43,6 +58,8 @@ export default function DishesModal({
             }}
           />
         </div>
+
+        {/* comment/info section */}
         <div>
           <p className="mt-2">Comment/Message :</p>
           <textarea
@@ -53,28 +70,41 @@ export default function DishesModal({
             }}
           />
         </div>
-        <div>
-          <Dropdown
-            className=" rounded-md border border-gray-400 mt-2"
-            title={"Meal: "}
-            options={meals}
-            optionValueText={"meal_id"}
-            optionText={"name"}
-            value={selectedMeal}
-            onChange={(e) => setSelectedMeal(e.target.value)}
-          />
+
+        <div className="flex md:flex-col space-x-4">
+          {/* meal dropdown */}
+          <div>
+            <Dropdown
+              className=" rounded-md border border-gray-400 mt-2"
+              title={"Meal: "}
+              options={meals}
+              optionValueText={"meal_id"}
+              optionText={"name"}
+              value={selectedMeal}
+              onChange={(e) => {
+                SetErrMsg("");
+                setSelectedMeal(e.target.value);
+              }}
+            />
+          </div>
+
+          {/* errror Msg section */}
+          <div className="flex items-center pt-2 h-12 px-1 text-sm text-app-danger">{errMsg}</div>
         </div>
       </ModalBody>
       <ModalFooter>
         <Button
-          className="border"
+          className="border hover:cursor-pointer hover:bg-gray-200"
           color="success"
-          onClick={() => onConfirm({ date: selectedDate, comment: customMsg, meal: selectedMeal })}
+          onClick={() => {
+            // onConfirm({ date: selectedDate, comment: customMsg, meal: selectedMeal });
+            checDataBeforeSubmission();
+          }}
         >
           <OKtextIcon className="mr-2 w-5 h-5" />
           {OKtext}
         </Button>
-        <Button color="gray" onClick={onClose}>
+        <Button className="hover:cursor-pointer" color="gray" onClick={onClose}>
           {cancelText}
         </Button>
       </ModalFooter>

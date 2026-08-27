@@ -3,6 +3,7 @@ const db = require("../../config/database");
 const {
   meals,
   total_weeks,
+  minRecipesForFoodPlanCreation,
   normalisePlan,
   validateFoodPlan,
 } = require("../../utils/foodPlanUtils"); // use by create_food_plan function
@@ -97,13 +98,26 @@ exports.create_food_plan_id = async (req, res) => {
       }
     }
 
+    // check if user has atleast minRecipesForFoodPlanCreation
+    const [recipeRows] = await db.query(
+      `SELECT COUNT(recipe_id) as total FROM recipes WHERE user_id = ? AND is_active = 1`,
+      [user.id],
+    );
+    if (recipeRows[0].total < minRecipesForFoodPlanCreation) {
+      return res.json({
+        success: false,
+        message: `Need to have atleast ${minRecipesForFoodPlanCreation} 
+                  ${minRecipesForFoodPlanCreation === 1 ? "recipe" : "recipes"} to create foodplan`,
+      });
+    }
+
     // return res.json({
     //   success: true,
     //   message: `about to start creating food_plan_id and other rows`,
     // });
 
     //  ------------------ Inserting data in db  ------------------------
-    // inserting data in food plan table. (as only one table is being used for DML, can do without conn getconnection())
+    // inserting data in food plan table.
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
@@ -152,19 +166,6 @@ exports.create_food_plan_id = async (req, res) => {
     } finally {
       conn.release();
     }
-
-    // const [result] = await db.query(
-    //   `INSERT INTO food_plans (user_id, total_weeks)
-    //     VALUES (?,?) `,
-    //   [user.id, total_weeks],
-    // );
-
-    // // FINAL response
-    // res.json({
-    //   success: true,
-    //   message: `new food plan id (${result.insertId}) created for user - ${user.id}.`,
-    //   data,
-    // });
   } catch (err) {
     console.error("Error in createFoodPlanController - (create_food_plan_id) is : ", err);
     res.status(500).json({
