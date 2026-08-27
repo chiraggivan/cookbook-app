@@ -321,7 +321,7 @@ function EditFoodplanModal({
                           e.preventDefault();
                           e.stopPropagation();
                           setErrMsg("");
-                          handleSelectedRecipe(recipeList[highlightedIndex]);
+                          handleSelectedRecipe(recipe);
                         }}
                       >
                         <div className="text-sm font-semibold">{recipe.recipe_name}</div>
