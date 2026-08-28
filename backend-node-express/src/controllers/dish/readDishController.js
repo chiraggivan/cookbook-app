@@ -5,6 +5,10 @@ exports.get_dishes = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const searchString = "%" + (req.query.q || "").trim().toLowerCase() + "%";
+    const limit = Number(req.query.limit) || 20;
+    const queryLimit = limit + 1;
+    const pageNo = Number(req.query.page) || 1;
+    const offset = (pageNo - 1) * limit;
 
     // console.log("searchString", searchString);
     // Get all the dishes for the users
@@ -12,17 +16,23 @@ exports.get_dishes = async (req, res) => {
       `SELECT dish_id, recipe_id, recipe_name, portion_size, preparation_date, total_cost, comment, image_url, time_prepared, meal, recipe_by, created_at
         FROM dishes 
         WHERE (LOWER(recipe_name) LIKE ? OR comment LIKE ?) AND user_id = ? AND is_active = 1
-        ORDER BY preparation_date DESC, time_prepared DESC`,
-      [searchString, searchString, user.id],
+        ORDER BY preparation_date DESC, time_prepared DESC
+        LIMIT ? OFFSET ?`,
+      [searchString, searchString, user.id, queryLimit, offset],
     );
 
+    const hasMore = dishesResult.length > limit;
+    const data = dishesResult.slice(0, limit);
+    // console.log("dishesResult.length", dishesResult.length, " page :", pageNo, " limit :", limit);
+    // console.log("hasMore :", hasMore);
+
     // convert string values(total_cost) to float before sending
-    for (const dish of dishesResult) {
+    for (const dish of data) {
       dish.total_cost = Number(dish.total_cost);
       if (!dish.total_cost) {
         return res.status(500).json({
           success: "false",
-          message: "Could convert total cost into float.",
+          message: "Couldnt convert total cost into float.",
         });
       }
     }
@@ -31,7 +41,8 @@ exports.get_dishes = async (req, res) => {
     res.json({
       success: true,
       message: `Dishes found`,
-      data: dishesResult,
+      data,
+      hasMore,
     });
   } catch (err) {
     console.error("Error in readDishController - get_dishes :", err);

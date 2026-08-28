@@ -3,8 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
-import Navbar from "../../components/navbarOld";
-import Button from "../../components/button";
+import api from "../../api/axios";
 import Input from "../../components/input";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import { DishContext } from "../../context/dishContext";
@@ -12,6 +11,7 @@ import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { HiOutlineSearch } from "react-icons/hi";
 import { GiMeal } from "react-icons/gi";
 import formattedDate from "../../utils/formattedDate";
+import { Spinner } from "flowbite-react";
 
 function MyDishes() {
   const token = localStorage.getItem("token");
@@ -20,17 +20,20 @@ function MyDishes() {
   // const { dishes, setDishes, fetchedOnce, setFetchedOnce, setDishDetails } =
   //   useContext(DishContext);
   const [dishes, setDishes] = useState();
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [fetchLoading, setFetchLoading] = useState(true);
-
-  const [searchParams] = useSearchParams();
-  const updated = searchParams.get("changed");
-  const id = searchParams.get("id");
   const [searchDish, setSearchDish] = useState("");
-  const [displayDishes, setDisplayDishes] = useState();
+  // const [displayDishes, setDisplayDishes] = useState();
+
+  const [page, setPage] = useState(1);
+  const limit = 3;
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const scrollwindowPercent = 99;
+  const [wasSearchedBefore, setWasSearchedBefore] = useState(false);
+  const [toggleAPIcall, setToggleAPIcall] = useState(false);
 
   const [imageError, setImageError] = useState(false);
-
   // ------------------------------------ Redirect effect ----------------------------------------------------
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
@@ -39,121 +42,105 @@ function MyDishes() {
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
   const method = "get";
-  const url = `${serverURL}/dish/api`;
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const url = `/dish/api`;
+
   // ----------------------------- fetch data from backend only for once --------------------------------
   useEffect(() => {
-    // if (!fetchedOnce) {
     const fetchData = async () => {
       try {
-        setFetchLoading(true);
-        if (token) {
-          const res = await axios[method](url, config);
-          const tempData = res.data.data;
-          const formattedData = tempData.map((i) => ({
-            ...i,
-            preparation_date: formattedDate(i.preparation_date),
-          }));
-
+        if (page === 1) {
+          setIsLoading(true);
+        }
+        if (page > 1) {
+          setIsLoadingMore(true);
+        }
+        const res = await api[method](url, { params: { q: searchDish, page, limit } });
+        const tempData = res.data.data;
+        const formattedData = tempData.map((i) => ({
+          ...i,
+          preparation_date: formattedDate(i.preparation_date),
+        }));
+        if (page === 1) {
           setDishes(formattedData);
-          // setFetchedOnce(true);
+        } else {
+          setDishes((prev) => [...prev, ...formattedData]);
+        }
+        setHasMore(res?.data?.hasMore || false);
+
+        // making sure that search button doesnt call api if search is empty for the previous api call
+        if (!searchDish) {
+          setWasSearchedBefore(false);
         }
       } catch (err) {
         console.log("error while fetching dish list with axios is :", err.response.message);
       } finally {
-        setFetchLoading(false);
+        setIsLoading(false);
+        setIsLoadingMore(false);
       }
     };
     fetchData();
     // }
-    setFetchLoading(false);
-  }, []);
+    setIsLoading(false);
+  }, [toggleAPIcall]);
 
-  // ---------------------------- format date and time received from backend to look human friendly -----------------
-  // const formattedDate = (val) => {
-  //   const dishDate = new Date(val);
-  //   const day = dishDate.getDate();
-  //   const todayDate = new Date();
-  //   const yesterdayDate = new Date(todayDate);
-  //   yesterdayDate.setDate(todayDate.getDate() - 1);
-
-  //   if (
-  //     dishDate.getDate() === todayDate.getDate() &&
-  //     dishDate.getMonth() === todayDate.getMonth() &&
-  //     dishDate.getFullYear() === todayDate.getFullYear()
-  //   ) {
-  //     return "Today";
-  //   } else if (
-  //     dishDate.getDate() === yesterdayDate.getDate() &&
-  //     dishDate.getMonth() === yesterdayDate.getMonth() &&
-  //     dishDate.getFullYear() === yesterdayDate.getFullYear()
-  //   ) {
-  //     return "Yesterday";
-  //   } else {
-  //     const suffix =
-  //       day % 10 === 1 && day !== 11
-  //         ? "st"
-  //         : day % 10 === 2 && day !== 12
-  //           ? "nd"
-  //           : day % 10 === 3 && day !== 13
-  //             ? "rd"
-  //             : "th";
-
-  //     return `${day}${suffix} ${dishDate.toLocaleString("en-GB", { month: "short" })} ${String(dishDate.getFullYear()).slice(-2)}`;
-  //   }
-  // };
-  //--------------------------- update dish list if changed  ---------------------------------------------
+  // -------------------------------- scroll listener -----------------------------------
   useEffect(() => {
-    if (!id) return;
-    setDishes((prev) => prev?.filter((i) => i.dish_id !== Number(id)));
-    // setDishDetails((prev) => prev?.filter((i) => i.dish?.dish_id !== Number(id)));
-  }, [id]);
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
 
-  // ----------------------------- update the displayDishes list if searchDish has text --------------------
-  // As currently we have useContext and all the dishes are stored and accessed later onwards, we will fetch the
-  // searchIng list from the context variable itself.
+      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
+      // console.log("scroll % :", scrollPercentage);
+      if (scrollPercentage >= scrollwindowPercent && hasMore && !isLoadingMore) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasMore, isLoadingMore]);
+
+  // ------- to fetch more recipes for infinite scroll as page changes due above scroll listener
   useEffect(() => {
-    const string = searchDish.trim().replace(/\s+/g, " ").toLowerCase();
-    if (!string) {
-      setDisplayDishes(dishes);
-    } else {
-      setDisplayDishes(
-        dishes.filter(
-          (item) =>
-            item.recipe_name.toLowerCase().includes(string) ||
-            item.comment?.toLowerCase().includes(string),
-        ),
-      );
+    if (!token) {
+      return;
     }
-  }, [dishes]);
+
+    setToggleAPIcall((prev) => !prev);
+  }, [page]);
 
   // -------------------------- using search button for dishes --------------------------------------------
-  // currently the dishes are searched via serachDish string along with api as query, if need to search from context,
-  // then remove the comment from "if(!string)" and comment the searchurl and fetchData func.
   const searchDishesButton = () => {
     const string = searchDish.trim().replace(/\s+/g, " ").toLowerCase();
 
-    const searchurl = `${serverURL}/dish/api/?q=${searchDish}`;
-    const fetchData = async () => {
-      try {
-        setFetchLoading(true);
-        const res = await axios[method](searchurl, config);
-        setDishes(res?.data.data);
-      } catch (err) {
-        console.log(
-          "error while fetching searched dish list with axios is :",
-          err.response.message,
-        );
-      } finally {
-        setFetchLoading(false);
-      }
-    };
-    fetchData();
+    if (string.length === 0 && !wasSearchedBefore) {
+      return;
+    }
+
+    setPage(1);
+    setWasSearchedBefore(true);
+    setToggleAPIcall((prev) => !prev);
   };
 
+  // console.log("hasMore is:", hasMore);
+  // console.log("wasSearchedBefore is:", wasSearchedBefore);
+
   // -----------------------  show loading while waiting for data to be ready -------------------------
-  if (fetchLoading) {
-    return <h1> Page Loading .............</h1>;
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
   }
 
   //-------------------------------- delete button function ---------------------------------------------

@@ -19,7 +19,7 @@ function UserRecipes() {
   const [searchedUserInfo, setSearchedUserInfo] = useState(null);
   const [recipeData, setRecipeData] = useState(null);
   const [page, setPage] = useState(1);
-  const limit = 3;
+  const limit = 10;
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const scrollwindowPercent = 99;
@@ -63,7 +63,6 @@ function UserRecipes() {
           setIsLoadingMore(true);
         }
 
-        // const res = await axios[method](url, config);
         const res = await api[method](url, { params: { q: searchRecipe, page, limit } });
         // console.log("res is :", res);
         setSearchedUserInfo(res?.data?.data?.userInfo);
@@ -203,7 +202,7 @@ function UserRecipes() {
                 />
                 <button
                   className="flex text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 items-center 
-                                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
+                            hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
                   onClick={searchUserRecipe}
                 >
                   <HiSearch className="" />

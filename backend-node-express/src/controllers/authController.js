@@ -186,7 +186,7 @@ exports.profile = (req, res) => {
 // google login
 exports.googleSignin = async (req, res) => {
   const token = req.body;
-  console.log("1");
+
   // if no token found
   if (!token) {
     return res.status(400).json({
@@ -197,20 +197,20 @@ exports.googleSignin = async (req, res) => {
 
   // Initialize the OAuth2 client with your client ID and Client Secret
   const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, "postmessage");
-  console.log("2");
+
   try {
     // Get the tokens from Google with the help of code value from frontend
     const { tokens } = await client.getToken(req.body.code);
-    console.log("3");
+
     // Verify the id_token received within the tokens with the help of obj of OAuth2Client and verifyIdToken func
     const user = await client.verifyIdToken({
       idToken: tokens.id_token,
       audience: GOOGLE_CLIENT_ID,
     });
-    console.log("4");
+
     // get the payload from the above obj. payload will contain all the user details needed to check or store in db
     const payload = user.getPayload();
-    console.log("5");
+
     // retreive imp data from payload
     const firstName = payload.given_name;
     const lastName = payload.family_name;

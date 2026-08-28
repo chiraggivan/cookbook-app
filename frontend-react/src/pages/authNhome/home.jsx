@@ -148,8 +148,7 @@ function Home() {
     }));
   };
 
-  // console.log("data is :", data);
-
+  // ------------------------------ Loading screen ---------------------------------
   if (isLoading) {
     return (
       <div className="flex w-full h-screen items-center justify-center">
@@ -162,6 +161,7 @@ function Home() {
       </div>
     );
   }
+
   // console.log("data before return html : ", data);
   // console.log("page no. ", page);
   return (

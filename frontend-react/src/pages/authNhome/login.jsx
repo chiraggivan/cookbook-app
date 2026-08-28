@@ -74,14 +74,14 @@ function Login() {
   //  google signin
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      console.log("Token from google oauth is :", tokenResponse);
+      // console.log("Token from google oauth is :", tokenResponse);
 
       // Send tokenResponse.code to your backend
       try {
         const res = await axios.post(`${serverURL}/auth/api/googleSignin`, {
           code: tokenResponse.code,
         });
-        console.log("response is : ", res.data);
+        // console.log("response is : ", res.data);
         if (!res.data.token || !res.data.user) {
           console.log("token / user was absent. Cant proceed further.");
           return;
@@ -97,6 +97,7 @@ function Login() {
     },
     onError: (errorResponse) => {
       console.log("Oops, something went wrong : ", errorResponse);
+      setErrGSigninMsg("Oops, error while google sign in");
     },
     flow: "auth-code",
   });
