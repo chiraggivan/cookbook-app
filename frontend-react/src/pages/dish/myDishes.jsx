@@ -149,18 +149,6 @@ function MyDishes() {
       }
     };
     fetchData();
-
-    // if (!string) {
-    //   setDisplayDishes(dishes);
-    // } else {
-    //   setDisplayDishes(
-    //     dishes.filter(
-    //       (item) =>
-    //         item.recipe_name.toLowerCase().includes(string) ||
-    //         item.comment?.toLowerCase().includes(string),
-    //     ),
-    //   );
-    // }
   };
 
   // -----------------------  show loading while waiting for data to be ready -------------------------

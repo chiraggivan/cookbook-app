@@ -155,7 +155,7 @@ function TopBar() {
               {user?.picture_url ? (
                 <div className="w-full h-full">
                   <img
-                    className="rounded-full"
+                    className="rounded-full h-full"
                     src={user?.picture_url}
                     alt={getInitials(userName)}
                     // onError={(e) => {

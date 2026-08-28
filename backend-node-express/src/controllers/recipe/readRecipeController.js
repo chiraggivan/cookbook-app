@@ -48,9 +48,16 @@ exports.get_recipes = async (req, res) => {
 exports.get_user_recipes = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const find_user = Number(req.params.q);
+    const searchedUser = Number(req.params.q);
 
-    if (!find_user || find_user < 1 || !Number.isInteger(find_user)) {
+    // creating variables for scrollable dynamic result
+    const limit = Number(req.query.limit) || 20;
+    const pageNo = Number(req.query.page) || 1;
+    const searchString = "%" + (req.query.q || "").trim().toLowerCase() + "%";
+    const offset = (pageNo - 1) * limit;
+    const queryLimit = limit + 1;
+
+    if (!searchedUser || searchedUser < 1 || !Number.isInteger(searchedUser)) {
       return res.status(404).json({
         success: false,
         message: "user not found in params or not defined properly",
@@ -58,13 +65,13 @@ exports.get_user_recipes = async (req, res) => {
     }
 
     // searched user is same as logged in user
-    if (user.id === find_user) {
+    if (user.id === searchedUser) {
     }
 
     // verify user exists
     const [userResult] = await db.query(
       `SELECT display_name, username, email, picture_url, email_verified FROM users WHERE user_id = ? AND is_active = 1`,
-      [find_user],
+      [searchedUser],
     );
     if (userResult.length === 0) {
       return res.status(404).json({
@@ -78,22 +85,28 @@ exports.get_user_recipes = async (req, res) => {
       `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, r.image_url, u.username
             FROM recipes r 
             JOIN users u ON r.user_id = u.user_id
-            WHERE r.is_active = TRUE
+            WHERE r.is_active = TRUE            
             AND r.user_id = ?
+            AND r.name LIKE ?
             AND r.privacy = 'public'
-            ORDER BY r.created_at DESC`,
-      [find_user],
+            ORDER BY r.created_at DESC
+            LIMIT ? OFFSET ?`,
+      [searchedUser, searchString, queryLimit, offset],
     );
+
+    const hasMore = finalResult.length > limit;
+    const data = finalResult.slice(0, limit);
 
     const sendData = {};
     sendData.userInfo = userResult[0];
-    sendData.userRecipes = finalResult;
+    sendData.userRecipes = data;
     // console.log("sendData :", sendData);
     // response the data
     res.json({
       success: true,
-      message: `Recipes found for ${find_user}`,
+      message: `Recipes found for ${searchedUser}`,
       data: sendData,
+      hasMore,
     });
   } catch (err) {
     console.error("Error in readRecipeController - get_user_recipes:", err);

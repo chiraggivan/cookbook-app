@@ -36,12 +36,8 @@ function Home() {
   const [imageError, setImageError] = useState(false);
 
   const method = "get";
-  // let url;
-  // if (searchRecipe) {
-  //   url = `${serverURL}/recipe/api/all/?q=${searchRecipe}`;
-  // } else {
   const url = `${serverURL}/recipe/api/all`;
-  // }
+
   const config = {
     headers: { Authorization: `Bearer ${token}` },
     params: {
@@ -66,11 +62,11 @@ function Home() {
           setIsLoading(true);
           const res = await axios[method](url, config);
           if (page === 1) {
-            setData(res?.data.data);
+            setData(res?.data?.data);
           } else {
-            setData((prev) => [...prev, ...res?.data.data]);
+            setData((prev) => [...prev, ...res?.data?.data]);
           }
-          setHasMore(res?.data.hasMore ?? false);
+          setHasMore(res?.data?.hasMore ?? false);
         } catch (err) {
           // console.log("Error while fetching all recipes", err);
           if (err.response?.data.message === JWTunverifiedMsg) {
@@ -89,10 +85,10 @@ function Home() {
   // for search recipe state change
   useEffect(() => {
     setData([]);
-    setPage[1];
+    setPage(1);
   }, [searchRecipe]);
 
-  // scroll listener
+  // --------------------------- scroll listener --------------------------------
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -113,7 +109,7 @@ function Home() {
     };
   }, [hasMore, isLoadingMore]);
 
-  // to fetch more recipes for infinite scroll as page changes due above scroll listener
+  // ---------- to fetch more recipes for infinite scroll as page changes due above scroll listener
   useEffect(() => {
     if (!token) {
       return;

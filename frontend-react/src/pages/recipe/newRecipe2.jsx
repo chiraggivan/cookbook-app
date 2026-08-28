@@ -1336,7 +1336,7 @@ function NewRecipe() {
               {/* ingredients table */}
               <div className="overflow-x-auto">
                 {/* ingredients list */}
-                <div className="flex flex-col min-w-107 px-0.5">
+                <div className="flex flex-col min-w-107 px-0.5 pb-14">
                   {/* Ingredients table header */}
                   <div className="flex w-full h-10 border rounded-t-xl border-gray-500 mt-2  ">
                     <div className="flex w-6 sm:min-w-10 items-center justify-center pl-0.5">
