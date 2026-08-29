@@ -200,6 +200,7 @@ function UserRecipes() {
                   onChange={(e) => setSearchRecipe(e.target.value)}
                   value={searchRecipe}
                 />
+                {/* search button */}
                 <button
                   className="flex text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 items-center 
                             hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"

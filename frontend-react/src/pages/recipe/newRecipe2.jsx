@@ -784,8 +784,7 @@ function NewRecipe() {
     if (imageURL) {
       finalMainRecipe.imageURL = imageURL;
     }
-    console.log("finalMainRecipe", finalMainRecipe);
-    return;
+
     // get components and ingredients info
     const components = [];
     let ing_display_order = 0;
@@ -1124,8 +1123,8 @@ function NewRecipe() {
     }
 
     // console.log("everything passed till here with no errors found. were there any errors");
-    // console.log("dataToSend is:", dataToSend);
-    // return;
+    console.log("dataToSend is:", dataToSend);
+    return;
 
     // ---------------------------- final call to API to create recipe ---------------------------------
     // function to call api and save the recipe in db
