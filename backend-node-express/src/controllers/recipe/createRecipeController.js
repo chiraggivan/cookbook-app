@@ -129,12 +129,12 @@ exports.create_recipe = async (req, res) => {
     const components = data.components;
     const steps = data.steps;
 
-    console.log("data is :", data);
-    return res.json({
-      success: true,
-      message: "reached here without issue",
-      data: data,
-    });
+    // console.log("data is :", data);
+    // return res.json({
+    //   success: true,
+    //   message: "reached here without issue",
+    //   data: data,
+    // });
     // ------------------validation of every field of data done, now cross check db -------------------------------
 
     // Validate user_id exists
@@ -230,6 +230,11 @@ exports.create_recipe = async (req, res) => {
 
     // ---------------- Data checked and ready to be inserted. About to actually insert data in db ---------------------------
 
+    return res.json({
+      success: true,
+      message: "reached here without issue, db cross checked and about to insert ",
+      data: data,
+    });
     // create a connection for easy rollback if any insert break
     const conn = await db.getConnection();
     let recipeId;
@@ -328,7 +333,7 @@ exports.create_recipe = async (req, res) => {
     }
 
     //-----------  new recipe details data that we saved recently to be sent with res
-    console.log("recipeId :", recipeId, " and user id :", user.id);
+    // console.log("recipeId :", recipeId, " and user id :", user.id);
     const { success, message, data: newRecipeData } = await getRecipeDetailsById(recipeId, user.id);
     console.log("new recipe data to be sent with res:", newRecipeData);
     // ----- response the data back
@@ -353,7 +358,7 @@ exports.add_recipe_image = async (req, res) => {
 
   res.json({
     success: true,
-    message: "Image uploaded successfully",
+    message: "Test message image uploaded successfully!!!!!!",
     file: req.file,
   });
 };
