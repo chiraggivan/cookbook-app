@@ -41,6 +41,7 @@ function NewRecipe() {
     ingredientId: "",
     ingredientSource: "",
     name: "",
+    form: "",
     quantity: "",
     unit: "",
     measuringUnits: [],
@@ -309,6 +310,7 @@ function NewRecipe() {
                       ? {
                           ...ingredient,
                           name: ing.name,
+                          form: ing.form,
                           displayQuantity: ing.display_quantity,
                           displayUnit: ing.display_unit,
                           displayPrice: ing.display_price,
@@ -1442,7 +1444,7 @@ function NewRecipe() {
                                     index !== comp.ingredients.length - 2) && (
                                     <div
                                       className="p-1 border border-gray-600 text-gray-500 rounded-md cursor-pointer 
-                                hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
+                                                hover:scale-125 hover:text-gray-900 hover:bg-gray-400 transition  duration-300"
                                       onClick={() => move(comp.uid, ing.uid, index, indexc, 1)}
                                     >
                                       <FaAngleDoubleDown
@@ -1462,7 +1464,9 @@ function NewRecipe() {
                                 <div className="relative flex flex-8 pt-1 items-start justify-start ">
                                   <Input
                                     className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500"
-                                    value={ing.name ?? ""}
+                                    value={
+                                      ing.form ? ing.name + " (" + ing.form + ")" : (ing.name ?? "")
+                                    }
                                     onFocus={(e) => {
                                       setActiveInputId(ing.uid);
                                       searchIng(e.target.value);
@@ -1478,6 +1482,7 @@ function NewRecipe() {
                                                     ? {
                                                         ...i,
                                                         name: e.target.value,
+                                                        form: "",
                                                         displayQuantity: "",
                                                         displayUnit: "",
                                                         displayPrice: "",
@@ -1548,7 +1553,10 @@ function NewRecipe() {
                                                 handleSelectedIng(comp.uid, ing.uid, ingredient);
                                               }}
                                             >
-                                              {ingredient.name}
+                                              {ingredient.form
+                                                ? ingredient.name + " (" + ingredient.form + ")"
+                                                : ingredient.name}
+                                              {/* {ingredient.name} */}
                                             </div>
                                           ))}
                                         </div>

@@ -88,7 +88,7 @@ function RecipeDetails() {
           setFoundRecipeDetails(tempRecipe);
         } catch (err) {
           console.log("error while fetching reicpe details with axios is :", err.response);
-          window.alert("Something went wrong while fetching recipe. Please try again later.");
+          // window.alert("Something went wrong while fetching recipe. Please try again later.");
         } finally {
           setFetchLoading(false);
         }
@@ -248,7 +248,7 @@ function RecipeDetails() {
         return;
       }
     } catch (err) {
-      console.log("response message for dish created button:", err.response);
+      // console.log("response message for dish created button:", err.response);
       console.log(err.response?.data?.message);
       alert(err.response?.data?.message);
       return;
@@ -326,7 +326,9 @@ function RecipeDetails() {
               <div className="min-w-10 pl-1 pt-1">{i.unit_name}</div>
               <div className="flex-1 pl-1 pt-1">
                 {i.ingredient_source === "main"
-                  ? capitaliseWords(i.name)
+                  ? i.form
+                    ? capitaliseWords(i.name) + " (" + i.form + ")"
+                    : capitaliseWords(i.name)
                   : capitaliseWords(i.name) + "*"}
               </div>
               <div className="flex flex-col items-end">
@@ -343,20 +345,21 @@ function RecipeDetails() {
         );
 
         // --------------Below for create dish---------------------------
-        const ings = {};
+        const ing = {};
 
-        ings.base_quantity = i.base_quantity;
-        ings.base_unit = i.unit;
-        ings.base_price = i.cost;
-        ings.ingredient_id = i.ingredient_id;
-        ings.name = i.name;
-        ings.cost = i.price;
-        ings.quantity = i.quantity;
-        ings.unit_id = i.unit_id;
-        ings.unit_name = i.unit_name;
-        ings.display_order = i.ingredient_display_order;
-        ings.ingredient_source = i.ingredient_source;
-        comps.ingredients.push(ings);
+        ing.base_quantity = i.base_quantity;
+        ing.base_unit = i.unit;
+        ing.base_price = i.cost;
+        ing.ingredient_id = i.ingredient_id;
+        ing.name = i.form ? i.name + " (" + i.form + ")" : i.name;
+        // ing.form = i.form;
+        ing.cost = i.price;
+        ing.quantity = i.quantity;
+        ing.unit_id = i.unit_id;
+        ing.unit_name = i.unit_name;
+        ing.display_order = i.ingredient_display_order;
+        ing.ingredient_source = i.ingredient_source;
+        comps.ingredients.push(ing);
         // --------------Above for create dish---------------------------
       });
 

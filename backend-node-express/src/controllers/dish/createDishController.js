@@ -31,8 +31,8 @@ exports.create_dish = async (req, res) => {
   }
 
   // ---------------------- data normalised and validated  ---------------------------------
-  console.log("data is :", data);
-  return;
+  // console.log("data is :", data.components[0].ingredients);
+  // return;
   const recipe_details = data;
   const recipeId = recipe_details.recipe_id;
   const recipeName = recipe_details.recipe_name;

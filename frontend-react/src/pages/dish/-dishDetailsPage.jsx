@@ -58,7 +58,7 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
           <div className="">
             <p>Portion size: {data?.dish?.portion_size}</p>
 
-            <p>Meal type: {data?.dish?.meal}</p>
+            {/* <p>Meal type: {data?.dish?.meal}</p> */}
             <p>Cost: £ {data?.dish?.total_cost}</p>
             <p>
               Prepared: {data?.dish?.preparation_date} for {data?.dish?.meal}

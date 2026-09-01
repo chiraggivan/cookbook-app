@@ -12,12 +12,12 @@ export async function HandleDishDelete({ id, token, navigate }) {
     });
 
     if (res?.data?.success === true) {
-      alert(res?.data?.message);
+      // alert(res?.data?.message);
       navigate(`/myDishes?changed=true&id=${id}`);
       return;
     } else {
-      alert("Alert from handleDishDelete", res?.data?.message);
-      console.log(res?.data?.message);
+      // alert("Alert from handleDishDelete", res?.data?.message);
+      console.log("Error during HandleDishDelete :", res);
       return;
     }
   } catch (err) {

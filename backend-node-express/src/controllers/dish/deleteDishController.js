@@ -25,10 +25,10 @@ exports.delete_dish = async (req, res) => {
       });
     }
 
-    return res.json({
-      success: true,
-      message: `From Backend: Dish found and is of the same user but currently not deleting it in deleteDishController`,
-    });
+    // return res.json({
+    //   success: true,
+    //   message: `From Backend: Dish found and is of the same user but currently not deleting it in deleteDishController`,
+    // });
 
     // create a getConnnection() to handle the transactional query when dealing with multiple tables
     const conn = await db.getConnection();

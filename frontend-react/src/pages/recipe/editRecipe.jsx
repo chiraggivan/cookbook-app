@@ -44,6 +44,7 @@ function EditRecipe() {
     ingredientSource: "",
     ingredientBy: "",
     name: "",
+    form: "",
     quantity: "",
     unitId: "",
     unitName: "",
@@ -271,6 +272,7 @@ function EditRecipe() {
             ing.ingredientSource = i.ingredient_source;
             ing.ingredientBy = i.ingredient_by;
             ing.name = i.name;
+            ing.form = i.form;
             ing.quantity = Number(i.quantity);
             ing.unitId = i.unit_id;
             ing.unitName = i.unit_name;
@@ -456,7 +458,7 @@ function EditRecipe() {
                     ingredient.uid === iid
                       ? {
                           ...ingredient,
-                          name: ing.name,
+                          name: ing.name + " (" + ing.form + ")",
                           displayQuantity: ing.display_quantity,
                           displayUnit: ing.display_unit,
                           displayPrice: ing.display_price,
@@ -1196,7 +1198,7 @@ function EditRecipe() {
 
     // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
     const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
-    console.log("finalData :", finalData);
+    // console.log("finalData :", finalData);
     // console.log("About to call api to save the edit the recipe.");
     // return;
 
@@ -1600,7 +1602,11 @@ function EditRecipe() {
                                   <div className="relative flex flex-8 items-start pt-1 justify-start ">
                                     <Input
                                       className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500 "
-                                      value={ing.name ?? ""}
+                                      value={
+                                        ing.form
+                                          ? ing.name + " (" + ing.form + ")"
+                                          : (ing.name ?? "")
+                                      }
                                       onFocus={(e) => {
                                         setActiveInputId(ing.uid);
                                         searchIng(e.target.value);
@@ -1617,6 +1623,7 @@ function EditRecipe() {
                                                       ? {
                                                           ...i,
                                                           name: e.target.value,
+                                                          form: "",
                                                           displayQuantity: "",
                                                           displayUnit: "",
                                                           displayPrice: "",
@@ -1653,7 +1660,6 @@ function EditRecipe() {
                                       }
                                       onBlur={() => {
                                         blurTimeout.current = setTimeout(() => {
-                                          console.log("blur fires ");
                                           hideSuggestions(comp.uid, ing.uid);
                                         }, 400);
                                       }}
@@ -1684,7 +1690,10 @@ function EditRecipe() {
                                                   handleSelectedIng(comp.uid, ing.uid, ingredient);
                                                 }}
                                               >
-                                                {ingredient.name}
+                                                {ingredient.form
+                                                  ? ingredient.name + " (" + ingredient.form + ")"
+                                                  : ingredient.name}
+                                                {/* {ingredient.name} */}
                                               </div>
                                             ))}
                                           </div>

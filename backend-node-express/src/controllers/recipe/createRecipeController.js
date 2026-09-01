@@ -25,11 +25,11 @@ exports.search_ingredients = async (req, res) => {
     }
 
     const [rows] = await db.query(
-      ` SELECT user_ingredient_id as id, name, display_price, display_unit, display_quantity, 'user' as ingredient_source
+      ` SELECT user_ingredient_id as id, name, '' as form, display_price, display_unit, display_quantity, 'user' as ingredient_source
         FROM user_ingredients
         WHERE submitted_by = ? AND LOWER(name) LIKE ? AND  is_active = 1
         UNION ALL
-        SELECT i.ingredient_id, i.name, COALESCE(up.display_price , i.display_price) as price, COALESCE(up.display_unit , i.display_unit) as display_unit, COALESCE(up.display_quantity , i.display_quantity) as display_quantity, 'main' as ingredient_source
+        SELECT i.ingredient_id, i.name, i.form, COALESCE(up.display_price , i.display_price) as price, COALESCE(up.display_unit , i.display_unit) as display_unit, COALESCE(up.display_quantity , i.display_quantity) as display_quantity, 'main' as ingredient_source
         FROM ingredients i 
         LEFT JOIN user_prices up ON i.ingredient_id = up.ingredient_id AND up.user_id = ? AND up.is_active = 1
         WHERE LOWER(i.name) LIKE ?
@@ -230,11 +230,11 @@ exports.create_recipe = async (req, res) => {
 
     // ---------------- Data checked and ready to be inserted. About to actually insert data in db ---------------------------
 
-    return res.json({
-      success: true,
-      message: "reached here without issue, db cross checked and about to insert ",
-      data: data,
-    });
+    // return res.json({
+    //   success: true,
+    //   message: "reached here without issue, db cross checked and about to insert ",
+    //   data: data,
+    // });
     // create a connection for easy rollback if any insert break
     const conn = await db.getConnection();
     let recipeId;

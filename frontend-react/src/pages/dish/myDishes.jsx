@@ -26,7 +26,7 @@ function MyDishes() {
   // const [displayDishes, setDisplayDishes] = useState();
 
   const [page, setPage] = useState(1);
-  const limit = 3;
+  const limit = 10;
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const scrollwindowPercent = 99;
