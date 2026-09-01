@@ -1,8 +1,9 @@
 import axios from "axios";
+import { serverURL } from "../../../utils/appUtils";
 
 // delete button function
 export async function HandleDishDelete({ id, token, navigate }) {
-  const deleteurl = `http://localhost:5001/dish/api/delete/${id}`;
+  const deleteurl = `${serverURL}/dish/api/delete/${id}`;
 
   try {
     const res = await axios.delete(deleteurl, {
