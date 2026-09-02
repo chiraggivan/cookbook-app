@@ -135,6 +135,7 @@ exports.create_recipe = async (req, res) => {
     //   message: "reached here without issue",
     //   data: data,
     // });
+
     // ------------------validation of every field of data done, now cross check db -------------------------------
 
     // Validate user_id exists
@@ -235,6 +236,7 @@ exports.create_recipe = async (req, res) => {
     //   message: "reached here without issue, db cross checked and about to insert ",
     //   data: data,
     // });
+
     // create a connection for easy rollback if any insert break
     const conn = await db.getConnection();
     let recipeId;
@@ -313,7 +315,7 @@ exports.create_recipe = async (req, res) => {
         const [rpResult] = await conn.query(
           `INSERT INTO recipe_procedures (recipe_id, step_order, step_text, estimated_time)
             VALUES(?, ?, ?, ?)`,
-          [recipeId, step.step_display_order, step.step_text, formattedTime],
+          [recipeId, step.step_order, step.step_text, formattedTime],
         );
       }
 
@@ -326,7 +328,7 @@ exports.create_recipe = async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        message: "Error while inserting recipe in db",
+        message: "Error while inserting recipe in database",
       });
     } finally {
       conn.release();
@@ -335,7 +337,7 @@ exports.create_recipe = async (req, res) => {
     //-----------  new recipe details data that we saved recently to be sent with res
     // console.log("recipeId :", recipeId, " and user id :", user.id);
     const { success, message, data: newRecipeData } = await getRecipeDetailsById(recipeId, user.id);
-    console.log("new recipe data to be sent with res:", newRecipeData);
+    // console.log("new recipe data to be sent with res:", newRecipeData);
     // ----- response the data back
     res.json({
       success: true,

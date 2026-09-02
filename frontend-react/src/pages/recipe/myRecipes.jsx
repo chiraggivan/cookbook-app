@@ -22,7 +22,7 @@ function MyRecipes() {
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { myRecipes, setMyRecipes, fetchedOnce, setFetchedOnce } = useContext(MyRecipeContext);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchRecipe, setSearchRecipe] = useState("");
   const [displayRecipes, setDisplayRecipes] = useState();
 
