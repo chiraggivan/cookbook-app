@@ -160,7 +160,7 @@ function EditRecipe() {
         setImgUploadSuccessMsg("Image uploaded successfully");
         // setImageURL(res?.data?.file?.path);
       } catch (err) {
-        console.log("Error while sending image file:", err.response);
+        console.log("Error in edit recipe- while sending image file:", err.response);
         setPreviewImage(null);
       }
     };

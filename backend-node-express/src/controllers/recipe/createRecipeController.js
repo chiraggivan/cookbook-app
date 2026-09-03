@@ -1,4 +1,5 @@
 // const jsonwebtoken = require("jsonwebtoken");
+const { uploadToCloudinary } = require("../../config/cloudinary");
 const db = require("../../config/database");
 const {
   normalizeRecipeIngredientData,
@@ -355,12 +356,34 @@ exports.create_recipe = async (req, res) => {
 
 exports.add_recipe_image = async (req, res) => {
   // console.log("USER:", req.user);
-
   // console.log("FILE:", req.file);
 
-  res.json({
-    success: true,
-    message: "Test message image uploaded successfully!!!!!!",
-    file: req.file,
-  });
+  // check if file is received here in controller
+  if (!req.file) {
+    res.status(400).json({
+      success: false,
+      message: "No image was uploaded",
+    });
+  }
+  console.log("1");
+  try {
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+    console.log("2");
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const image_url = cloudinaryResult.secure_url;
+    const storage_key = cloudinaryResult.public_id;
+    console.log("3");
+    res.json({
+      success: true,
+      message: "Image for new recipe uploaded successfully",
+      imageURL: image_url,
+      storageKey: storage_key,
+    });
+  } catch (err) {
+    console.log("error while updating recipe image in db", err.response);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating image.",
+    });
+  }
 };

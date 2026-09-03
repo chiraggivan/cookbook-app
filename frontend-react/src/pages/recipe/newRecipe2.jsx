@@ -92,6 +92,9 @@ function NewRecipe() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [imageURL, setImageURL] = useState("");
+  const [imgErrMsg, setImgErrMsg] = useState("");
+  const [imgUploadSuccessMsg, setImgUploadSuccessMsg] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [isEditBaseValuesOpen, setIsEditBaseValuesOpen] = useState(false);
   const [quantityValue, setQuantityValue] = useState(0);
@@ -114,14 +117,29 @@ function NewRecipe() {
 
   // ------------------------------------- Handle image picker function ------------------------------------
   const handleImagePicker = () => {
+    setImgErrMsg("");
+    setImgUploadSuccessMsg("");
     fileInputRef.current?.click();
   };
 
   // -------------------------------------------- Handle image Cange  --------------------------------------------
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    console.log("file is :", file);
+    // console.log("file is :", file);
     if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSize = 6 * 1024 * 1024; // 6 MB
+
+    if (!allowedTypes.includes(file.type)) {
+      setImgErrMsg("Only images and videos are allowed.");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      setImgErrMsg("File must be less than 6 MB.");
+      return;
+    }
 
     const imageUrl = URL.createObjectURL(file);
     // console.log("imageUrl", imageUrl);
@@ -129,14 +147,24 @@ function NewRecipe() {
 
     const formData = new FormData();
     formData.append("image", file);
-
+    // console.log("formData for image is:", formData);
     const sendImage = async () => {
       try {
-        const res = await axios.post(`${serverURL}/recipe/api/uploadRecipeImage`, formData, config);
+        const res = await axios.post(`${serverURL}/recipe/api/uploadRecipeImage`, formData, {
+          ...config,
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+
+            setUploadProgress(percent);
+          },
+        });
         // console.log("url :", res?.data?.file?.path);
-        setImageURL(res?.data?.file?.path);
+        setImageURL(res?.data?.imageURL);
+        setUploadProgress(0);
+        setImgUploadSuccessMsg("Image uploaded successfully");
       } catch (err) {
-        console.log("Error while sending image file:", err.response);
+        console.log("Error in New recipe - while sending image file:", err.response);
+        setPreviewImage(null);
       }
     };
     sendImage();
@@ -1159,6 +1187,7 @@ function NewRecipe() {
   // console.log("activeInputId", activeInputId);
   // console.log("recipeInfo :", recipeInfo);
   // console.log("showTopHeader", showTopRow);
+  // console.log("image url is :", imageURL);
   return (
     <>
       <div className="flex flex-col  mt-(--top-bar-height) md:ml-(--left-side-bar)">

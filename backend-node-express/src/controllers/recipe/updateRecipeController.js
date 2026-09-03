@@ -224,6 +224,7 @@ exports.update_recipe_image = async (req, res) => {
   res.json({
     success: true,
     message: "Image uploaded successfully",
+    imageURL: image_url,
   });
 };
 
