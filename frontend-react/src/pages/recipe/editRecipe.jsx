@@ -1367,7 +1367,7 @@ function EditRecipe() {
 
               {/* image */}
               <div
-                className="max-w-full aspect-video md:max-h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
+                className="max-w-full aspect-video md:max-h-40 md:w-71 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
                 onClick={handleImagePicker}
               >
                 {previewImage && !imageError ? (
@@ -1378,7 +1378,9 @@ function EditRecipe() {
                     className="h-full w-full object-cover rounded-t-xl md:rounded-lg"
                   />
                 ) : (
-                  <GiHotMeal className="h-full w-full" />
+                  <div className="h-full w-full ">
+                    <GiHotMeal className="h-full w-full aspect-video" />
+                  </div>
                 )}
                 <input
                   className="hidden"

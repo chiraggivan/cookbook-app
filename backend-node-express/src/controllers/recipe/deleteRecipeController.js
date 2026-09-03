@@ -30,14 +30,14 @@ exports.delete_recipe = async (req, res) => {
     }
 
     // Call the procedure to delete the recipe
-    // try {
-    //   await db.query(`CALL delete_recipe(?, ?)`, [user.id, recipeId]);
-    // } catch (err) {
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Error while deleting in db.",
-    //   });
-    // }
+    try {
+      await db.query(`CALL delete_recipe(?, ?)`, [user.id, recipeId]);
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Error while deleting in db.",
+      });
+    }
 
     // response the data back
 
