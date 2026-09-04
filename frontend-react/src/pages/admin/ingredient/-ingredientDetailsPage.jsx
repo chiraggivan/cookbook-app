@@ -17,7 +17,9 @@ function IngDetailsPage({ id, ingDetail, navigate, ...props }) {
         {/* Name and ID */}
         <div className="flex p-2 my-2 font-semibold">
           <div className="flex-1 text-2xl">
-            <span className=" italic font-thin text-4xl">{ingDetail?.name}</span>
+            <span className=" italic font-thin text-4xl">
+              {ingDetail?.form ? ingDetail?.name + " (" + ingDetail.form + ")" : ingDetail?.name}
+            </span>
           </div>
           <div className="flex flex-1 items-end text-lg">
             Ingredient ID: <span className="font-normal px-1"> {ingDetail?.ingredient_id}</span>

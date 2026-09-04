@@ -85,8 +85,8 @@ function EditRecipe() {
   const timeoutRef = useRef(null);
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
-  const [imageURL, setImageURL] = useState("");
-  const imageBaseURL = "/uploadedImages/";
+  // const [imageURL, setImageURL] = useState("");
+  // const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
   const [imgErrMsg, setImgErrMsg] = useState("");
   const [imgUploadSuccessMsg, setImgUploadSuccessMsg] = useState("");

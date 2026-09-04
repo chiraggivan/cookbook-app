@@ -11,6 +11,8 @@ function CreateIngPage({
   ingData,
   handleChange,
   setIngName,
+  ingForm,
+  setIngForm,
   selectedMainUnit,
   setSelectedMainUnit,
   selectedCupUnit,
@@ -55,12 +57,23 @@ function CreateIngPage({
               </div>
             </div>
           </div>
-          {/* <div className="flex-1 text-2xl">
-            Ingredient ID:{" "}
-            <span className=" px-2 rounded-xl bg-gray-100 font-normal">
-              {ingData?.ingredient_id}
-            </span>
-          </div> */}
+          <div className="flex-1 text-lg items-center ">
+            <div className="flex items-center">
+              <p>Form: </p>
+              <div className="ml-2">
+                <Input
+                  className="rounded-xl max-w-30 border-gray-400 bg-gray-50 focus:bg-white"
+                  value={ingData?.form ? ingData?.form : ""}
+                  onChange={(e) => {
+                    handleChange("form", e.target.value);
+                    setIngForm(e.target.value);
+                    // setErrorMessage("");
+                  }}
+                  error={ingData?.errors?.form}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Calculated Details */}

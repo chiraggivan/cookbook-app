@@ -17,6 +17,7 @@ function AddNewIngredient() {
   const { token, loading, isAuthenticated } = useAuth();
   const [ingData, setIngData] = useState({});
   const [ingName, setIngName] = useState("");
+  const [ingForm, setIngForm] = useState("");
   const [existIngs, setExistIngs] = useState("");
   const [selectedMainUnit, setSelectedMainUnit] = useState("");
   const [selectedCupUnit, setSelectedCupUnit] = useState("");
@@ -45,6 +46,7 @@ function AddNewIngredient() {
     setIngData((prev) => ({
       ...prev,
       [field]: value,
+      errors: { ...prev.errors, [field]: "" },
     }));
   };
 
@@ -176,7 +178,7 @@ function AddNewIngredient() {
 
     // remove 'errors' property before sending to backend
     const { errors, ...finalData } = ingData;
-    console.log("About to call backend with :", finalData);
+    // console.log("About to call backend with :", finalData);
 
     // return;
     const method = "post";
@@ -184,16 +186,16 @@ function AddNewIngredient() {
     const body = finalData;
 
     try {
-      const res = await axios.post(url, body, {
+      const res = await axios[method](url, body, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("response is :", res);
-      // navigate("/admin/ingredients/all");
+      // console.log("response is :", res);
+      navigate("/admin/ingredients/all");
     } catch (err) {
-      console.log("Error found in createIngredient while creating :", err.response?.data);
+      // console.log("Error found in createIngredient while creating :", err.response?.data?.message);
       setErrorMessage(err.response?.data.message);
     }
   };
@@ -216,10 +218,12 @@ function AddNewIngredient() {
       {/* <Navbar /> */}
       <AdminTopBar />
       <CreateIngPage
-        ingName={ingName}
         ingData={ingData}
         handleChange={handleChange}
+        ingName={ingName}
         setIngName={setIngName}
+        ingForm={ingForm}
+        setIngForm={setIngForm}
         selectedMainUnit={selectedMainUnit}
         setSelectedMainUnit={setSelectedMainUnit}
         selectedCupUnit={selectedCupUnit}

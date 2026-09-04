@@ -91,18 +91,26 @@ exports.create_ingredient = async (req, res) => {
       });
     }
 
+    // console.log("data to be used in procedure", data);
+    // return res.json({
+    //   success: true,
+    //   message: `ingredient about to be added.`,
+    //   data,
+    // });
+
     //  ----------------- send directly to procedure and it checks all the conditions
     // ------------------ thereby making single call to db and then checking,
     // ------------------ validating and finally inserting in db
 
     // ---------- check, validate and insert via procedure -------------------------
-    console.log("data to be used in procedure", data);
+
     const conn = await db.getConnection();
 
     try {
       await conn.beginTransaction();
-      const [result] = await conn.query(`CALL insert_ingredient_plus_units(?,?,?,?,?,?,?,?,?)`, [
+      const [result] = await conn.query(`CALL insert_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?)`, [
         data.name,
+        data.form,
         data.display_quantity,
         data.display_unit,
         data.display_price,
@@ -128,12 +136,12 @@ exports.create_ingredient = async (req, res) => {
     }
 
     // FINAL response
-    res.json({
+    return res.json({
       success: true,
       message: `ingredient added.`,
     });
   } catch (err) {
-    console.error("Error in deleteIngredientController -(delete_ingredient)  is : ", err);
+    console.error("Error in createIngredientController -(create_ingredient)  is : ", err);
     res.status(500).json({
       success: false,
       message: "Server error",

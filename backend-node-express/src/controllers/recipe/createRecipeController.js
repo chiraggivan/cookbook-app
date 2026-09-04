@@ -365,14 +365,14 @@ exports.add_recipe_image = async (req, res) => {
       message: "No image was uploaded",
     });
   }
-  console.log("1");
+
   try {
     const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
-    console.log("2");
+
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const image_url = cloudinaryResult.secure_url;
     const storage_key = cloudinaryResult.public_id;
-    console.log("3");
+
     res.json({
       success: true,
       message: "Image for new recipe uploaded successfully",

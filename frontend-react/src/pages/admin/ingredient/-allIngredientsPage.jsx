@@ -93,7 +93,7 @@ function AllIngsSection({
                         onClick={() => navigate(`/admin/ingredient-details/${i.ingredient_id}`)}
                       >
                         <div className="flex min-h-7 items-center hover:text-gray-900 hover:text-lg hover:font-semibold hover:cursor-pointer">
-                          {i.name}
+                          {i.form ? i.name + " (" + i.form + ")" : i.name}
                         </div>
                       </td>
                       <td className="px-2 text-end">{1}</td>

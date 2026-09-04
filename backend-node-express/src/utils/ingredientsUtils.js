@@ -5,6 +5,7 @@ function normaliseIngredientData(data) {
   // String fields: trim, collapse multiple spaces, convert to lowercase
   const fields = [
     "name",
+    "form",
     "ingredient_id",
     "display_quantity",
     "display_unit",
@@ -44,8 +45,16 @@ function validateIngredient(data, operation) {
   }
   // --- name ---
   const name = data.name;
-  if (!name || typeof name !== "string" || name.length > 30) {
+  if (!name || typeof name !== "string" || name.length > 29) {
     return `Invalid name: (${name}) must be a non-empty string ≤ 30 chars`;
+  }
+
+  // --- form ---
+  const form = data.form;
+  if (form || form !== "") {
+    if (typeof form !== "string" || form.length > 20) {
+      return `Invalid form length: (${form}) must be a non-empty string ≤ 20 chars`;
+    }
   }
 
   // --- display_quantity ---
@@ -73,9 +82,9 @@ function validateIngredient(data, operation) {
   if (
     !display_price ||
     typeof display_price !== "number" ||
-    !(0 < display_price && display_price < 100000000)
+    !(0 < display_price && display_price < 1000000)
   ) {
-    return `Invalid display_price: (${display_price}) must be a number > 0 and less than 100000000 `;
+    return `Invalid display_price: (${display_price}) must be a number > 0 and less than 1000000 `;
   }
 
   // --- cup_equivalent_weight  and cup_equivalent_unit---
@@ -102,7 +111,7 @@ function validateIngredient(data, operation) {
     // only validate if value is present
     if (
       typeof cup_equivalent_weight !== "number" ||
-      !(0 <= cup_equivalent_weight && cup_equivalent_weight < 100000)
+      !(0 <= cup_equivalent_weight && cup_equivalent_weight < 100000000)
     ) {
       return `Invalid cup_equivalent_weight: (${cup_equivalent_weight}) must be a number >= 0 and less than 100000`;
     }
@@ -121,8 +130,8 @@ function validateIngredient(data, operation) {
 
   // --- notes ---
   const notes = data.notes ?? "";
-  if (typeof notes !== "string" || notes.length > 100) {
-    return "Invalid notes: must be a string ≤ 100 chars";
+  if (typeof notes !== "string" || notes.length > 200) {
+    return "Invalid notes: must be a string ≤ 200 chars";
   }
 
   // return none if validation doesnt throw any error

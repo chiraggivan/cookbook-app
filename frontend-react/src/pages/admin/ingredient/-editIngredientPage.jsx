@@ -11,6 +11,7 @@ function EditIngPage({
   ingData,
   handleChange,
   setIngName,
+  setIngForm,
   selectedMainUnit,
   setSelectedMainUnit,
   selectedCupUnit,
@@ -19,6 +20,7 @@ function EditIngPage({
   updateBtn,
   handlesubmit,
   errorMessage,
+  setErrorMessage,
   navigate,
   validateInput,
   validateNumber,
@@ -27,6 +29,7 @@ function EditIngPage({
   // console.log("mainUnits :", mainUnits);
   // console.log("selectedCupUnit :", selectedCupUnit);
   // console.log("selectedMainUnit :", selectedMainUnit);
+  // console.log("updpateBtn in page is:", updateBtn);
   return (
     <>
       {/* header */}
@@ -65,26 +68,24 @@ function EditIngPage({
           </div>
         </div>
 
-        {/* Calculated Details */}
-        {/* <div className="flex flex-col p-2 my-2 rounded-xl bg-gray-100 font-semibold">
-          <div className="font-normal text-lg">
-            Details of calcuated values which are used as reference to generate different units
-          </div>
-
-          <div className="border-t items-center border-gray-400 py-1"></div>
-
-          <div className="flex">
-            <div className="flex-1 text-xl">
-              Calc Quantity: <span className=" font-normal">1</span>
-            </div>
-            <div className="flex-1 text-xl">
-              Calc Unit: <span className=" font-normal">{ingData?.base_unit}</span>
-            </div>
-            <div className="flex-1 text-xl">
-              Calc Price: <span className=" font-normal">{ingData?.default_price}</span>
+        {/* ingredient form */}
+        <div className="flex p-2 my-2 font-semibold">
+          <div className="flex items-center">
+            <p>Form: </p>
+            <div className="ml-2">
+              <Input
+                className="rounded-xl border-gray-400 bg-gray-50 focus:bg-white"
+                value={ingData?.form ? ingData?.form : ""}
+                onChange={(e) => {
+                  handleChange("form", e.target.value);
+                  setIngForm(e.target.value);
+                  setErrorMessage("");
+                }}
+                error={ingData?.errors?.form}
+              />
             </div>
           </div>
-        </div> */}
+        </div>
 
         {/* Display details  */}
         <div className="flex flex-col p-2 my-2 font-semibold">
@@ -151,7 +152,10 @@ function EditIngPage({
                 <Input
                   className="rounded-xl max-w-25 border-gray-400 bg-gray-50 focus:bg-white"
                   value={ingData?.cup_weight ? ingData?.cup_weight : ""}
-                  onChange={(e) => validateInput("cup_weight", e.target.value, 3, 5)}
+                  onChange={(e) => {
+                    validateInput("cup_weight", e.target.value, 3, 5);
+                    setErrorMessage("");
+                  }}
                   onBlur={() => validateNumber("cup_weight")}
                   error={ingData?.errors?.cup_weight}
                 />
@@ -167,6 +171,7 @@ function EditIngPage({
                   onChange={(e) => {
                     handleChange("cup_unit", e.target.value);
                     setSelectedCupUnit(e.target.value);
+                    setErrorMessage("");
                   }}
                   error={ingData?.errors?.cup_unit}
                 />
@@ -234,6 +239,7 @@ function EditIngPage({
             <Button
               className="hover:cursor-pointer"
               color={"alternative"}
+              disabled={updateBtn}
               onClick={() => navigate(-1)}
             >
               {" "}
@@ -241,14 +247,18 @@ function EditIngPage({
             </Button>
           </div>
           <div className="">
-            <Button className="hover:cursor-pointer" color={"dark"} onClick={handlesubmit}>
+            <Button
+              className={updateBtn ? "hover:cursor-pointer" : "bg-gray-400"}
+              color={"dark"}
+              onClick={handlesubmit}
+            >
               Save Edits
             </Button>
           </div>
         </div>
 
         {/* Record details */}
-        <div className="flex flex-col p-2 mt-2 rounded-xl bg-gray-100">
+        <div className="flex flex-col p-2 mt-2 mb-10 rounded-xl bg-gray-100">
           {/* header */}
           <div className="text-lg font-semibold">Record Details</div>
 
@@ -285,86 +295,6 @@ function EditIngPage({
           </div>
         </div>
       </div>
-      <h1>Edit Ingredient</h1>
-      <Input
-        label={"Name : "}
-        type={"text"}
-        value={ingData?.name ? ingData?.name : ""}
-        onChange={(e) => {
-          handleChange("name", e.target.value);
-          setIngName(e.target.value);
-        }}
-        error={ingData?.errors?.name}
-      />
-      <Input
-        label={"Quantity :"}
-        type={"number"}
-        value={ingData?.display_quantity ? Number(ingData?.display_quantity) : ""}
-        onChange={(e) => {
-          // setRefQ(e.target.value);
-          handleChange("display_quantity", Number(e.target.value));
-        }}
-        error={ingData?.errors?.reference_quantity}
-      />
-      <DropdownArray
-        title={"Unit :"}
-        options={mainUnits}
-        value={selectedMainUnit ? selectedMainUnit : ""}
-        onChange={(e) => {
-          handleChange("base_unit", e.target.value);
-          setSelectedMainUnit(e.target.value);
-        }}
-        error={ingData?.errors?.reference_unit}
-      />
-      <Input
-        label={"Price :"}
-        type={"number"}
-        value={ingData?.display_price ? ingData?.display_price : 0}
-        placeholder={"0.00"}
-        onChange={(e) => handleChange("display_price", Number(e.target.value))}
-        error={ingData?.errors?.default_price}
-      />
-      <Input
-        label={"Cup Weight :"}
-        type={"number"}
-        value={ingData?.cup_weight ? ingData?.cup_weight : ""}
-        onChange={(e) => handleChange("cup_weight", Number(e.target.value))}
-        error={ingData?.errors?.cup_equivalent_weight}
-      />
-      <DropdownArray
-        title={"Cup Unit :"}
-        options={cupUnits}
-        value={selectedCupUnit ? selectedCupUnit : ""}
-        onChange={(e) => {
-          handleChange("cup_unit", e.target.value);
-          setSelectedCupUnit(e.target.value);
-        }}
-        error={ingData?.errors?.cup_unit}
-      />
-
-      <Textarea
-        label={"Notes :"}
-        placeholder=""
-        rows={4}
-        value={ingData?.notes ? ingData?.notes : ""}
-        onChange={(e) => handleChange("notes", e.target.value)}
-        error={ingData?.errors?.notes}
-      />
-      <Textarea
-        title={"Existing Ingredients :"}
-        value={existIngs}
-        placeholder=""
-        rows={4}
-        readOnly
-      />
-      <Button
-        children={"Update Ingredient"}
-        type="button"
-        disabled={updateBtn}
-        onClick={handlesubmit}
-      />
-      <Button children={`Cancel`} onClick={() => navigate(-1)} />
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </>
   );
 }

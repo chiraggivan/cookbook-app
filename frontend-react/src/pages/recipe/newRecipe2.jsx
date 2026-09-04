@@ -16,7 +16,7 @@ import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
 import TopBar from "../../components/topBar";
-import { TextInput, Button, Tabs, TabItem } from "flowbite-react";
+import { TextInput, Button, Progress, Tabs, TabItem } from "flowbite-react";
 import { GiAvocado, GiHotMeal } from "react-icons/gi";
 import { HiClipboardList, HiTrash } from "react-icons/hi";
 import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
@@ -92,6 +92,7 @@ function NewRecipe() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [imageURL, setImageURL] = useState("");
+  const [imageError, setImageError] = useState(false);
   const [imgErrMsg, setImgErrMsg] = useState("");
   const [imgUploadSuccessMsg, setImgUploadSuccessMsg] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -170,6 +171,16 @@ function NewRecipe() {
     sendImage();
   };
 
+  // ------------------------- clear the message of image upload status(optional) --------------------------------
+  useEffect(() => {
+    if (imgUploadSuccessMsg) {
+      const timer = setTimeout(() => {
+        setImgUploadSuccessMsg("");
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [imgUploadSuccessMsg]);
   // ----------------------------- ADD new empty ingredient row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
     setSections((prev) =>
@@ -1205,7 +1216,7 @@ function NewRecipe() {
           <div className=" mt-2 border-2 rounded-xl m-1 border-app-primary md:border-none">
             <div className="flex flex-col-reverse w-full gap-3 mt-0 sm:mt-2 md:flex-row md:justify-between">
               {/* recipe details */}
-              <div className="flex flex-col justify-between h-40">
+              <div className="flex flex-col justify-between h-40 mt-2 md:mt-0">
                 {/* recipe name section */}
                 <div className="flex max-w-md">
                   {/* title of recipe name */}
@@ -1280,10 +1291,11 @@ function NewRecipe() {
                 className="max-w-full h-40 rounded-t-xl md:rounded-lg  bg-gray-200 md:max-w-40 md:mx-0 cursor-pointer"
                 onClick={handleImagePicker}
               >
-                {previewImage ? (
+                {previewImage && !imageError ? (
                   <img
                     src={previewImage}
                     alt="Preview"
+                    onError={() => setImageError(true)}
                     className="h-full w-full object-cover rounded-t-xl md:rounded-lg"
                   />
                 ) : (
@@ -1296,6 +1308,24 @@ function NewRecipe() {
                   accept="image/*"
                   onChange={handleImageChange}
                 />
+                {imgErrMsg && <p className="text-xs text-app-danger ml-2 md:ml-0">{imgErrMsg}</p>}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <Progress
+                    color="teal"
+                    progress={uploadProgress}
+                    textLabel="uploaded "
+                    size="lg"
+                    labelProgress
+                    labelText
+                  />
+                )}
+                {uploadProgress === 100 && (
+                  <p className="text-xs text-teal-600 ml-2 md:ml-0"> Processing Image...</p>
+                )}
+                {imgUploadSuccessMsg && (
+                  <p className="text-xs text-teal-600 ml-2 md:ml-0"> {imgUploadSuccessMsg}</p>
+                )}
+                {/* {imgUploadSuccessMsg && {setTimeout(()=> {setImgUploadSuccessMsg("")},1000)}} */}
               </div>
             </div>
 

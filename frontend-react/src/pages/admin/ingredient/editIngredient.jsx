@@ -3,13 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import useAuth from "../../../hooks/useAuth";
 import useFetch from "../../../hooks/useFetch";
 import axios from "axios";
-import Input from "../../../components/input";
-import Textarea from "../../../components/textarea";
-import Button from "../../../components/button";
-import Dropdown from "../../../components/dropdown";
 import submitButtonForEdit from "./utils/submitButtonForEdit";
 import { mainUnits, cupUnits } from "../../../utils/ingredientConstant";
-import Navbar from "../../../components/navbarOld";
 import EditIngPage from "./-editIngredientPage";
 import { serverURL } from "../../../utils/appUtils";
 import AdminTopBar from "../../../components/adminTopBar";
@@ -22,13 +17,14 @@ function EditIngredient() {
   const [orgData, setOrgData] = useState({});
   const { id } = useParams();
   const [ingName, setIngName] = useState("");
+  const [ingForm, setIngForm] = useState("");
   const [selectedMainUnit, setSelectedMainUnit] = useState("");
   const [selectedCupUnit, setSelectedCupUnit] = useState("");
   const [existIngs, setExistIngs] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [submitResult, setSubmitResult] = useState(null);
   const sendData = {};
-  const [updateBtn, setUpdateBtn] = useState(true);
+  const [updateBtn, setUpdateBtn] = useState(false);
   const [refQ, setRefQ] = useState(1);
 
   //--------------- Redirect effect  ----------------------------------------------------
@@ -220,6 +216,7 @@ function EditIngredient() {
     // console.log("ingData :", ingData);
     sendData.ingredient_id = ingData.ingredient_id;
     sendData.name = ingName ? ingName : ingData.name;
+    sendData.form = ingForm ? ingForm : ingData.form;
     sendData.display_quantity = ingData.display_quantity;
     sendData.display_unit = ingData.display_unit;
     sendData.display_price = Number(ingData.display_price);
@@ -265,17 +262,23 @@ function EditIngredient() {
 
   // ---------------- active/deactivate update button based on data change or same ----------
   useEffect(() => {
-    const json1 = JSON.stringify(ingData);
+    const checkIngData = { ...ingData };
+    delete checkIngData.errors; //  --> useful while comparing json when errors occurs
+    const json1 = JSON.stringify(checkIngData);
     const json2 = JSON.stringify(orgData);
+    // console.log("json1 is:", json1);
+    // console.log("json2 is:", json2);
 
     if (json1 === json2) {
-      setUpdateBtn(true);
-    } else {
+      // console.log("same string");
       setUpdateBtn(false);
+    } else {
+      setUpdateBtn(true);
     }
   }, [ingData]);
 
   // console.log("ingData :", ingData);
+  // console.log("update button is :", updateBtn);
   return (
     <>
       <AdminTopBar />
@@ -294,6 +297,7 @@ function EditIngredient() {
         updateBtn={updateBtn}
         handlesubmit={handlesubmit}
         errorMessage={errorMessage}
+        setErrorMessage={setErrorMessage}
         navigate={navigate}
       />
     </>
