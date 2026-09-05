@@ -793,6 +793,12 @@ exports.update_recipe = async (req, res) => {
       }
     }
 
+    return res.json({
+      success: false,
+      message: "validation done.",
+      data,
+    });
+
     // ------------------------------------ below validating steps data -------------------------------------------------
 
     // Validate remove_steps against the database
