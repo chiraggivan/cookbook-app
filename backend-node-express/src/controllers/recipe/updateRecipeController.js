@@ -793,12 +793,6 @@ exports.update_recipe = async (req, res) => {
       }
     }
 
-    return res.json({
-      success: false,
-      message: "validation done.",
-      data,
-    });
-
     // ------------------------------------ below validating steps data -------------------------------------------------
 
     // Validate remove_steps against the database
@@ -818,12 +812,12 @@ exports.update_recipe = async (req, res) => {
       if (result.length === 0) {
         return res.status(409).json({
           success: false,
-          message: `Invalid recipe ingredient id ${value}: this does not belong to the recipe id ${recipe_id}`,
+          message: `Invalid recipe procedure id ${value}: this does not belong to the recipe id ${recipeId}`,
         });
       }
     }
 
-    // Get current count of active ingredients from DB
+    // Get current count of active steps from DB
     const countStepsQuery = `
       SELECT COUNT(*) as total FROM recipe_procedures
       WHERE recipe_id = ? AND is_active = 1
@@ -837,6 +831,11 @@ exports.update_recipe = async (req, res) => {
     const addSteps = data.add_steps || [];
     const maxStepDisplayOrder = dbStepsLength + addSteps.length - removeSteps.length;
 
+    return res.json({
+      success: false,
+      message: "validation done. final one",
+      data,
+    });
     // Validate add_steps and update_steps
     const stepOperations = [
       { action: "add", steps: addSteps || [] },
@@ -907,6 +906,11 @@ exports.update_recipe = async (req, res) => {
     // return;
     // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
 
+    return res.json({
+      success: false,
+      message: "validation done. final one",
+      data,
+    });
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();

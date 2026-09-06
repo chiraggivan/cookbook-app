@@ -198,7 +198,7 @@ function normalizeRecipeIngredientDataForUpdate(data) {
   }
 
   // Check and normalize remove_steps
-  const removeStepsFields = ["recipe_procedure_id"];
+  const removeStepsFields = ["procedure_id"];
   const removeSteps = data.remove_steps;
   if (!removeSteps) {
     cleaned.remove_steps = [];
@@ -242,8 +242,8 @@ function normalizeRecipeIngredientDataForUpdate(data) {
     });
   }
 
-  // Check and normalize update_ingredients
-  const updateStepsFields = ["step_text"];
+  // Check and normalize update_steps
+  const updateStepsFields = ["procedure_id", "step_text"];
   const updateSteps = data.update_steps;
   if (!updateSteps) {
     cleaned.update_steps = [];
@@ -543,11 +543,12 @@ function validateRecipeIngredientForUpdate(data) {
   // Group update/add steps for validation
   const stepGroups = { update_steps: updateSteps, add_steps: addSteps };
   for (const [groupName, steps] of Object.entries(stepGroups)) {
+    // console.log("steps is :", steps);
     if (steps.length > 0) {
       for (const step of steps) {
-        const stepOrder = Number(step.step_order);
+        const stepOrder = Number(step.step_order) || null;
         const stepText = step.step_text;
-        const procedureId = Number(step.procedure_id);
+        const procedureId = Number(step.procedure_id) || null;
 
         // Required fields for add
         if (groupName === "add_steps") {
@@ -564,11 +565,11 @@ function validateRecipeIngredientForUpdate(data) {
         }
 
         // Validate procedure_id (if present)
-        if (procedureId) {
-          if (!Number.isInteger(procedureId) || procedureId < 0) {
-            return `Invalid procedure_id '${procedureId}': must be int >= 0`;
-          }
-        }
+        // if (procedureId) {
+        //   if (!Number.isInteger(procedureId) || procedureId < 0) {
+        //     return `Invalid procedure_id '${procedureId}': must be int >= 0`;
+        //   }
+        // }
 
         // Validate component_display_order (if present) for update step
         if (stepOrder !== null && stepOrder !== undefined) {
