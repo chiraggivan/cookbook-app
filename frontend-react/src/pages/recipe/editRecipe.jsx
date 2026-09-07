@@ -1216,22 +1216,22 @@ function EditRecipe() {
         const res = await axios[method](url, body, config);
         console.log("res :", res);
         const x = res.data.data;
-        // setRecipeDetails(
-        //   recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
-        // );
-        // setMyRecipes(
-        //   myRecipes.map((item) =>
-        //     item.recipe_id === x.recipe.recipe_id
-        //       ? {
-        //           ...item,
-        //           portion_size: x.recipe.portion_size,
-        //           name: x.recipe.name,
-        //           description: x.recipe.description,
-        //         }
-        //       : item,
-        //   ),
-        // );
-        // navigate(`/recipe/${id}`);
+        setRecipeDetails(
+          recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
+        );
+        setMyRecipes(
+          myRecipes.map((item) =>
+            item.recipe_id === x.recipe.recipe_id
+              ? {
+                  ...item,
+                  portion_size: x.recipe.portion_size,
+                  name: x.recipe.name,
+                  description: x.recipe.description,
+                }
+              : item,
+          ),
+        );
+        navigate(`/recipe/${id}`);
       } catch (err) {
         window.alert(`Error while  finalData recipe update with database`);
         console.log("error while updating finalData with axios is :", err.response.data.message);
