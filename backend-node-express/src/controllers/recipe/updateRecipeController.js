@@ -232,7 +232,7 @@ exports.update_recipe_image = async (req, res) => {
 exports.update_recipe = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const recipeId = req.params.recipeId;
+    const recipeId = Number(req.params.recipeId);
 
     // console.log("body : ", req.body);
     if (!req.body) {
@@ -831,17 +831,18 @@ exports.update_recipe = async (req, res) => {
     const addSteps = data.add_steps || [];
     const maxStepDisplayOrder = dbStepsLength + addSteps.length - removeSteps.length;
 
-    return res.json({
-      success: false,
-      message: "validation done. final one",
-      data,
-    });
+    // return res.json({
+    //   success: false,
+    //   message: "validation done. final one",
+    //   data,
+    // });
     // Validate add_steps and update_steps
     const stepOperations = [
       { action: "add", steps: addSteps || [] },
       { action: "update", steps: data.update_steps || [] },
     ];
     for (const { action, steps } of stepOperations) {
+      // console.log(" data for ", action, " steps :", steps);
       for (const step of steps) {
         let oldStepText = null;
         let oldStepDisplayOrder = null;
@@ -852,7 +853,7 @@ exports.update_recipe = async (req, res) => {
           const checkQuery = `
             SELECT step_order, step_text, estimated_time            
             FROM recipe_procedures
-            WHERE procedure_id = ? AND  recipe_id = ? AND i.is_active = TRUE
+            WHERE procedure_id = ? AND  recipe_id = ? AND is_active = TRUE
             LIMIT 1
           `;
           const checkValues = [step.procedure_id, recipeId];
@@ -867,7 +868,7 @@ exports.update_recipe = async (req, res) => {
 
           const row = [...result];
           oldStepText = row[0].step_text;
-          oldStepDisplayOrder = Number(row[0].display_order);
+          oldStepDisplayOrder = Number(row[0].step_order);
           // oldStepEstimatedTime = row.estimated_time;
         }
 
@@ -906,11 +907,11 @@ exports.update_recipe = async (req, res) => {
     // return;
     // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
 
-    return res.json({
-      success: false,
-      message: "validation done. final one",
-      data,
-    });
+    // return res.json({
+    //   success: false,
+    //   message: "validation done. final one",
+    //   data,
+    // });
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
@@ -936,7 +937,7 @@ exports.update_recipe = async (req, res) => {
         }
       }
 
-      // Remove components if any are provided
+      // Remove components if any are provided for removing via remove_components
       for (const component of removeComponents) {
         const removeQuery = `
         UPDATE recipe_components 
@@ -966,25 +967,6 @@ exports.update_recipe = async (req, res) => {
       for (const { action, components } of componentOperations) {
         for (const component of components) {
           if (action === "update") {
-            // Handle orderChanged flag for display_order = 0
-            // if (component.orderChanged && component.component_display_order === 0) {
-            //   const nullifyQuery = `
-            //   UPDATE recipe_components
-            //   SET display_order = NULL,
-            //   end_date = CURRENT_TIMESTAMP,
-            //   is_active = FALSE
-            //   WHERE recipe_id = ? AND display_order = 0 AND is_active = TRUE
-            // `;
-            //   const nullifyValues = [recipeId];
-
-            //   const result = await conn.query(nullifyQuery, nullifyValues);
-            //   if (result.affectedRows === 0) {
-            //     return res.status(400).json({
-            //       error: "Problem encountered while updating recipe component.",
-            //     });
-            //   }
-            // }
-
             // Update component text and display order
             const updateQuery = `
             UPDATE recipe_components 
@@ -1380,7 +1362,7 @@ exports.update_recipe = async (req, res) => {
       for (const step of removeSteps) {
         const removeQuery = `
         UPDATE recipe_procedures 
-        SET is_active = FALSE, 
+        SET is_active = 0, 
         end_date = CURRENT_TIMESTAMP, 
         step_order = -1
         WHERE recipe_id = ? AND procedure_id = ? AND is_active = 1
@@ -1404,6 +1386,7 @@ exports.update_recipe = async (req, res) => {
         { action: "add", steps: data.add_steps || [] },
       ];
       for (const { action, steps } of stepOperations) {
+        // console.log("about to ", action, " steps");
         for (const step of steps) {
           if (action === "update") {
             // Update step text and display order
@@ -1425,12 +1408,14 @@ exports.update_recipe = async (req, res) => {
           } else {
             // action === 'add'
             let procedureId;
-
+            // console.log(
+            //   "About to add step but first checking if any inactive step for the recipe available.",
+            // );
             // Try to reuse an inactive step
             const findInactiveQuery = `
             SELECT procedure_id FROM recipe_procedures
             WHERE recipe_id = ? AND is_active = 0 
-            ORDER BY recipe_component_id 
+            ORDER BY procedure_id 
             LIMIT 1
           `;
             const findInactiveValues = [recipeId];
@@ -1459,6 +1444,7 @@ exports.update_recipe = async (req, res) => {
                 });
               }
             } else {
+              // console.log("No inactive step found for recipe. will insert new row for step.");
               // Insert new step
               const insertQuery = `
                 INSERT INTO recipe_procedures (recipe_id, step_text, step_order)
@@ -1474,9 +1460,7 @@ exports.update_recipe = async (req, res) => {
                   message: "Problem encountered while adding new row of recipe component.",
                 });
               }
-
-              // Get the newly inserted ID if needed
-              recipeComponentId = insertResult.insertId;
+              // console.log("successfully added new row in recipe_procedure table");
             }
           }
         }
@@ -1484,6 +1468,7 @@ exports.update_recipe = async (req, res) => {
 
       // Commit if everything succeeds
       await conn.commit();
+      // console.log("queries commited");
     } catch (err) {
       // Rollback EVERYTHING if anything fails
       await conn.rollback();
@@ -1497,7 +1482,8 @@ exports.update_recipe = async (req, res) => {
     }
     //  ---------------------- call express function get_recipe_details to send the recipe details back -----------------
     const updatedRecipeDetails = await getRecipeDetailsById(recipeId, user.id);
-    // console.log("updatedRecipeDetails :", updatedRecipeDetails);
+    // console.log("got the new updated recipe details and about to  send via response");
+
     // response the data----------------------- X X X --------------------------------------------------
     res.json({
       success: updatedRecipeDetails.success,

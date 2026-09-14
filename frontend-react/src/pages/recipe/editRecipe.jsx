@@ -1206,7 +1206,7 @@ function EditRecipe() {
     const url = `${serverURL}/recipe/api/update/${id}`;
     const method = "patch";
     const body = finalData;
-    console.log("final Data is:", finalData);
+    // console.log("final Data is:", finalData);
     // return;
 
     const updateRecipe = async () => {
@@ -1214,13 +1214,13 @@ function EditRecipe() {
         setIsLoading(true);
         // call api
         const res = await axios[method](url, body, config);
-        console.log("res :", res);
+        // console.log("response is :", res);
         const x = res.data.data;
-        setRecipeDetails(
-          recipeDetails.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
+        setRecipeDetails((prev) =>
+          prev.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
         );
-        setMyRecipes(
-          myRecipes.map((item) =>
+        setMyRecipes((prev) =>
+          prev.map((item) =>
             item.recipe_id === x.recipe.recipe_id
               ? {
                   ...item,

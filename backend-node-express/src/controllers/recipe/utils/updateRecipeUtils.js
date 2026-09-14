@@ -11,12 +11,16 @@ function normalizeRecipeIngredientDataForUpdate(data) {
 
   strFields.forEach((field) => {
     const value = data[field];
-
     if (!value) {
     } else if (typeof value === "string") {
       cleaned[field] = normalizeString(value);
     } else {
       cleaned[field] = value;
+    }
+
+    // only for description we can have empty value
+    if (field === "description" && value === "") {
+      cleaned.description = "";
     }
   });
 
