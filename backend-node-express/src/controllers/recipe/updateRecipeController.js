@@ -244,6 +244,7 @@ exports.update_recipe = async (req, res) => {
 
     // --------------------------------- normalise and validate data received for update --------------------------------------
     const data = normalizeRecipeIngredientDataForUpdate(req.body);
+    // console.log(" data after normali... :", data);
     const error = validateRecipeIngredientForUpdate(data);
     // console.log("error value after validation : ", error);
     if (error) {
@@ -842,7 +843,6 @@ exports.update_recipe = async (req, res) => {
       { action: "update", steps: data.update_steps || [] },
     ];
     for (const { action, steps } of stepOperations) {
-      // console.log(" data for ", action, " steps :", steps);
       for (const step of steps) {
         let oldStepText = null;
         let oldStepDisplayOrder = null;
@@ -853,7 +853,7 @@ exports.update_recipe = async (req, res) => {
           const checkQuery = `
             SELECT step_order, step_text, estimated_time            
             FROM recipe_procedures
-            WHERE procedure_id = ? AND  recipe_id = ? AND is_active = TRUE
+            WHERE procedure_id = ? AND  recipe_id = ? AND is_active = 1
             LIMIT 1
           `;
           const checkValues = [step.procedure_id, recipeId];

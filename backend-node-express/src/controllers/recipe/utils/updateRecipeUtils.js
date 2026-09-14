@@ -247,7 +247,7 @@ function normalizeRecipeIngredientDataForUpdate(data) {
   }
 
   // Check and normalize update_steps
-  const updateStepsFields = ["procedure_id", "step_text"];
+  const updateStepsFields = ["procedure_id", "step_text", "step_order"];
   const updateSteps = data.update_steps;
   if (!updateSteps) {
     cleaned.update_steps = [];
