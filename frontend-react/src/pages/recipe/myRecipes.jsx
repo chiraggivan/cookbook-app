@@ -191,7 +191,7 @@ function MyRecipes() {
         </div>
 
         {/* recipe list */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4  p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8  p-4">
           {displayRecipes?.map((i) => (
             <>
               <div

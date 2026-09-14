@@ -156,8 +156,26 @@ function EditRecipe() {
             setUploadProgress(percent);
           },
         });
+        // console.log("res is:", res.data.imageURL);
         setUploadProgress(0);
-        setImgUploadSuccessMsg("Image uploaded successfully");
+        setImgUploadSuccessMsg("Image updated successfully");
+        setRecipeDetails((prev) =>
+          prev.map((r) =>
+            r.recipe.recipe_id === Number(id)
+              ? { ...r, recipe: { ...r.recipe, image_url: res.data.imageURL } }
+              : r,
+          ),
+        );
+        setMyRecipes((prev) =>
+          prev.map((item) =>
+            item.recipe_id === Number(id)
+              ? {
+                  ...item,
+                  image_url: res.data.imageURL,
+                }
+              : item,
+          ),
+        );
         // setImageURL(res?.data?.file?.path);
       } catch (err) {
         console.log("Error in edit recipe- while sending image file:", err.response);
@@ -1250,6 +1268,8 @@ function EditRecipe() {
   // console.log("OgData :", OgData);
   // console.log("checkFinalData :", checkFinalData);
   // console.log("total cost is :", totalCost);
+  // console.log("recipe Details is :", recipeDetails);
+  // console.log("My Recipes are :", myRecipes);
 
   // ------------------------------  initial page loading screen -------------------------------------------
   if (isLoading) {

@@ -183,7 +183,7 @@ exports.update_privacy = async (req, res) => {
 // update recipe image
 exports.update_recipe_image = async (req, res) => {
   // console.log("USER:", req.user);
-  // console.log("FILE:", req.file);
+  console.log("FILE:", req.file);
 
   // check if file is received here in controller
   if (!req.file) {
@@ -194,6 +194,7 @@ exports.update_recipe_image = async (req, res) => {
   }
 
   try {
+    console.log("about to call uploadToCloudinary");
     const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
 
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
@@ -203,29 +204,37 @@ exports.update_recipe_image = async (req, res) => {
 
     // ------------------------------------ enter in db the value of file name in recipe table for column image_url ------------------------------------
     if (user && recipeId && image_url && storage_key) {
-      const res = await db.query(
+      console.log("about to update db");
+      const updtQuery = await db.query(
         `UPDATE recipes SET image_url = ?, storage_key = ? WHERE recipe_id = ? AND user_id = ?`,
         [image_url, storage_key, recipeId, user.id],
       );
+
+      console.log("reached here");
+      return res.json({
+        success: true,
+        message: "Image uploaded successfully",
+        imageURL: image_url,
+      });
     } else {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "Something went wrong while updating image.",
       });
     }
   } catch (err) {
-    console.log("error while updating recipe image in db", err.response);
-    res.status(500).json({
+    console.log("error while updating recipe image in db", err);
+    return res.status(500).json({
       success: false,
       message: "Something went wrong while updating image.",
     });
   }
 
-  res.json({
-    success: true,
-    message: "Image uploaded successfully",
-    imageURL: image_url,
-  });
+  // res.json({
+  //   success: true,
+  //   message: "Image uploaded successfully",
+  //   imageURL: image_url,
+  // });
 };
 
 // Update recipe (PATCH)
