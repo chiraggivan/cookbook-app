@@ -37,7 +37,7 @@ exports.search_ingredients = async (req, res) => {
 
     // get the list of all the ingredients having the searched text
     const [rows] = await db.query(
-      `SELECT  i.name
+      `SELECT  i.name, i.form
         FROM ingredients i 
         WHERE LOWER(i.name) LIKE ?
         LIMIT 20`,

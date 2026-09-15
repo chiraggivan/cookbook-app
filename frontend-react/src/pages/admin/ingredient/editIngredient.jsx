@@ -85,16 +85,20 @@ function EditIngredient() {
     // up date any error if generated
     setErrorMessage("");
 
+    // As we are not allowing the change of name , we will find existing ingredients for the name provided
+    const searchName = ingData.name ?? "";
     // set new timeout for the delay
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
           const res = await axios.get(
-            `${serverURL}/ingredient/api/search/ingredients?q=${ingName}`,
+            `${serverURL}/ingredient/api/search/editIngredients?q=${searchName}&ingId=${id}`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
-          const ingList = res.data.data.map((i) => i.name);
+          const ingList = res.data.data.map((i) =>
+            i.form ? i.name + " (" + i.form + ")" : i.name,
+          );
           const names = ingList.join("\n");
           setExistIngs(names);
         } catch (err) {
@@ -110,7 +114,7 @@ function EditIngredient() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [ingName]);
+  }, [ingData]);
 
   // ----------------------- function to check the change in fields ----------------------
   const handleChange = (field, value) => {

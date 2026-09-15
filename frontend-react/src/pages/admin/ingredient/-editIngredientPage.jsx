@@ -11,7 +11,6 @@ function EditIngPage({
   ingData,
   handleChange,
   setIngName,
-  setIngForm,
   selectedMainUnit,
   setSelectedMainUnit,
   selectedCupUnit,
@@ -78,7 +77,6 @@ function EditIngPage({
                 value={ingData?.form ? ingData?.form : ""}
                 onChange={(e) => {
                   handleChange("form", e.target.value);
-                  setIngForm(e.target.value);
                   setErrorMessage("");
                 }}
                 error={ingData?.errors?.form}

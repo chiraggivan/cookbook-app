@@ -71,7 +71,9 @@ function AddNewIngredient() {
             { headers: { Authorization: `Bearer ${token}` } },
           );
           // console.log("ingredients found are : ", res.data);
-          const ingList = res.data.data.map((i) => i.name);
+          const ingList = res.data.data.map((i) =>
+            i.form ? i.name + " (" + i.form + ")" : i.name,
+          );
           const names = ingList.join("\n");
           setExistIngs(names);
         } catch (err) {

@@ -46,7 +46,7 @@ exports.search_ingredients = async (req, res) => {
 
     // get the list of all the ingredients having the searched text and ingId
     const [rows] = await db.query(
-      `SELECT  i.name
+      `SELECT  i.name, i.form
         FROM ingredients i 
         WHERE LOWER(i.name) LIKE ? AND i.ingredient_id != ?
         LIMIT 20`,
@@ -117,18 +117,22 @@ exports.update_ingredient = async (req, res) => {
     let isSameData = "";
     try {
       await conn.beginTransaction();
-      const [result] = await conn.query(`CALL update_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?)`, [
-        ingId,
-        data?.name,
-        data?.cup_equivalent_weight,
-        data?.cup_equivalent_unit,
-        data?.notes,
-        user.id,
-        user.role,
-        data?.display_quantity,
-        data?.display_unit,
-        data?.display_price,
-      ]);
+      const [result] = await conn.query(
+        `CALL update_ingredient_plus_units(?,?,?,?,?,?,?,?,?,?,?)`,
+        [
+          ingId,
+          data?.name,
+          data?.form,
+          data?.cup_equivalent_weight,
+          data?.cup_equivalent_unit,
+          data?.notes,
+          user.id,
+          user.role,
+          data?.display_quantity,
+          data?.display_unit,
+          data?.display_price,
+        ],
+      );
       isSameData = result[0][0].message;
       await conn.commit();
       if (isSameData === "No changes detected") {
