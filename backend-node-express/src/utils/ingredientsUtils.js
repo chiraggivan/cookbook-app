@@ -51,7 +51,7 @@ function validateIngredient(data, operation) {
 
   // --- form ---
   const form = data.form;
-  if (form || form !== "") {
+  if (form && form !== "") {
     if (typeof form !== "string" || form.length > 20) {
       return `Invalid form length: (${form}) must be a non-empty string ≤ 20 chars`;
     }

@@ -80,6 +80,7 @@ exports.create_ingredient = async (req, res) => {
       });
     }
 
+    // console.log("data  from the frontend: ", data);
     // ----------------- normalise and validate the data --------------------
     const data = normaliseIngredientData(req.body);
     const error = validateIngredient(data);
