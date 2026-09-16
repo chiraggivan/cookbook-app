@@ -86,6 +86,7 @@ function TopBar() {
   };
 
   // console.log("searchInput : ", searchInput);
+  console.log("from topbar user is :", user);
 
   return (
     <>

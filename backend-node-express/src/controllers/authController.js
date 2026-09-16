@@ -27,7 +27,14 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username specified
     const [rows] = await db.query(
-      `SELECT user_id, username, display_name, password, picture_url, role FROM users WHERE username = ? AND is_active = 1`,
+      `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, 
+          u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
+          cu.symbol as currency_symbol
+      FROM users u JOIN countries c 
+      ON u.country_id = c.country_id
+      JOIN currencies cu
+      ON cu.currency_id = c.currency_id
+      WHERE u.username = ? AND u.is_active = 1`,
       [username],
     );
     if (rows.length === 0) {
@@ -65,6 +72,9 @@ exports.login = async (req, res) => {
         role: user.role,
         display_name: user.display_name,
         picture_url: user.picture_url,
+        country: user.country_name,
+        currency_id: user.currency_id,
+        currency_symbol: user.currency_symbol,
       },
     });
   } catch (error) {
@@ -223,8 +233,8 @@ exports.googleSignin = async (req, res) => {
     // check if user emailId exists to login directly or create new user and login after that
     const [userResult] = await db.query(
       `
-        SELECT user_id, username, display_name, role, picture_url, email, google_sub, is_active
-        FROM users WHERE email = ?     
+        SELECT u.user_id, u.username, u.display_name, u.role, u.country_id, u.picture_url, u.email, u.google_sub, u.is_active
+        FROM users u WHERE u.email = ?     
       `,
       [email],
     );
