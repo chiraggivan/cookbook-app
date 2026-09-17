@@ -337,7 +337,7 @@ function RecipeDetails() {
                   {currencySymbol} {Number(i.price.toFixed(3))}
                 </div>
                 <div className=" text-end px-2 text-sm text-gray-500  pb-1">
-                  {currencySymbol} {i.cost}/ {i.base_quantity} {i.unit}
+                  {currencySymbol} {i.cost.toFixed(2)}/ {i.base_quantity} {i.unit}
                 </div>
               </div>
             </div>
