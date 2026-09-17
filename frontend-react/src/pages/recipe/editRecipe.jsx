@@ -27,6 +27,8 @@ import EditBaseValuesModal from "../../components/editBaseValuesModal";
 
 function EditRecipe() {
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const currencySymbol = user.currency_symbol;
   const { id } = useParams();
   const [OgData, setOgData] = useState({});
   const [isPrivate, setIsPrivate] = useState(false);
@@ -1496,7 +1498,9 @@ function EditRecipe() {
                   {/* cost of recipe */}
                   <div className="flex space-x-2 text-lg ">
                     <div className="font-semibold">Costing :</div>
-                    <p className="">£ {totalCost.toFixed(2)}</p>
+                    <p className="">
+                      {currencySymbol} {totalCost.toFixed(2)}
+                    </p>
                   </div>
                 </div>
 
@@ -1816,7 +1820,7 @@ function EditRecipe() {
                                       <span>Edit Base Price</span>
                                     </div>
                                     <div className="flex h-5 items-end pl-2 text-xs text-gray-400">
-                                      £ {ing?.displayPrice}/ {ing?.displayQuantity}{" "}
+                                      {currencySymbol} {ing?.displayPrice}/ {ing?.displayQuantity}{" "}
                                       {ing?.displayUnit}{" "}
                                     </div>
                                   </div>

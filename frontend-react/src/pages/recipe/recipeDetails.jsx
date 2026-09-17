@@ -26,6 +26,7 @@ import formattedDate from "../../utils/formattedDate";
 function RecipeDetails() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
+  const currencySymbol = user.currency_symbol;
   // const { state } = useLocation(); // ---> used while updating recipeDetails (not required now)
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -332,15 +333,14 @@ function RecipeDetails() {
                   : capitaliseWords(i.name) + "*"}
               </div>
               <div className="flex flex-col items-end">
-                <div className="px-2 ">£ {Number(i.price.toFixed(3))}</div>
+                <div className="px-2 ">
+                  {currencySymbol} {Number(i.price.toFixed(3))}
+                </div>
                 <div className=" text-end px-2 text-sm text-gray-500  pb-1">
-                  £ {i.cost}/ {i.base_quantity} {i.unit}
+                  {currencySymbol} {i.cost}/ {i.base_quantity} {i.unit}
                 </div>
               </div>
             </div>
-            {/* <div className="hidden md:block text-end px-2 text-sm text-gray-500  mb-2">
-              £ {i.cost}/ {i.base_quantity} {i.unit}
-            </div> */}
           </div>,
         );
 
@@ -377,6 +377,8 @@ function RecipeDetails() {
   // console.log("recipeData : ", state?.recipeData);
   // console.log("image url for src :", foundRecipeDetails?.recipe?.image_url);
   // console.log("imageError is:", imageError);
+  console.log("user is :", user);
+
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
     <div>
@@ -512,7 +514,9 @@ function RecipeDetails() {
                 </div>
 
                 {/* cost of recipe */}
-                <div className="flex items-end text-3xl">£ {totalCost}</div>
+                <div className="flex items-end text-3xl">
+                  {currencySymbol} {totalCost}
+                </div>
               </div>
 
               {/* if Owner - Last prepared & create dish*/}

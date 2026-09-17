@@ -8,6 +8,9 @@ const app = require("./src/app.js");
 const db = require("./src/config/database.js");
 const { cloudinary_js_config } = require("./src/config/cloudinary.js");
 
+// for cron job of currency xchange rate
+require("./src/jobs/currencyRateCron.js");
+
 const PORT = process.env.PORT || 5001;
 
 db.getConnection()

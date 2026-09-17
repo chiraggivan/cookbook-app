@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "mysql2": "^3.22.2",
+    "node-cron": "^4.6.0",
     "streamifier": "^0.1.1"
   }
 }
