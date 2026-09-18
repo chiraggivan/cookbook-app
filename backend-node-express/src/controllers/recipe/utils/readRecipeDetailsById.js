@@ -26,7 +26,7 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
     }
 
     // get ingredients for  recipe if found
-    const [ingredientResult] = await db.query(readRecipeDetailsQ, [userId, recipeId]);
+    const [ingredientResult] = await db.query(readRecipeDetailsQ, [userId, userId, recipeId]);
 
     // add measuringUnits  and base units in data
     const updtdIngredientResult = await Promise.all(

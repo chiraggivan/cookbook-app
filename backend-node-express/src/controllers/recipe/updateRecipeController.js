@@ -914,6 +914,28 @@ exports.update_recipe = async (req, res) => {
     //   data: updatedRecipeDetails.data,
     // });
     // return;
+
+    // ------------------------------getting user country_id from users table -----------------------
+    // Fetching country_id of user as we added country_id to the user_prices table so that a user's
+    // custom price for ingredient is associated with the country in which that price applies. Since
+    // ingredient prices can vary between countries, storing the country allows the application to
+    //  retrieve the correct custom price when the user changes their country. When a user creates or
+    // updates an ingredient price, the relevant country_id is stored along with the user,
+    // ingredient, and price details.
+
+    const getUserCountryQuery = `
+        SELECT country_id FROM users 
+        WHERE user_id = ? AND is_active = 1
+      `;
+    const [userResult] = await db.query(getUserCountryQuery, [user.id]);
+    if (userResult.length === 0) {
+      return res.status(409).json({
+        success: false,
+        message: `Invalid user id ${user.id} while searching country id: not there or might be in active`,
+      });
+    }
+    const country_id = userResult[0].country_id;
+    // console.log("country id is :", country_id);
     // --------------------------------------- UPDATE in DB BEGINS BELOW -------------------------------------------------
 
     // return res.json({
@@ -925,7 +947,7 @@ exports.update_recipe = async (req, res) => {
     try {
       await conn.beginTransaction();
 
-      // Update recipe table if any fields are provided
+      // Update recipe table(like: portion size, description, name, etc) if any fields are provided
       if (updateFields.length > 0) {
         updateValues.push(recipeId);
         updateValues.push(user.id);
@@ -1221,49 +1243,100 @@ exports.update_recipe = async (req, res) => {
           // if base unit doesnt match with original base unit then convert custom price and unit. eg:  if main unit is kg and
           // supplied base_unit in g, oz, or lbs then convert it into kg. similar for litre for ml, fl.oz and pint
           // but leave pc and bunch as it is.
-          console.log("ing is :", ing);
+          // console.log("ing is :", ing);
           if (ing.base_price) {
             let defaultPrice, actualBaseUnit, displayQuantity;
 
             // get the default_price and base_unit from ingredients TABLE when ing_source is MAIN
             if (ing.ingredient_source === "main") {
-              const ingredientQuery = `
-                SELECT display_price, display_unit, display_quantity FROM ingredients 
-                WHERE ingredient_id = ? 
-                LIMIT 1
-              `;
-              const ingredientValues = [ing.ingredient_id];
-              const [ingredientResult] = await conn.query(ingredientQuery, ingredientValues);
+              // ---------------------------------------------
+              // -------------------down--------------------------
+              // ---------------------------------------------
+              if (country_id === 182) {
+                const ingredientQuery = `
+                  SELECT display_price, display_unit, display_quantity 
+                  FROM ingredients 
+                  WHERE ingredient_id = ? 
+                  LIMIT 1
+                `;
+                const ingredientValues = [ing.ingredient_id];
+                const [ingredientResult] = await conn.query(ingredientQuery, ingredientValues);
 
-              // this should never run unless coming from postman
-              if (ingredientResult.length === 0) {
-                return res.status(400).json({
-                  error: `Ingredient ${ing.ingredient_id} not found or not approved`,
-                  submitted_data: data,
-                });
+                // this should never run unless coming from postman
+                if (ingredientResult.length === 0) {
+                  return res.status(400).json({
+                    error: `Ingredient ${ing.ingredient_id} not found or not approved`,
+                    submitted_data: data,
+                  });
+                }
+
+                defaultPrice = ingredientResult[0].display_price;
+                actualBaseUnit = ingredientResult[0].display_unit;
+                displayQuantity = ingredientResult[0].display_quantity;
+
+                // Check for user's custom price if the ing_source is MAIN  as
+                // the customer price wont have any updated price of user_ingredients table.
+                const customPriceQuery = `
+                  SELECT custom_price, display_price, display_unit, display_quantity FROM user_prices 
+                  WHERE ingredient_id = ? AND user_id = ?  AND country_id = ? AND is_active = 1
+                  LIMIT 1
+                `;
+                const customPriceQueryValues = [ing.ingredient_id, user.id, country_id];
+                const [priceResult] = await conn.query(customPriceQuery, customPriceQueryValues);
+
+                if (priceResult.length > 0) {
+                  defaultPrice = priceResult[0].display_price;
+                  actualBaseUnit = priceResult[0].display_unit;
+                  displayQuantity = priceResult[0].display_quantity;
+                }
+              } else {
+                // -----if the country_id in NOT 182(United Kingdom)
+                const ingredientQuery = `
+                  SELECT display_price, display_unit, display_quantity 
+                  FROM ingredient_prices 
+                  WHERE ingredient_id = ? 
+                  LIMIT 1
+                `;
+                const ingredientValues = [ing.ingredient_id];
+                const [ingredientResult] = await conn.query(ingredientQuery, ingredientValues);
+
+                // this should never run unless coming from postman
+                if (ingredientResult.length === 0) {
+                  defaultPrice = "";
+                  actualBaseUnit = "";
+                  displayQuantity = "";
+                } else {
+                  defaultPrice = ingredientResult[0].display_price;
+                  actualBaseUnit = ingredientResult[0].display_unit;
+                  displayQuantity = ingredientResult[0].display_quantity;
+                }
+
+                // Check for user's custom price if the ing_source is MAIN  as
+                // the customer price wont have any updated price of user_ingredients table.
+                const customPriceQuery = `
+                  SELECT custom_price, display_price, display_unit, display_quantity 
+                  FROM user_prices 
+                  WHERE ingredient_id = ? AND user_id = ?  AND country_id = ? AND is_active = 1
+                  LIMIT 1
+                `;
+                const customPriceQueryValues = [ing.ingredient_id, user.id, country_id];
+                const [priceResult] = await conn.query(customPriceQuery, customPriceQueryValues);
+
+                if (priceResult.length > 0) {
+                  defaultPrice = priceResult[0].display_price;
+                  actualBaseUnit = priceResult[0].display_unit;
+                  displayQuantity = priceResult[0].display_quantity;
+                }
               }
 
-              defaultPrice = ingredientResult[0].display_price;
-              actualBaseUnit = ingredientResult[0].display_unit;
-              displayQuantity = ingredientResult[0].display_quantity;
-
-              // Check for user's custom price if the ing_source is MAIN  as
-              // the customer price wont have any updated price of user_ingredients table.
-              const customPriceQuery = `
-              SELECT custom_price FROM user_prices 
-              WHERE ingredient_id = ? AND user_id = ? AND is_active = 1
-              LIMIT 1
-            `;
-              const customPriceQueryValues = [ing.ingredient_id, user.id];
-              const [priceResult] = await conn.query(customPriceQuery, customPriceQueryValues);
-
-              if (priceResult.length > 0) {
-                defaultPrice = priceResult[0].custom_price;
-              }
+              // ---------------------------------------------
+              // --------------------up-------------------------
+              // ---------------------------------------------
             } else if (ing.ingredient_source === "user") {
               // get the default_price and base_unit from user_ingredients TABLE when ing_source is USER
               const ingredientQuery = `
-                SELECT base_price, base_unit FROM user_ingredients 
+                SELECT base_price, base_unit 
+                FROM user_ingredients 
                 WHERE user_ingredient_id = ? AND  submitted_by = ?
                 LIMIT 1
               `;
@@ -1292,57 +1365,18 @@ exports.update_recipe = async (req, res) => {
                 ing.base_unit,
               );
 
-              // // Normalize quantity to 1 if needed
-              // if (ing.base_quantity !== 1) {
-              //   calPrice = ing.base_price / ing.base_quantity;
-              //   calQuantity = 1;
-              // } else {
-              //   calPrice = ing.base_price;
-              //   calQuantity = ing.base_quantity;
-              // }
-
-              // // Convert to standard units (kg for weight, l for volume)
-              // if (ing.base_unit === "kg") {
-              //   calUnit = "kg";
-              // } else if (ing.base_unit === "g") {
-              //   calPrice = calPrice * 1000;
-              //   calUnit = "kg";
-              // } else if (ing.base_unit === "oz") {
-              //   calPrice = calPrice * 35.274;
-              //   calUnit = "kg";
-              // } else if (ing.base_unit === "lbs") {
-              //   calPrice = calPrice * 2.205;
-              //   calUnit = "kg";
-              // } else if (ing.base_unit === "l") {
-              //   calUnit = "l";
-              // } else if (ing.base_unit === "ml") {
-              //   calPrice = calPrice * 1000;
-              //   calUnit = "l";
-              // } else if (ing.base_unit === "fl.oz") {
-              //   calPrice = calPrice * 35.1951;
-              //   calUnit = "l";
-              // } else if (ing.base_unit === "pint") {
-              //   calPrice = calPrice * 1.75975;
-              //   calUnit = "l";
-              // } else if (ing.base_unit === "pc") {
-              //   calUnit = "pc";
-              // } else if (ing.base_unit === "bunch") {
-              //   calUnit = "bunch";
-              // } else {
-              //   calUnit = ing.base_unit; // fallback
-              // }
-
-              // Handle optional place field
               const place = ing.place || "";
 
-              // Call stored procedure to update/insert user price
+              // Call procedure to update/insert user price either in user_prices or  user_ingredients
+              // table depending on ing_source value. Procedure handles for both condition
               const callQuery = `
-                CALL update_insert_user_price(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                CALL update_insert_user_price(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `;
               const callValues = [
                 user.id,
                 ing.ingredient_id,
                 ing.ingredient_source,
+                country_id,
                 calPrice,
                 calQuantity,
                 calUnit,
@@ -1352,16 +1386,6 @@ exports.update_recipe = async (req, res) => {
                 ing.base_unit,
               ];
               const [result] = await conn.query(callQuery, callValues);
-
-              // optional : Check if any row was actually updated as during call procedure it might not
-              // update as values might be same so no need to raise error
-              // if (result.affectedRows === 0) {
-              //   console.error(`No update happend in user_prices table.`);
-              //   return res.status(400).json({
-              //     success: false,
-              //     message: "Problem encountered while updating custom price in user_prices.",
-              //   });
-              // }
             }
           }
         }

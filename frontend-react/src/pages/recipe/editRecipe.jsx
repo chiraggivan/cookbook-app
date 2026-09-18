@@ -1226,7 +1226,7 @@ function EditRecipe() {
     const url = `${serverURL}/recipe/api/update/${id}`;
     const method = "patch";
     const body = finalData;
-    // console.log("final Data is:", finalData);
+    console.log("final Data is:", finalData);
     // return;
 
     const updateRecipe = async () => {
