@@ -25,6 +25,8 @@ import EditBaseValuesModal from "../../components/editBaseValuesModal";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const currencySymbol = user.currency_symbol;
   const [isPrivate, setIsPrivate] = useState(true);
   const recipeCosting = useRef(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -181,6 +183,7 @@ function NewRecipe() {
       return () => clearTimeout(timer);
     }
   }, [imgUploadSuccessMsg]);
+
   // ----------------------------- ADD new empty ingredient row function ---------------------------------------
   const addNewIngRow = (cid, index) => {
     setSections((prev) =>
@@ -302,7 +305,7 @@ function NewRecipe() {
     }
   }, [highlightedIndex]);
 
-  // ------------------------------------------------------- function for getting base units ----------------------------------------
+  // ----------------------------------------- function for getting base units ----------------------------------------
   const getBaseUnits = (unit, measuringUnits) => {
     const baseUnitsToShow = [];
     const lookup = {};
@@ -352,10 +355,10 @@ function NewRecipe() {
                           form: ing.form,
                           displayQuantity: ing.display_quantity,
                           displayUnit: ing.display_unit,
-                          displayPrice: ing.display_price,
+                          displayPrice: Number(ing.display_price.toFixed(2)),
                           ogDisplayQuantity: ing.display_quantity,
                           ogDisplayUnit: ing.display_unit,
-                          ogDisplayPrice: ing.display_price,
+                          ogDisplayPrice: Number(ing.display_price.toFixed(2)),
                           ingredientSource: ing.ingredient_source,
                           ingredientId: ing.id,
                           measuringUnits: units,
@@ -1395,7 +1398,9 @@ function NewRecipe() {
                   {/* cost of recipe */}
                   <div className="flex space-x-2 text-lg ">
                     <div className="font-semibold">Costing :</div>
-                    <p className="">£ {totalCost.toFixed(2)}</p>
+                    <p className="">
+                      {currencySymbol} {totalCost.toFixed(2)}
+                    </p>
                   </div>
                 </div>
 
@@ -1736,8 +1741,8 @@ function NewRecipe() {
                                       <span>Edit Base Price</span>
                                     </div>
                                     <div className="flex h-5 items-end pl-2 text-xs text-gray-400">
-                                      £ {ing?.displayPrice}/ {ing?.displayQuantity}{" "}
-                                      {ing?.displayUnit}{" "}
+                                      {currencySymbol} {ing?.displayPrice.toFixed(2)}/{" "}
+                                      {ing?.displayQuantity} {ing?.displayUnit}{" "}
                                     </div>
                                   </div>
                                 )}
@@ -2037,6 +2042,7 @@ function NewRecipe() {
           priceValue={priceValue}
           compUid={compUid}
           ingUid={ingUid}
+          currencySymbol={currencySymbol}
         />
       )}
     </>

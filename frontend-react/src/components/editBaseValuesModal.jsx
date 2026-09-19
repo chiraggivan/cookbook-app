@@ -19,6 +19,7 @@ export default function EditBaseValuesModal({
   priceValue,
   compUid,
   ingUid,
+  currencySymbol,
 }) {
   const [updateQuantity, setUpdateQuantity] = useState(quantityValue);
   const [updateUnit, setUpdateUnit] = useState(unitValue);
@@ -98,7 +99,9 @@ export default function EditBaseValuesModal({
           <div className="flex justify-between space-x-5 mt-2">
             {/* Price */}
             <div className="flex flex-1 items-center justify-end">
-              <span className="text-xs sm:text-md">Price:</span>
+              <span className="text-xs sm:text-md">
+                Price:<span className="text-sm"> {currencySymbol}</span>
+              </span>
               <span>
                 <Input
                   className="ml-1 max-w-18 h-8 rounded border border-gray-400"
