@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { getInitials } from "../utils/appUtils";
 import Input from "./input";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { GiCarrot, GiHamburgerMenu, GiSettingsKnobs } from "react-icons/gi";
 import { useSearch } from "../context/globalSearchContext";
+import { MyRecipeContext } from "../context/myRecipeContext";
 
 import {
   HiBookmark,
@@ -33,6 +34,8 @@ import { FaPlus } from "react-icons/fa6";
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user")) ?? "";
   const navigate = new useNavigate();
+  const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
+    useContext(MyRecipeContext);
   // const [searchInput, setSearchInput] = useState("");
   const { setSearchRecipe, searchInput, setSearchInput } = useSearch();
   useEffect(() => {
@@ -69,6 +72,10 @@ function TopBar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    setMyRecipes([]);
+    setRecipeDetails([]);
+    setFetchedOnce(false);
+
     navigate(`/login`);
   };
 
@@ -171,6 +178,8 @@ function TopBar() {
           </div>
         </div>
       </header>
+
+      {/* drawer for hamburger click */}
       <Drawer theme={drawerTheme} className="z-60 max-w-[60%]" open={isOpen} onClose={handleClose}>
         <DrawerHeader title="MENU" titleIcon={() => <></>} />
         <DrawerItems>
@@ -199,33 +208,58 @@ function TopBar() {
                         setSearchRecipe("");
                         setSearchInput("");
                         setIsOpen(false);
+                        navigate("/");
                       }}
                       icon={HiHome}
-                      href="/"
                     >
                       Home
                     </SidebarItem>
-                    <SidebarItem href="/MyRecipes" icon={HiClipboardList}>
+
+                    <SidebarItem
+                      icon={HiClipboardList}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/MyRecipes");
+                      }}
+                    >
                       My Recipes
                     </SidebarItem>
-                    <SidebarItem href="/foodplan" icon={HiBookmark}>
+
+                    <SidebarItem
+                      icon={HiBookmark}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/foodplan");
+                      }}
+                    >
                       Weekly Plan
                     </SidebarItem>
-                    <SidebarItem href="/myDishes" icon={HiFolder}>
+
+                    <SidebarItem
+                      icon={HiFolder}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/myDishes");
+                      }}
+                    >
                       Dishes Made
                     </SidebarItem>
-                    <SidebarItem href="/myIngredients" icon={GiCarrot}>
+
+                    <SidebarItem
+                      icon={GiCarrot}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/myIngredients");
+                      }}
+                    >
                       My Ingredients
                     </SidebarItem>
                   </SidebarItemGroup>
+
                   <SidebarItemGroup>
-                    <SidebarItem href="#" icon={ProfileIcon}>
-                      Account
-                    </SidebarItem>
-                    <SidebarItem href="#" icon={GiSettingsKnobs}>
-                      Setting
-                    </SidebarItem>
-                    <SidebarItem href="#" icon={HiLogout} onClick={handleLogout}>
+                    <SidebarItem icon={ProfileIcon}>Account</SidebarItem>
+                    <SidebarItem icon={GiSettingsKnobs}>Setting</SidebarItem>
+                    <SidebarItem icon={HiLogout} onClick={handleLogout}>
                       Sign out
                     </SidebarItem>
                   </SidebarItemGroup>

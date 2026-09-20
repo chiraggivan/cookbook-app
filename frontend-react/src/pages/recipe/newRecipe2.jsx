@@ -1741,8 +1741,8 @@ function NewRecipe() {
                                       <span>Edit Base Price</span>
                                     </div>
                                     <div className="flex h-5 items-end pl-2 text-xs text-gray-400">
-                                      {currencySymbol} {ing?.displayPrice.toFixed(2)}/{" "}
-                                      {ing?.displayQuantity} {ing?.displayUnit}{" "}
+                                      {currencySymbol} {ing?.displayPrice}/ {ing?.displayQuantity}{" "}
+                                      {ing?.displayUnit}{" "}
                                     </div>
                                   </div>
                                 )}

@@ -60,7 +60,7 @@ exports.search_ingredients = async (req, res) => {
           AND (i.approval_status = 'approved')
           AND i.is_active = 1
         LIMIT 40`,
-      [countryId, countryId, countryId, id, i, countryId, id,countryId, i],
+      [countryId, countryId, countryId, id, i, countryId, id, countryId, i],
     );
     if (rows.length > 0) {
       for (const row of rows) {
@@ -125,6 +125,7 @@ exports.get_ingredient_units = async (req, res) => {
 
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+  const country_id = user.country; // required to be saved in user_price or user_ingredient tables for any updates of ing values
 
   // check if data is available
   if (!req.body) {
@@ -314,10 +315,11 @@ exports.create_recipe = async (req, res) => {
             );
 
             // if (ingredient.ingredient_source === "main") {
-            await conn.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?,?)", [
+            await conn.query("CALL update_insert_user_price(?,?,?,?,?,?,?,?,?,?,?)", [
               user.id,
               ingredient.ingredient_id,
               ingredient.ingredient_source,
+              country_id,
               calPrice,
               calQuantity,
               calUnit,

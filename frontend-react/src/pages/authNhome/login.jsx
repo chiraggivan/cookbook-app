@@ -4,10 +4,16 @@ import axios from "axios";
 import { serverURL } from "../../utils/appUtils";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Spinner } from "flowbite-react";
+import { useContext } from "react";
+import { CurrentUserContext } from "../../context/currentUserContext.jsx";
+import { MyRecipeContext } from "../../context/myRecipeContext.jsx";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { currentUserId, setCurrentUserId } = useContext(CurrentUserContext);
+  const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
+    useContext(MyRecipeContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const expired = searchParams.get("expired");
@@ -23,19 +29,23 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   // console.log("serverURL", serverURL);
 
-  // run only once
-  useEffect(() => {
-    if (errorMessage) {
-      setErrMessage(errorMessage);
-    }
-  }, []);
-
   const method = "post";
   const url = `${serverURL}/auth/api/login`;
   const body = {
     username: username,
     password: password,
   };
+
+  // first thing when login screen loads, reset fetchedOnce, myRecipes and recipeDetails context variables
+  useEffect(() => {
+    setMyRecipes([]);
+    setRecipeDetails([]);
+    setFetchedOnce(false);
+
+    if (errorMessage) {
+      setErrMessage(errorMessage);
+    }
+  }, []);
 
   // submit button function
   const handleSubmit = async (e) => {
@@ -56,10 +66,9 @@ function Login() {
     try {
       setIsLoading(true);
       const res = await axios[method](url, body);
-      // console.log("response is : ", res.data);
-
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      setCurrentUserId(res?.data?.user?.user_id);
       navigate("/");
       return;
     } catch (err) {
@@ -101,7 +110,6 @@ function Login() {
     },
     flow: "auth-code",
   });
-
   const googleSignin = () => {
     googleLogin();
   };

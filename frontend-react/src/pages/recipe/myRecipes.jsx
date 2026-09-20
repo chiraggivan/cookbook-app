@@ -2,9 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
-import useFetch from "../../hooks/useFetch";
-import Navbar from "../../components/navbarOld";
 import { MyRecipeContext } from "../../context/myRecipeContext";
+import { CurrentUserContext } from "../../context/currentUserContext";
 import { serverURL } from "../../utils/appUtils";
 import Button from "../../components/button";
 import Input from "../../components/input";
@@ -22,6 +21,7 @@ function MyRecipes() {
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { myRecipes, setMyRecipes, fetchedOnce, setFetchedOnce } = useContext(MyRecipeContext);
+  const { currentUserId } = useContext(CurrentUserContext);
   const [isLoading, setIsLoading] = useState(false);
   const [searchRecipe, setSearchRecipe] = useState("");
   const [displayRecipes, setDisplayRecipes] = useState();

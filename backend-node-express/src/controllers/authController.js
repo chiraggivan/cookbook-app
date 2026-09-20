@@ -191,6 +191,24 @@ exports.register = async (req, res) => {
   }
 };
 
+// country list data while registration or updation of user account
+exports.countryList = async (req, res) => {
+  console.log("readt to give country list");
+  try {
+    const cntryQuery = `SELECT country_id, name FROM countries WHERE is_active = 1`;
+    const [result] = await db.query(cntryQuery, []);
+    console.log("result is: ", result);
+
+    return res.json({
+      success: true,
+      message: `Got the list of countries for user to select from`,
+      data: result,
+    });
+  } catch (error) {
+    console.log("error in AuthController during countryList", error);
+  }
+};
+
 exports.profile = (req, res) => {
   console.log(req.header);
   res.json({

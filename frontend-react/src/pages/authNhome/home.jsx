@@ -2,11 +2,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
-import useFetch from "../../hooks/useFetch";
-import Button from "../../components/button";
-import TopBar from "../../components/topBar";
-import LeftSideBar from "../../components/leftSideBar";
-import Navbar from "../../components/navbarOld";
 import { Dropdown, DropdownItem, Spinner } from "flowbite-react";
 import {
   serverURL,
@@ -18,9 +13,12 @@ import { GiHotMeal } from "react-icons/gi";
 import { useSearch } from "../../context/globalSearchContext";
 import { SlOptionsVertical } from "react-icons/sl";
 import { MdOutlineEditNote, MdOutlineMenuBook } from "react-icons/md";
+import { CurrentUserContext } from "../../context/currentUserContext";
+import { useContext } from "react";
 
 function Home() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
+  const { currentUserId } = useContext(CurrentUserContext);
   const navigate = useNavigate();
   // const [searchParams] = useSearchParams();
   // const searchRecipe = searchParams.get("q");

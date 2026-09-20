@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 // import './index.css'
 import App from "./App.jsx";
+import { CurrentUserProvider } from "./context/currentUserContext.jsx";
 import { DishProvider } from "./context/dishContext.jsx";
 import { MyIngredientProvider } from "./context/myIngredientContext.jsx";
 import { MyRecipeProvider } from "./context/myRecipeContext.jsx";
@@ -15,16 +16,18 @@ import "@fontsource/inter";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <DishProvider>
-      <MyRecipeProvider>
-        <MyIngredientProvider>
-          <GoogleOAuthProvider clientId={google_client_id}>
-            <GlobalSearchProvider>
-              <App />
-            </GlobalSearchProvider>
-          </GoogleOAuthProvider>
-        </MyIngredientProvider>
-      </MyRecipeProvider>
-    </DishProvider>
+    <CurrentUserProvider>
+      <DishProvider>
+        <MyRecipeProvider>
+          <MyIngredientProvider>
+            <GoogleOAuthProvider clientId={google_client_id}>
+              <GlobalSearchProvider>
+                <App />
+              </GlobalSearchProvider>
+            </GoogleOAuthProvider>
+          </MyIngredientProvider>
+        </MyRecipeProvider>
+      </DishProvider>
+    </CurrentUserProvider>
   </BrowserRouter>,
 );

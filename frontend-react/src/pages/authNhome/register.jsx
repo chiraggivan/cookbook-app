@@ -2,6 +2,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { serverURL } from "../../utils/appUtils";
+import Dropdown from "../../components/dropdown";
 
 function register() {
   const [usernameAvlbl, setUsernameAvlbl] = useState(true);
@@ -17,8 +18,30 @@ function register() {
   const [pwdMsg, setPwdMsg] = useState("");
   const [email, setEmail] = useState("");
   const [errMsg, setErrMsg] = useState("");
+  const [countryList, setCountryList] = useState([]);
+  const [countrySelect, setCountrySelect] = useState(0);
+
   const navigate = useNavigate();
   const [disableRegisterBtn, setDisableRegisterBtn] = useState(true);
+
+  // fetch the country list for user to select it from
+  useEffect(() => {
+    const url = `${serverURL}/auth/api/countryList`;
+    const method = "get";
+
+    const fetchCountry = async () => {
+      try {
+        const res = await axios[method](url);
+        // console.log("res is :", res);
+        const cntryList = res?.data?.data;
+        cntryList.map((i) => (i.country_id === 182 ? setCountrySelect(182) : i));
+        setCountryList(cntryList);
+      } catch (error) {
+        console.log("Error in Register.jsx while fetching country list", error);
+      }
+    };
+    fetchCountry();
+  }, []);
 
   // validate name is there and not larger than 30 char
   const checkName = (val) => {
@@ -124,24 +147,12 @@ function register() {
   //  handle the submit button function
   const handleSubmit = async (e) => {
     // console.log("registerbtn :", registerBtn);
-    console.log(
-      "nameMsg: ",
-      nameMsg,
-      " userScss: ",
-      userScss,
-      " pwdMsg: ",
-      pwdMsg,
-      " emailMsg: ",
-      emailMsg,
-      " name: ",
-      name,
-      " username: ",
-      username,
-      " email: ",
-      email,
-      " password: ",
-      password,
-    );
+
+    // temp option for complusory UK selection
+    if ((countrySelect = 0)) {
+      setCountrySelect = 182;
+    }
+
     e.preventDefault();
 
     const userData = {
@@ -149,6 +160,7 @@ function register() {
       email: email,
       username: username,
       password: password,
+      country: countrySelect,
     };
 
     console.log("userData :", userData);
@@ -169,12 +181,14 @@ function register() {
     // return;
   };
 
-  console.log("disableRegisterBtn :", disableRegisterBtn);
+  // console.log("disableRegisterBtn :", disableRegisterBtn);
+  // console.log("Country list is :", countryList);
+  // console.log(" and Country select is :", countrySelect);
 
   return (
     <>
       <div className="min-h-screen flex items-start justify-center bg-gray-50 ">
-        <div className="w-full max-w-2xl rounded-2xl border-2 mt-8 lg:p-8 shadow-lg bg-white border-gray-400 p-8">
+        <div className="w-full max-w-xl rounded-2xl border-2 mt-8 lg:p-8 shadow-lg bg-white border-gray-400 p-8">
           <h1 className="text-3xl font-bold text-center mb-4">Registration</h1>
 
           {/* Line separator */}
@@ -184,6 +198,7 @@ function register() {
 
           {/* Form  */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* name section */}
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Name:</label>
@@ -212,6 +227,7 @@ function register() {
               </div>
             </div>
 
+            {/* email section */}
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Email:</label>
@@ -238,7 +254,8 @@ function register() {
                 )}
               </div>
             </div>
-            {/* {emailMsg && <h4 style={{ color: "red" }}>{emailMsg}</h4>} */}
+
+            {/* username section */}
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Username:</label>
@@ -284,6 +301,7 @@ function register() {
             {/* {userMsg && userScss === false && <h4 style={{ color: "red" }}>{userMsg}</h4>}
             {userMsg && userScss === true && <h4 style={{ color: "green" }}>{userMsg}</h4>} */}
 
+            {/* Password section */}
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Password:</label>
@@ -300,6 +318,8 @@ function register() {
                 />
               </div>
             </div>
+
+            {/* Re-type Password section */}
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">
@@ -329,6 +349,29 @@ function register() {
             </div>
             {/* {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>} */}
 
+            {/* Select country section */}
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <label className="w-1/5 text-sm text-right font-medium mb-1">Country:</label>
+                {countryList && (
+                  <Dropdown
+                    key={countryList?.country_id}
+                    className="flex rounded w-14 md:min-w-38 text-sm h-7.5 pl-1 pr-7 py-0"
+                    options={countryList}
+                    optionValueText={"country_id"}
+                    optionText={"name"}
+                    value={countrySelect}
+                    onChange={(e) => {
+                      setCountrySelect(Number(e.target.value));
+                    }}
+                    error={"" ?? ""}
+                  />
+                )}
+              </div>
+              <div className=""></div>
+            </div>
+
+            {/* Register /Login button */}
             <div className="flex justify-between mt-10">
               <button
                 className={`w-1/3 p-4 text-white shadow-md font-bold bg-blue-400  hover:bg-blue-600  hover:cursor-pointer rounded-lg`}

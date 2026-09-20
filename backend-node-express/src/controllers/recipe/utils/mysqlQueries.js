@@ -40,23 +40,23 @@ export const readRecipeDetailsQ = `
             END AS cost,
             COALESCE(ui.display_unit, COALESCE(up.display_unit,COALESCE(ip.display_unit, i.display_unit))) AS unit
         FROM recipe_ingredients ri 
-        LEFT JOIN recipe_components rc ON rc.recipe_component_id = ri.component_id
-        LEFT JOIN recipes r ON r.recipe_id = rc.recipe_id
-        LEFT JOIN users u2 ON u2.user_id = ?
-        LEFT JOIN countries cntry ON cntry.country_id = u2.country_id 
-        LEFT JOIN currencies crncy  ON crncy.currency_id = cntry.currency_id 
-        LEFT JOIN ingredients i ON ri.ingredient_id = i.ingredient_id AND ri.ingredient_source = 'main'
-        LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = ri.ingredient_id AND ri.ingredient_source = 'user'
-        LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u2.country_id 
-        JOIN units u ON ri.unit_id = u.unit_id
-        LEFT JOIN user_prices up ON up.user_id = ?
-            AND up.ingredient_id = i.ingredient_id 
-            AND up.country_id  = u2.country_id 
-            AND up.is_active = TRUE
-        LEFT JOIN countries cntry2 ON cntry2.country_id = ui.country_id
-        LEFT JOIN currencies crncy2 ON crncy2.currency_id  = cntry2.currency_id 
+            LEFT JOIN recipe_components rc ON rc.recipe_component_id = ri.component_id
+            LEFT JOIN recipes r ON r.recipe_id = rc.recipe_id
+            LEFT JOIN users u2 ON u2.user_id = ?
+            LEFT JOIN countries cntry ON cntry.country_id = u2.country_id 
+            LEFT JOIN currencies crncy  ON crncy.currency_id = cntry.currency_id 
+            LEFT JOIN ingredients i ON ri.ingredient_id = i.ingredient_id AND ri.ingredient_source = 'main'
+            LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = ri.ingredient_id AND ri.ingredient_source = 'user'
+            LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u2.country_id 
+            JOIN units u ON ri.unit_id = u.unit_id
+            LEFT JOIN user_prices up ON up.user_id = ?
+                AND up.ingredient_id = i.ingredient_id 
+                AND up.country_id  = u2.country_id 
+                AND up.is_active = TRUE
+            LEFT JOIN countries cntry2 ON cntry2.country_id = ui.country_id
+            LEFT JOIN currencies crncy2 ON crncy2.currency_id  = cntry2.currency_id 
         WHERE ri.recipe_id = ?
-        AND ri.is_active = TRUE
+            AND ri.is_active = TRUE
         ORDER BY rc.display_order, ri.display_order`;
 
 // export const readRecipeDetailsQ = `SELECT
