@@ -36,7 +36,7 @@ function register() {
         // console.log("res is :", res);
         const cntryList = res?.data?.data;
         // temporary give UK as default country (182) if available in list
-        // cntryList.map((i) => (i.country_id === 182 ? setCountrySelect(182) : i));
+        cntryList.map((i) => (i.country_id === 182 ? setCountrySelect(182) : i));
         setCountryList(cntryList);
       } catch (error) {
         console.log("Error in Register.jsx while fetching country list", error);
@@ -381,7 +381,7 @@ function register() {
             {/* {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>} */}
 
             {/* Select country section */}
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Country:</label>
                 {countryList && (
@@ -401,7 +401,7 @@ function register() {
                 )}
               </div>
               <div className=""></div>
-            </div>
+            </div> */}
 
             {/* Register /Login button */}
             <div className="flex justify-between mt-10">
