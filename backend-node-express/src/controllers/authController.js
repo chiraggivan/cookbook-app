@@ -149,7 +149,7 @@ exports.checkEmail = async (req, res) => {
 // register the new user
 exports.register = async (req, res) => {
   const userData = req.body;
-  // console.log("in backend and data is :", userData);
+
   // ----------------------- normalise and validate data -------------------------------
   const data = normaliseNewUserData(userData);
   const error = validateNewUserData(data);
@@ -157,14 +157,20 @@ exports.register = async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: `Error while validating : ${error}`,
+      message: `Error while validating user data during registration : ${error}`,
     });
   }
+
+  // return res.json({
+  //   success: true,
+  //   message: `everyhing fine , about to call procedure with data `,
+  //   data,
+  // });
   // ------------------------ hash the password before sending to procedure -----------------------------
 
-  const hashedPassword = await bcrypt.hash(userData.password, 10); // 10 is the number of salt rounds
-  userData.password = hashedPassword;
-  const stringData = JSON.stringify(userData);
+  const hashedPassword = await bcrypt.hash(data.password, 10); // 10 is the number of salt rounds
+  data.password = hashedPassword;
+  const stringData = JSON.stringify(data);
   // console.log("stringData :", stringData);
   let conn;
   try {
@@ -193,11 +199,10 @@ exports.register = async (req, res) => {
 
 // country list data while registration or updation of user account
 exports.countryList = async (req, res) => {
-  console.log("readt to give country list");
   try {
     const cntryQuery = `SELECT country_id, name FROM countries WHERE is_active = 1`;
     const [result] = await db.query(cntryQuery, []);
-    console.log("result is: ", result);
+    // console.log("result is: ", result);
 
     return res.json({
       success: true,
@@ -309,13 +314,20 @@ exports.googleSignin = async (req, res) => {
     } else {
       // create new user
       try {
-        const [result] = await db.query(
-          ` INSERT INTO users ( display_name, picture_url, email, email_verified, google_sub, role, last_login_at )
-          VALUES (?, ?, ?, 1, ?, 'user', CURRENT_TIMESTAMP)
-        `,
-          [fullName, imgUrl, email, google_sub],
+        // get the country id of UK as default country for new user(use can change country later via account option)
+        const [cntryResult] = await db.query(
+          `SELECT country_id FROM countries WHERE name = 'United Kingdom' AND is_active = 1`,
+          [],
         );
-        console.log("inserted new user with id :", result.insertId);
+        const country_id = cntryResult[0].country_id;
+        console.log("country id to be added in case of google signing is :", country_id);
+        const [result] = await db.query(
+          ` INSERT INTO users ( display_name, picture_url, email, email_verified, google_sub, role, country_id, last_login_at )
+          VALUES (?, ?, ?, 1, ?, 'user', ?, CURRENT_TIMESTAMP)
+        `,
+          [fullName, imgUrl, email, google_sub, country_id],
+        );
+        // console.log("inserted new user with id :", result.insertId);
         const [users] = await db.query(
           `
           SELECT user_id, display_name, role, picture_url, google_sub 
@@ -323,7 +335,7 @@ exports.googleSignin = async (req, res) => {
           [result.insertId],
         );
         const user = users[0];
-        console.log("new user details :", user);
+        // console.log("new user details :", user);
         // create token with user details to be sent as response
         const token = jwt.sign(
           {

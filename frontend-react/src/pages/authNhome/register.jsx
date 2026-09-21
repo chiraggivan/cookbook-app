@@ -20,6 +20,7 @@ function register() {
   const [errMsg, setErrMsg] = useState("");
   const [countryList, setCountryList] = useState([]);
   const [countrySelect, setCountrySelect] = useState(0);
+  const [cntryErrMsg, setCntryErrMsg] = useState("");
 
   const navigate = useNavigate();
   const [disableRegisterBtn, setDisableRegisterBtn] = useState(true);
@@ -34,6 +35,7 @@ function register() {
         const res = await axios[method](url);
         // console.log("res is :", res);
         const cntryList = res?.data?.data;
+        // temporary give UK as default country (182) if available in list
         cntryList.map((i) => (i.country_id === 182 ? setCountrySelect(182) : i));
         setCountryList(cntryList);
       } catch (error) {
@@ -45,14 +47,14 @@ function register() {
 
   // validate name is there and not larger than 30 char
   const checkName = (val) => {
-    if (!val || val.length > 30) {
-      setNameMsg("Name should be less than 30 chars.");
+    if (!val || val.length < 3 || val.length > 30) {
+      setNameMsg("Name should be more than 3 and less than 30 chars.");
     }
   };
 
   // validate username is there and not less than 3 or more than 20 chars and are within the allowed chars
   const checkUsername = async (val) => {
-    if (!val || val.length < 3 || val.length > 20 || !/^[a-zA-Z0-9]+$/.test(val)) {
+    if (!val || val.length < 3 || val.length > 50 || !/^[a-zA-Z0-9]+$/.test(val)) {
       setUserScss(false);
       setUserMsg(
         "Be atleast 3 characters long, not more than 20 chars and can only have alpha numeric values.",
@@ -82,17 +84,17 @@ function register() {
 
   // validate if the email is in valid format
   const checkEmail = async (val) => {
+    // needs to check the includes of [@ .]
     if (!val || !val.includes("@") || !val.includes(".")) {
       // as this is run onBlur, possible user will comeout of the field without any text
       return;
     }
-    // needs to check the includes of [@ .]
 
     const url = `${serverURL}/auth/api/checkemail/${val}`;
     const method = "get";
     try {
       const res = await axios[method](url);
-      console.log("res :", res);
+      // console.log("res :", res);
       if (res.data.success === true) {
         // setUserMsg("Username available");
         return;
@@ -127,31 +129,57 @@ function register() {
 
   // re render logic when useState value changes
   useEffect(() => {
+    if (name) {
+      checkName(name);
+    }
+    // checkName(name);
+    checkEmail(email); // Doing this as browser may prompt user to select default saved values which will not trigger emailCheck func
     if (
-      nameMsg === "" &&
-      userScss === true &&
-      pwdMsg === "" &&
-      emailMsg === "" &&
       name !== "" &&
-      username !== "" &&
+      nameMsg === "" &&
       email !== "" &&
+      emailMsg === "" &&
+      username !== "" &&
+      userScss === true &&
       password !== "" &&
-      rePassword !== ""
+      rePassword !== "" &&
+      password === rePassword &&
+      pwdMsg === "" &&
+      countrySelect !== 0
     ) {
       setDisableRegisterBtn(false);
     } else {
       setDisableRegisterBtn(true);
     }
-  }, [nameMsg, userScss, pwdMsg, emailMsg, name, username, email, password]);
+  }, [
+    name,
+    nameMsg,
+    email,
+    emailMsg,
+    username,
+    userScss,
+    password,
+    rePassword,
+    pwdMsg,
+    countrySelect,
+  ]);
 
   //  handle the submit button function
   const handleSubmit = async (e) => {
     // console.log("registerbtn :", registerBtn);
 
-    // temp option for complusory UK selection
-    if ((countrySelect = 0)) {
-      setCountrySelect = 182;
+    // validate name final time
+    if (!name || name.length < 3 || name.length > 30) {
+      setNameMsg("Name should be more than 3 and less than 30 chars.");
+      return;
     }
+
+    //  validate email final time
+
+    //NEED TO REMOVE IT LATER ------- temp option for complusory UK selection----------------------------
+    // if (countrySelect === 0) {
+    //   setCountrySelect(182);
+    // }
 
     e.preventDefault();
 
@@ -165,12 +193,13 @@ function register() {
 
     console.log("userData :", userData);
     // check length of password, characters that are valid
-    return;
+    // return;
     const url = `${serverURL}/auth/api/register`;
     const method = "post";
     try {
       const res = await axios[method](url, userData);
-      console.log("res :", res.data.message);
+      // console.log("res :", res.data);
+      // return;
       const msg = `Login again with your username as : ${username}`;
       navigate(`/login?successMsg=${encodeURIComponent(msg)}`);
     } catch (err) {
@@ -183,7 +212,7 @@ function register() {
 
   // console.log("disableRegisterBtn :", disableRegisterBtn);
   // console.log("Country list is :", countryList);
-  // console.log(" and Country select is :", countrySelect);
+  // console.log(" Country select is :", countrySelect);
 
   return (
     <>
@@ -314,6 +343,7 @@ function register() {
                     e.preventDefault();
                     setPassword(e.target.value);
                     setPwdMsg("");
+                    setErrMsg("");
                   }}
                 />
               </div>
@@ -334,6 +364,7 @@ function register() {
                     e.preventDefault();
                     setRePassword(e.target.value);
                     setPwdMsg("");
+                    setErrMsg("");
                   }}
                   onBlur={(e) => checkPassword(password, e.target.value)}
                 />
@@ -350,31 +381,36 @@ function register() {
             {/* {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>} */}
 
             {/* Select country section */}
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Country:</label>
                 {countryList && (
                   <Dropdown
                     key={countryList?.country_id}
-                    className="flex rounded w-14 md:min-w-38 text-sm h-7.5 pl-1 pr-7 py-0"
+                    className="flex rounded w-14 min-w-38 text-sm h-7.5 pl-1 pr-7 py-0"
                     options={countryList}
                     optionValueText={"country_id"}
                     optionText={"name"}
                     value={countrySelect}
                     onChange={(e) => {
+                      setCntryErrMsg("");
                       setCountrySelect(Number(e.target.value));
                     }}
-                    error={"" ?? ""}
+                    error={cntryErrMsg}
                   />
                 )}
               </div>
               <div className=""></div>
-            </div>
+            </div> */}
 
             {/* Register /Login button */}
             <div className="flex justify-between mt-10">
               <button
-                className={`w-1/3 p-4 text-white shadow-md font-bold bg-blue-400  hover:bg-blue-600  hover:cursor-pointer rounded-lg`}
+                className={
+                  !disableRegisterBtn
+                    ? `w-1/3 p-4 text-white shadow-md font-bold bg-blue-400  hover:bg-blue-600  hover:cursor-pointer rounded-lg`
+                    : "w-1/3 p-4 text-white shadow-md font-bold rounded-lg bg-gray-400 hover:cursor-default"
+                }
                 type="submit"
                 disabled={disableRegisterBtn}
               >

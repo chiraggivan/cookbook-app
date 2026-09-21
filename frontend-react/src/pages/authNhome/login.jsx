@@ -169,7 +169,7 @@ function Login() {
               Login
             </button>
           </form>
-          {successMsg && <p style={{ color: "#b4b4b4" }}>{successMsg}</p>}
+          {successMsg && <p className=" text-green-500 text-sm font-bold">{successMsg}</p>}
 
           {/* OR Separator */}
           <div className="flex items-center my-2">
