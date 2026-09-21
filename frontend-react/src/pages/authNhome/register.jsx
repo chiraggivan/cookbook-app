@@ -96,7 +96,7 @@ function register() {
       const res = await axios[method](url);
       // console.log("res :", res);
       if (res.data.success === true) {
-        // setUserMsg("Username available");
+        setEmailMsg("");
         return;
       } else {
         // console.log(" res for succes false is :", res);
