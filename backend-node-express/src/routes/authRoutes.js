@@ -11,5 +11,7 @@ router.get("/checkemail/:email", authController.checkEmail);
 router.post("/register", authController.register);
 router.post("/googleSignin", authController.googleSignin);
 router.get("/countryList", authController.countryList);
+router.get("/verifyingUserEmail", authController.verifyUser);
+router.get("/reVerifyEmail", authController.reVerifyEmail);
 
 module.exports = router;

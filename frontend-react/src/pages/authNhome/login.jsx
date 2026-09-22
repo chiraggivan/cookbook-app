@@ -66,6 +66,11 @@ function Login() {
     try {
       setIsLoading(true);
       const res = await axios[method](url, body);
+
+      if (res?.data?.message === "unverified") {
+        navigate(`/re-verify-email?email=${res?.data?.email}`);
+      }
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       setCurrentUserId(res?.data?.user?.user_id);

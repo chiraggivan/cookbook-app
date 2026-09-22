@@ -2,6 +2,8 @@ import { Route } from "react-router-dom";
 import Login from "../pages/authNhome/login";
 import Home from "../pages/authNhome/home";
 import Register from "../pages/authNhome/register";
+import VerifyUserEmail from "../pages/authNhome/verfyingUserEmail";
+import ReVerifyEmail from "../pages/authNhome/reVerifyEmail";
 import MainLayout from "../components/mainLayout";
 
 export const AuthNhomeRoutes = (
@@ -16,5 +18,7 @@ export const AuthNhomeRoutes = (
       }
     />
     <Route path="/register" element={<Register />} />
+    <Route path="/verifyUserEmail" element={<VerifyUserEmail />} />
+    <Route path="/re-verify-email" element={<ReVerifyEmail />} />
   </>
 );

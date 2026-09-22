@@ -166,22 +166,12 @@ function register() {
 
   //  handle the submit button function
   const handleSubmit = async (e) => {
-    // console.log("registerbtn :", registerBtn);
-
-    // validate name final time
-    if (!name || name.length < 3 || name.length > 30) {
-      setNameMsg("Name should be more than 3 and less than 30 chars.");
-      return;
-    }
-
-    //  validate email final time
+    e.preventDefault();
 
     //NEED TO REMOVE IT LATER ------- temp option for complusory UK selection----------------------------
     // if (countrySelect === 0) {
     //   setCountrySelect(182);
     // }
-
-    e.preventDefault();
 
     const userData = {
       name: name,
@@ -191,16 +181,16 @@ function register() {
       country: countrySelect,
     };
 
-    console.log("userData :", userData);
-    // check length of password, characters that are valid
+    // console.log("userData :", userData);
     // return;
+
     const url = `${serverURL}/auth/api/register`;
     const method = "post";
     try {
       const res = await axios[method](url, userData);
       // console.log("res :", res.data);
       // return;
-      const msg = `Login again with your username as : ${username}`;
+      const msg = `Email sent on: ${email}.`;
       navigate(`/login?successMsg=${encodeURIComponent(msg)}`);
     } catch (err) {
       console.log("Error during register is :", err.response.data.message);

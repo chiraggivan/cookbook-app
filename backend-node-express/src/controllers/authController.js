@@ -2,6 +2,7 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const db = require("../config/database");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -10,6 +11,8 @@ const {
   normaliseNewUserData,
   validateNewUserData,
 } = require("./authNhome/utils/normaliseNvalidateUserData");
+
+const { emailVerification } = require("../utils/emailServiceUtils");
 
 //
 exports.login = async (req, res) => {
@@ -27,7 +30,7 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username specified
     const [rows] = await db.query(
-      `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, 
+      `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, u.email, u.email_verified,
           u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
           cu.symbol as currency_symbol
       FROM users u JOIN countries c 
@@ -54,6 +57,15 @@ exports.login = async (req, res) => {
         message: "Username and password does not match",
       });
     }
+
+    // Check if user email is verified
+    // if (!user.email_verified) {
+    //   return res.json({
+    //     success: false,
+    //     message: "unverified",
+    //     email: user.email,
+    //   });
+    // }
 
     // create token with user details to be sent as response
     const token = jwt.sign(
@@ -172,6 +184,8 @@ exports.register = async (req, res) => {
   data.password = hashedPassword;
   const stringData = JSON.stringify(data);
   // console.log("stringData :", stringData);
+
+  // -------------------- start the connection and call procedure to add new user --------------------
   let conn;
   try {
     conn = await db.getConnection();
@@ -180,7 +194,21 @@ exports.register = async (req, res) => {
     const query = `CALL create_new_user(?)`;
     const queryValues = [stringData];
     const [result] = await conn.query(query, queryValues);
+    // console.log("result is :", result[0]);
+
+    // create/fetch data to store in email_verification_token table
+    const user_id = result[0][0].user_id;
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const expiryTime = new Date(Date.now() + 3600000);
+
+    //------------------------- inserting verifyToken in email_verification_token table -------------------------------
+    const tokenQuery = `INSERT INTO email_verification_tokens(user_id, token, expires_at)
+                          VALUES (?, ?,?)`;
+    const [EVTresult] = await conn.query(tokenQuery, [user_id, verifyToken, expiryTime]);
     await conn.commit();
+
+    //------------------- call the function to start nodemailer and send email having token, and email id ----------
+    const emailSent = emailVerification(data.email, verifyToken);
     res.json({
       success: true,
       message: `New user created with username : ${userData.username}`,
@@ -211,6 +239,94 @@ exports.countryList = async (req, res) => {
     });
   } catch (error) {
     console.log("error in AuthController during countryList", error);
+  }
+};
+
+// verifying user email  via link provided to user
+exports.verifyUser = async (req, res) => {
+  const token = req.query.t;
+  const currentDate = new Date();
+
+  try {
+    const [evtResult] = await db.query(
+      `SELECT user_id 
+      FROM email_verification_tokens 
+      WHERE token = ? AND expires_at > ?`,
+      [token, currentDate],
+    );
+    if (evtResult.length === 0) {
+      console.log("no user  found ");
+      return res.status(400).json({
+        success: false,
+        message: "token expired or invalid",
+      });
+    }
+
+    console.log("user found and about to update email_verified");
+    // if token valid and not expired
+    const user_id = evtResult[0].user_id;
+
+    // activate the user within the user table
+    const updtQuery = `UPDATE users SET email_verified = 1 where user_id = ?`;
+    const [userResult] = await db.query(updtQuery, [user_id]);
+    res.json({
+      success: true,
+      message: "Email verified for the user.Can signin with username",
+    });
+  } catch (error) {
+    console.log("Error in authController while verifyUser :", error);
+  }
+};
+
+// resend new verifying link to user
+exports.reVerifyEmail = async (req, res) => {
+  const email = req.query.q;
+
+  try {
+    const [userResult] = await db.query(
+      `SELECT user_id 
+      FROM users 
+      WHERE email = ? AND email_verified = 0`,
+      [email],
+    );
+
+    if (userResult.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No such user found",
+      });
+    }
+
+    const user_id = userResult[0].user_id;
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const expiryTime = new Date(Date.now() + 3600000);
+
+    //------------------------- inserting/updating verifyToken in email_verification_token table -------------------------------
+    const [result] = await db.query(
+      `SELECT user_id 
+      FROM email_verification_tokens
+      WHERE user_id = ?
+      `,
+      [user_id],
+    );
+
+    if (result.length) {
+      const tokenQuery = `UPDATE email_verification_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
+      const [EVTresult] = await conn.query(tokenQuery, [verifyToken, expiryTime, user_id]);
+    } else {
+      const tokenQuery = `INSERT INTO email_verification_tokens(user_id, token, expires_at)
+                          VALUES (?, ?,?)`;
+      const [EVTresult] = await conn.query(tokenQuery, [user_id, verifyToken, expiryTime]);
+    }
+
+    //------------------- call the function to start nodemailer and send email having token, and email id ----------
+    const emailSent = emailVerification(email, verifyToken);
+    res.json({
+      success: true,
+      message: `email resent. Please check your inbox and verify.`,
+    });
+  } catch (error) {
+    console.log("Error in AuthController for reVerifyEmail : ", error);
   }
 };
 
