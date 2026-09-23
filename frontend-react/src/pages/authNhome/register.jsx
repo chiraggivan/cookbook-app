@@ -190,7 +190,7 @@ function register() {
       const res = await axios[method](url, userData);
       // console.log("res :", res.data);
       // return;
-      const msg = `Email sent on: ${email}.`;
+      const msg = `To verify email sent on: ${email}.`;
       navigate(`/login?successMsg=${encodeURIComponent(msg)}`);
     } catch (err) {
       console.log("Error during register is :", err.response.data.message);

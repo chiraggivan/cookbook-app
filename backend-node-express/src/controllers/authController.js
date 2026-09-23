@@ -208,10 +208,10 @@ exports.register = async (req, res) => {
     await conn.commit();
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    const emailSent = emailVerification(data.email, verifyToken);
+    const emailSent = await emailVerification(data.email, verifyToken);
     res.json({
       success: true,
-      message: `New user created with username : ${userData.username}`,
+      message: `New user created as : ${userData.username}`,
     });
   } catch (err) {
     await conn.rollback();
@@ -255,14 +255,13 @@ exports.verifyUser = async (req, res) => {
       [token, currentDate],
     );
     if (evtResult.length === 0) {
-      console.log("no user  found ");
-      return res.status(400).json({
+      // console.log("no user  found ");
+      return res.json({
         success: false,
         message: "token expired or invalid",
       });
     }
 
-    console.log("user found and about to update email_verified");
     // if token valid and not expired
     const user_id = evtResult[0].user_id;
 
@@ -312,19 +311,20 @@ exports.reVerifyEmail = async (req, res) => {
 
     if (result.length) {
       const tokenQuery = `UPDATE email_verification_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
-      const [EVTresult] = await conn.query(tokenQuery, [verifyToken, expiryTime, user_id]);
+      const [EVTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
     } else {
       const tokenQuery = `INSERT INTO email_verification_tokens(user_id, token, expires_at)
                           VALUES (?, ?,?)`;
-      const [EVTresult] = await conn.query(tokenQuery, [user_id, verifyToken, expiryTime]);
+      const [EVTresult] = await db.query(tokenQuery, [user_id, verifyToken, expiryTime]);
     }
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    const emailSent = emailVerification(email, verifyToken);
-    res.json({
+    const emailSent = await emailVerification(email, verifyToken);
+    return res.json({
       success: true,
-      message: `email resent. Please check your inbox and verify.`,
+      message: `Resent verification on: ${email}`,
     });
+    console.log("after response has sent");
   } catch (error) {
     console.log("Error in AuthController for reVerifyEmail : ", error);
   }
@@ -377,12 +377,19 @@ exports.googleSignin = async (req, res) => {
 
     // check if user emailId exists to login directly or create new user and login after that
     const [userResult] = await db.query(
-      `
-        SELECT u.user_id, u.username, u.display_name, u.role, u.country_id, u.picture_url, u.email, u.google_sub, u.is_active
-        FROM users u WHERE u.email = ?     
+      `SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified,
+              u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
+              cu.symbol as currency_symbol
+          FROM users u JOIN countries c 
+          ON u.country_id = c.country_id
+          JOIN currencies cu
+          ON cu.currency_id = c.currency_id
+          WHERE u.email = ?    
       `,
       [email],
     );
+    // SELECT u.user_id, u.username, u.display_name, u.role, u.country_id, u.picture_url, u.email, u.google_sub, u.is_active
+    // FROM users u WHERE u.email = ?
 
     if (userResult.length != 0) {
       const user = userResult[0];
@@ -425,6 +432,9 @@ exports.googleSignin = async (req, res) => {
           display_name: user.display_name,
           picture_url: user.picture_url,
           email: user.email,
+          country: user.country_name,
+          currency_id: user.currency_id,
+          currency_symbol: user.currency_symbol,
         },
       });
     } else {
@@ -446,10 +456,19 @@ exports.googleSignin = async (req, res) => {
         // console.log("inserted new user with id :", result.insertId);
         const [users] = await db.query(
           `
-          SELECT user_id, display_name, role, picture_url, google_sub 
-          FROM users WHERE user_id = ? AND is_active = 1`,
+          SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified,
+              u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
+              cu.symbol as currency_symbol
+          FROM users u JOIN countries c 
+          ON u.country_id = c.country_id
+          JOIN currencies cu
+          ON cu.currency_id = c.currency_id
+          WHERE u.user_id = ? AND u.is_active = 1
+          `,
           [result.insertId],
         );
+        // SELECT user_id, display_name, role, picture_url, google_sub
+        // FROM users WHERE user_id = ? AND is_active = 1
         const user = users[0];
         // console.log("new user details :", user);
         // create token with user details to be sent as response
@@ -469,12 +488,26 @@ exports.googleSignin = async (req, res) => {
           success: true,
           message: "Login successful",
           token,
-          user: {
+          user1: {
             user_id: user.user_id,
-            username: user.username ?? user.display_name,
+            username: user.username,
             role: user.role,
+            display_name: user.display_name,
+            picture_url: user.picture_url,
+            country: user.country_name,
+            currency_id: user.currency_id,
+            currency_symbol: user.currency_symbol,
           },
         });
+        //  user: {
+        //   user_id: user.user_id,
+        //   username: user.username ?? user.display_name,
+        //   role: user.role,
+        //   picture_url: user.picture_url,
+        //   country: user.country_name,
+        //   currency_id: user.currency_id,
+        //   currency_symbol: user.currency_symbol,
+        // },
       } catch (error) {
         console.log("error found while creating new user with google signin :", error);
         return res

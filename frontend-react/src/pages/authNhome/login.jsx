@@ -66,9 +66,12 @@ function Login() {
     try {
       setIsLoading(true);
       const res = await axios[method](url, body);
-
+      // console.log("res for login :", res);
       if (res?.data?.message === "unverified") {
-        navigate(`/re-verify-email?email=${res?.data?.email}`);
+        navigate(`/re-verify-email`, {
+          state: { email: res?.data?.email },
+        });
+        return;
       }
 
       localStorage.setItem("token", res.data.token);
@@ -174,7 +177,7 @@ function Login() {
               Login
             </button>
           </form>
-          {successMsg && <p className=" text-green-500 text-sm font-bold">{successMsg}</p>}
+          {successMsg && <p className=" text-green-500 text-sm font-normal">{successMsg}</p>}
 
           {/* OR Separator */}
           <div className="flex items-center my-2">
