@@ -377,7 +377,7 @@ exports.googleSignin = async (req, res) => {
 
     // check if user emailId exists to login directly or create new user and login after that
     const [userResult] = await db.query(
-      `SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified,
+      `SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified, u.is_active,
               u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
               cu.symbol as currency_symbol
           FROM users u JOIN countries c 
@@ -415,6 +415,8 @@ exports.googleSignin = async (req, res) => {
           username: user.username ?? user.email,
           name: user.display_name,
           role: user.role,
+          country: user.country_id,
+          currency: user.currency_symbol,
         },
         process.env.JWT_SECRET,
         { expiresIn: "24h" },
@@ -478,6 +480,8 @@ exports.googleSignin = async (req, res) => {
             username: user.username ?? user.email,
             name: user.display_name,
             role: user.role,
+            country: user.country_id,
+            currency: user.currency_symbol,
           },
           process.env.JWT_SECRET,
           { expiresIn: "24h" },

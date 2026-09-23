@@ -11,6 +11,7 @@ const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 exports.search_ingredients = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    // console.log("user in search_ing is in createRecipe Contriller:", user);
     const q = (req.params.q || "").trim().toLowerCase();
     const i = `%${q}%`;
     const id = Number(user.id);
@@ -69,6 +70,7 @@ exports.search_ingredients = async (req, res) => {
       }
     }
     // FINAL response
+    console.log("createRecipeController in search ingredient before response");
     res.json({
       success: true,
       message: `ingredients found for - ${q}`,
@@ -125,6 +127,7 @@ exports.get_ingredient_units = async (req, res) => {
 
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+  console.log("user in create recipe is:", user);
   const country_id = user.country; // required to be saved in user_price or user_ingredient tables for any updates of ing values
 
   // check if data is available

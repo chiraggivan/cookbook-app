@@ -225,11 +225,12 @@ function NewRecipe() {
     setErrorMessage("");
 
     // set new timeout for the delay
-
+    // console.log("about to search ing :", val);
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
           const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
+          // console.log("res is :", res);
           setSuggestedIng(res.data.rows);
         } catch (err) {
           // setExistIngs("");
