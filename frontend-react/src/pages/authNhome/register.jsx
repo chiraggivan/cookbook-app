@@ -47,17 +47,17 @@ function register() {
 
   // validate name is there and not larger than 30 char
   const checkName = (val) => {
-    if (!val || val.length < 3 || val.length > 30) {
-      setNameMsg("Name should be more than 3 and less than 30 chars.");
+    if (!val || val.length < 2 || val.length > 30) {
+      setNameMsg("Name should be more than 2 and less than 30 chars.");
     }
   };
 
-  // validate username is there and not less than 3 or more than 20 chars and are within the allowed chars
+  // validate username is there and not less than 5 or more than 20 chars and are within the allowed chars
   const checkUsername = async (val) => {
-    if (!val || val.length < 3 || val.length > 50 || !/^[a-zA-Z0-9]+$/.test(val)) {
+    if (!val || val.length < 5 || val.length > 20 || !/^[a-zA-Z0-9]+$/.test(val)) {
       setUserScss(false);
       setUserMsg(
-        "must be atleast 3 characters long, no spaces, not more than 20 chars and can only have alpha numeric values.",
+        "must be atleast 5 characters long, no spaces, not more than 20 chars and can only have alpha numeric values.",
       );
       return;
     }

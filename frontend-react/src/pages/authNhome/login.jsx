@@ -139,6 +139,7 @@ function Login() {
 
           <p className="text-center text-gray-500 mb-2">Sign in to continue</p>
           <form onSubmit={handleSubmit} className="space-y-2 border-0">
+            {/* username */}
             <div>
               <label className="block text-sm font-medium mb-2">Username</label>
               <input
@@ -154,6 +155,8 @@ function Login() {
               />
             </div>
             {userMsg && <p className="text-red-400 font-bold text-sm">* {userMsg}</p>}
+
+            {/* password */}
             <div>
               <label className="block font-medium text-sm mb-2">Password</label>
               <input
@@ -167,9 +170,20 @@ function Login() {
                   setErrMessage("");
                 }}
               />
+              <div className="flex w-full">
+                <div className="flex flex-1 w-full"></div>
+                <div
+                  className="pt-1 text-end text-xs text-blue-500 hover:cursor-pointer hover:text-blue-600 hover:underline"
+                  onClick={() => navigate("/forgotPassword")}
+                >
+                  Forgot Password?
+                </div>
+              </div>
             </div>
             {pwdMsg && <p className="text-red-400 font-bold text-sm">* {pwdMsg}</p>}
             {errMessage && <p className="text-red-400 font-bold text-sm">{errMessage}</p>}
+
+            {/* login button */}
             <button
               type="submit"
               className="w-full bg-blue-400 py-3 rounded-lg text-white font-medium hover:bg-blue-600 hover:cursor-pointer transition"

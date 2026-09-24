@@ -13,5 +13,7 @@ router.post("/googleSignin", authController.googleSignin);
 router.get("/countryList", authController.countryList);
 router.get("/verifyingUserEmail", authController.verifyUser);
 router.get("/reVerifyEmail", authController.reVerifyEmail);
+router.get("/newEmailForReverification", authController.newEmailForReverification);
+router.get("/pswdResetEmail", authController.pswdResetEmail);
 
 module.exports = router;

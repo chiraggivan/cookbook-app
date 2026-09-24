@@ -179,7 +179,7 @@ function AddIngredient() {
 
     const body = sendData;
 
-    console.log("data about to be sent :", body);
+    // console.log("data about to be sent :", body);
     // return;
 
     const method = "post";
@@ -193,7 +193,7 @@ function AddIngredient() {
       });
       alert(res.data.message);
       const updatedIngredients = [...myIngredients, res?.data?.data];
-      console.log("updatedIngredients", updatedIngredients);
+      // console.log("updatedIngredients", updatedIngredients);
       updatedIngredients.sort((a, b) => b.user_ingredient_id - a.user_ingredient_id);
       setMyIngredients(updatedIngredients);
       navigate("/myIngredients");

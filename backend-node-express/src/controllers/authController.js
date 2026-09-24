@@ -12,7 +12,7 @@ const {
   validateNewUserData,
 } = require("./authNhome/utils/normaliseNvalidateUserData");
 
-const { emailVerification } = require("../utils/emailServiceUtils");
+const { emailVerification, passwordResetEmailer } = require("../utils/emailServiceUtils");
 
 //
 exports.login = async (req, res) => {
@@ -58,7 +58,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check if user email is verified
+    // // Check if user email is verified
     // if (!user.email_verified) {
     //   return res.json({
     //     success: false,
@@ -247,23 +247,51 @@ exports.verifyUser = async (req, res) => {
   const token = req.query.t;
   const currentDate = new Date();
 
+  // check token
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: "Token not found",
+    });
+  }
+
   try {
     const [evtResult] = await db.query(
-      `SELECT user_id 
-      FROM email_verification_tokens 
-      WHERE token = ? AND expires_at > ?`,
-      [token, currentDate],
+      `SELECT 
+        evt.user_id, 
+        u.email,      
+        CASE 
+          WHEN evt.expires_at < ? THEN TRUE
+          WHEN evt.expires_at > ? THEN FALSE
+        END AS has_expired
+      FROM email_verification_tokens evt JOIN users u ON evt.user_id = u.user_id 
+      WHERE evt.token = ?`,
+      [currentDate, currentDate, token],
     );
+
     if (evtResult.length === 0) {
       // console.log("no user  found ");
       return res.json({
         success: false,
-        message: "token expired or invalid",
+        message: "No such token found",
+        tokenNotFound: true,
       });
     }
 
-    // if token valid and not expired
+    // if token valid
     const user_id = evtResult[0].user_id;
+    const email = evtResult[0].email;
+    const has_expired = evtResult[0].has_expired;
+    // console.log("has exipred :", has_expired);
+
+    // check has token expired
+    if (has_expired) {
+      return res.json({
+        success: false,
+        message: "Token expired",
+        email,
+      });
+    }
 
     // activate the user within the user table
     const updtQuery = `UPDATE users SET email_verified = 1 where user_id = ?`;
@@ -277,7 +305,8 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
-// resend new verifying link to user
+// resend new verifying link to user when token found in evt but expired
+// and email found thru token supplied and used to resend new verification link
 exports.reVerifyEmail = async (req, res) => {
   const email = req.query.q;
 
@@ -327,6 +356,133 @@ exports.reVerifyEmail = async (req, res) => {
     console.log("after response has sent");
   } catch (error) {
     console.log("Error in AuthController for reVerifyEmail : ", error);
+  }
+};
+
+// check new email sent by user to resend verification email due
+// to token no available in evt due to updation or deletion of the row in evt
+exports.newEmailForReverification = async (req, res) => {
+  const email = req.query.q;
+  const finalMsg = "Request Submitted. Check email.";
+
+  try {
+    const [userResult] = await db.query(
+      `SELECT user_id 
+      FROM users 
+      WHERE email = ? AND email_verified = 0`,
+      [email],
+    );
+
+    // irrespective of user found or not we will send same message
+    if (userResult.length === 0) {
+      return res.json({
+        success: false,
+        message: finalMsg,
+      });
+    }
+
+    const user_id = userResult[0].user_id;
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const expiryTime = new Date(Date.now() + 3600000);
+
+    //------------------------- inserting/updating verifyToken in email_verification_token table -------------------------------
+    const [result] = await db.query(
+      `SELECT user_id 
+      FROM email_verification_tokens
+      WHERE user_id = ?
+      `,
+      [user_id],
+    );
+
+    if (result.length) {
+      const tokenQuery = `UPDATE email_verification_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
+      const [EVTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
+    } else {
+      const tokenQuery = `INSERT INTO email_verification_tokens(user_id, token, expires_at)
+                          VALUES (?, ?,?)`;
+      const [EVTresult] = await db.query(tokenQuery, [user_id, verifyToken, expiryTime]);
+    }
+
+    //------------------- call the function to start nodemailer and send email having token, and email id ----------
+    const emailSent = await emailVerification(email, verifyToken);
+    return res.json({
+      success: true,
+      message: finalMsg,
+    });
+  } catch (error) {
+    console.log("Error in AuthController for reVerifyEmail : ", error);
+  }
+};
+
+// Check the username / email for password reset link
+exports.pswdResetEmail = async (req, res) => {
+  const userText = req.query.q;
+  const finalMsg = "Check email for link";
+
+  try {
+    const userQery = `
+    SELECT user_id, email, email_verified
+    FROM users 
+    WHERE (username = ? OR email = ?) AND is_active = 1`;
+    const [userResult] = await db.query(userQery, [userText, userText]);
+
+    // if no active user found, send generic message
+    if (userResult.length === 0) {
+      return res.json({
+        success: true,
+        message: finalMsg,
+      });
+    }
+
+    const user = userResult[0];
+    const user_id = user.user_id;
+    const email = user.email;
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const expiryTime = new Date(Date.now() + 3600000);
+    console.log("user is:", user);
+    if (user.email_verified) {
+      //------------------------- inserting/updating verifyToken in email_verification_token table -------------------------------
+      const [result] = await db.query(
+        `SELECT user_id 
+      FROM password_reset_tokens
+      WHERE user_id = ?
+      `,
+        [user_id],
+      );
+
+      if (result.length) {
+        const tokenQuery = `UPDATE password_reset_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
+        const [EVTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
+      } else {
+        const tokenQuery = `INSERT INTO password_reset_tokens(user_id, token, expires_at)
+                          VALUES (?, ?,?)`;
+        const [EVTresult] = await db.query(tokenQuery, [user_id, verifyToken, expiryTime]);
+      }
+
+      //------------------- call the function to start nodemailer and send email having token, and email id ----------
+
+      const emailSent = await passwordResetEmailer(email, verifyToken);
+      console.log("reached here too");
+      if (emailSent.success) {
+        return res.json({
+          success: true,
+          message: finalMsg,
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: emailSent.message,
+        });
+      }
+    } else {
+      // if email not verified then send them to the email verification page
+    }
+  } catch (error) {
+    console.log("Error in authController - pswdResetEmail :", error);
+    return res.status(400).json({
+      success: false,
+      message: "Something went wrong. Try after sometime.",
+    });
   }
 };
 
@@ -413,7 +569,6 @@ exports.googleSignin = async (req, res) => {
         {
           id: user.user_id,
           username: user.username ?? user.email,
-          name: user.display_name,
           role: user.role,
           country: user.country_id,
           currency: user.currency_symbol,
@@ -433,7 +588,6 @@ exports.googleSignin = async (req, res) => {
           role: user.role,
           display_name: user.display_name,
           picture_url: user.picture_url,
-          email: user.email,
           country: user.country_name,
           currency_id: user.currency_id,
           currency_symbol: user.currency_symbol,
@@ -477,8 +631,7 @@ exports.googleSignin = async (req, res) => {
         const token = jwt.sign(
           {
             id: user.user_id,
-            username: user.username ?? user.email,
-            name: user.display_name,
+            username: user.username,
             role: user.role,
             country: user.country_id,
             currency: user.currency_symbol,

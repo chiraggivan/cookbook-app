@@ -4,6 +4,11 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.create_user_ingredient = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const country = Number(user.country);
+    if (Number.isInteger(country) && country <= 0) {
+      console.log("In createUserIngredient country can't be invalid or 0");
+    }
+
     const ogData = req.body;
     if (!ogData) {
       return res.status(400).json({
@@ -15,13 +20,13 @@ exports.create_user_ingredient = async (req, res) => {
     // ----------------- normalise and validate the data --------------------
     const data = normaliseIngredientData(ogData);
     const error = validateIngredients(data);
-
     if (error) {
       return res.status(400).json({
         success: false,
         message: `Error while validating user ingredient details : ${error} .`,
       });
     }
+
     // console.log(" normalisation and validation done for data. Now starting with image file.");
     // Read & save image file
     const image_file = req.file;
@@ -42,9 +47,9 @@ exports.create_user_ingredient = async (req, res) => {
       const unique_filename = `${uuidv4().replace(/-/g, "")}${ext}`;
       const save_path = path.join("static/images/user_ingredients", unique_filename);
 
-      console.log("ext is :", ext);
-      console.log("unique_filename : ", unique_filename);
-      console.log("save_path :", save_path);
+      // console.log("ext is :", ext);
+      // console.log("unique_filename : ", unique_filename);
+      // console.log("save_path :", save_path);
 
       // file already saved via middleware (e.g., multer)
       data["image_path"] = `ingredients/${unique_filename}`;
@@ -122,16 +127,20 @@ exports.create_user_ingredient = async (req, res) => {
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      const [result] = await conn.query(`CALL insert_user_ingredient_plus_units(?,?,?,?,?,?,?,?)`, [
-        data.name,
-        data.quantity,
-        data.unit,
-        data.price,
-        data.cup_weight,
-        data.cup_unit,
-        data.notes,
-        user.id,
-      ]);
+      const [result] = await conn.query(
+        `CALL insert_user_ingredient_plus_units(?,?,?,?,?,?,?,?,?)`,
+        [
+          data.name,
+          data.quantity,
+          data.unit,
+          data.price,
+          data.cup_weight,
+          data.cup_unit,
+          data.notes,
+          user.id,
+          country,
+        ],
+      );
 
       forFrontEndData.user_ingredient_id = result[0][0].insertId;
       await conn.commit();
