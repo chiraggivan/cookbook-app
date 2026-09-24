@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { serverURL } from "../../utils/appUtils";
 import Dropdown from "../../components/dropdown";
+import { Spinner } from "flowbite-react";
 
 function register() {
   const [usernameAvlbl, setUsernameAvlbl] = useState(true);
@@ -21,6 +22,7 @@ function register() {
   const [countryList, setCountryList] = useState([]);
   const [countrySelect, setCountrySelect] = useState(0);
   const [cntryErrMsg, setCntryErrMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [disableRegisterBtn, setDisableRegisterBtn] = useState(true);
@@ -187,6 +189,7 @@ function register() {
     const url = `${serverURL}/auth/api/register`;
     const method = "post";
     try {
+      setLoading(true);
       const res = await axios[method](url, userData);
       // console.log("res :", res.data);
       // return;
@@ -195,6 +198,8 @@ function register() {
     } catch (err) {
       console.log("Error during register is :", err.response.data.message);
       setErrMsg(err.response.data.message);
+    } finally {
+      setLoading(false);
     }
 
     // return;
@@ -203,6 +208,20 @@ function register() {
   // console.log("disableRegisterBtn :", disableRegisterBtn);
   // console.log("Country list is :", countryList);
   // console.log(" Country select is :", countrySelect);
+
+  // Spinner for loading screen
+  if (loading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
+  }
 
   return (
     <>
