@@ -2,7 +2,7 @@ function normaliseNewUserData(data) {
   const cleaned = {};
 
   // Helper function (like re.sub + strip + lower)
-  const normaliseString = (value) => value.trim().replace(/\s+/g, " ").toLowerCase();
+  const normaliseString = (value) => value.trim().replace(/\s+/g, " ");
 
   // String fields
   const strFields = ["name", "email", "username", "password", "country"];
