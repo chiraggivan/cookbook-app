@@ -28,6 +28,7 @@ const ReVerifyEmail = () => {
       const reVerifyEmail = async () => {
         try {
           // Call backend for the new token
+          setLoading(true);
           const res = await api.get(`/auth/api/reVerifyEmail?q=${email}`);
           const msg = res?.data?.message;
           navigate(`/login?successMsg=${encodeURIComponent(msg)}`);
@@ -113,7 +114,7 @@ const ReVerifyEmail = () => {
           <button
             type="button"
             onClick={() => setResend(true)}
-            className="font-medium text-green-600 hover:text-green-700 hover:underline"
+            className="font-medium text-green-600 hover:text-green-700 hover:underline hover:cursor-pointer"
           >
             Resend verification email
           </button>

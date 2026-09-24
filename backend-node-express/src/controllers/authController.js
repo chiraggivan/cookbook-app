@@ -14,7 +14,7 @@ const {
 
 const { emailVerification, passwordResetEmailer } = require("../utils/emailServiceUtils");
 
-//
+// basic login with username/email and password
 exports.login = async (req, res) => {
   //  return;
   try {
@@ -58,7 +58,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // // Check if user email is verified
+    // Check if user email is verified
     // if (!user.email_verified) {
     //   return res.json({
     //     success: false,
@@ -182,6 +182,7 @@ exports.register = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(data.password, 10); // 10 is the number of salt rounds
   data.password = hashedPassword;
+
   const stringData = JSON.stringify(data);
   // console.log("stringData :", stringData);
 
@@ -208,7 +209,7 @@ exports.register = async (req, res) => {
     await conn.commit();
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    // const emailSent = await emailVerification(data.email, verifyToken);
+    // const emailSent = await emailVerification(data.name, data.email, verifyToken, );
     res.json({
       success: true,
       message: `New user created as : ${userData.username}`,
@@ -312,7 +313,7 @@ exports.reVerifyEmail = async (req, res) => {
 
   try {
     const [userResult] = await db.query(
-      `SELECT user_id 
+      `SELECT user_id, display_name 
       FROM users 
       WHERE email = ? AND email_verified = 0`,
       [email],
@@ -326,6 +327,7 @@ exports.reVerifyEmail = async (req, res) => {
     }
 
     const user_id = userResult[0].user_id;
+    const name = userResult[0].display_name;
     const verifyToken = crypto.randomBytes(32).toString("hex");
     const expiryTime = new Date(Date.now() + 3600000);
 
@@ -348,7 +350,7 @@ exports.reVerifyEmail = async (req, res) => {
     }
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    const emailSent = await emailVerification(email, verifyToken);
+    const emailSent = await emailVerification(name, email, verifyToken);
     return res.json({
       success: true,
       message: `Resent verification on: ${email}`,
@@ -367,7 +369,7 @@ exports.newEmailForReverification = async (req, res) => {
 
   try {
     const [userResult] = await db.query(
-      `SELECT user_id 
+      `SELECT user_id, display_name
       FROM users 
       WHERE email = ? AND email_verified = 0`,
       [email],
@@ -382,6 +384,7 @@ exports.newEmailForReverification = async (req, res) => {
     }
 
     const user_id = userResult[0].user_id;
+    const name = userResult[0].display_name;
     const verifyToken = crypto.randomBytes(32).toString("hex");
     const expiryTime = new Date(Date.now() + 3600000);
 
@@ -404,7 +407,7 @@ exports.newEmailForReverification = async (req, res) => {
     }
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    const emailSent = await emailVerification(email, verifyToken);
+    const emailSent = await emailVerification(name, email, verifyToken);
     return res.json({
       success: true,
       message: finalMsg,
@@ -439,9 +442,9 @@ exports.pswdResetEmail = async (req, res) => {
     const email = user.email;
     const verifyToken = crypto.randomBytes(32).toString("hex");
     const expiryTime = new Date(Date.now() + 3600000);
-    console.log("user is:", user);
+    // console.log("user is:", user);
     if (user.email_verified) {
-      //------------------------- inserting/updating verifyToken in email_verification_token table -------------------------------
+      //------------------------- inserting/updating verifyToken in password_reset_tokens table -------------------------------
       const [result] = await db.query(
         `SELECT user_id 
       FROM password_reset_tokens
@@ -462,7 +465,7 @@ exports.pswdResetEmail = async (req, res) => {
       //------------------- call the function to start nodemailer and send email having token, and email id ----------
 
       const emailSent = await passwordResetEmailer(email, verifyToken);
-      console.log("reached here too");
+      // console.log("reached here too");
       if (emailSent.success) {
         return res.json({
           success: true,
@@ -482,6 +485,105 @@ exports.pswdResetEmail = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Something went wrong. Try after sometime.",
+    });
+  }
+};
+
+// update password for user
+exports.updatePassword = async (req, res) => {
+  const body = req.body;
+  // console.log("body is :", body);
+  const token = body.token;
+  const new_password = body.newPassword;
+
+  // validate password
+  if (
+    !new_password ||
+    typeof new_password !== "string" ||
+    new_password.length < 8 ||
+    new_password.length > 50 ||
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_$#*&%@])[a-zA-Z0-9_$#*&%@]+$/.test(new_password)
+  ) {
+    return res.json({
+      success: false,
+      reason: "password",
+      message:
+        "Invalid password: min 8 characters and max 50 with min 1 uppercase, 1 lowercase, 1 number and any of these special charaacter",
+    });
+  }
+
+  // validate token with password_reset_token table
+  const currentDate = new Date();
+  const prtQuery = `
+    SELECT prt.user_id, u.email,
+      CASE 
+        WHEN prt.expires_at < ? THEN TRUE
+        WHEN prt.expires_at > ? THEN FALSE
+      END AS has_expired
+    FROM password_reset_tokens prt JOIN users u ON prt.user_id = u.user_id
+    WHERE token = ?`;
+  try {
+    const [prtResult] = await db.query(prtQuery, [currentDate, currentDate, token]);
+    // console.log("prtresult", prtResult.length);
+    // check if user_id found or not
+    if (prtResult.length === 0) {
+      return res.json({
+        success: false,
+        message: "no user",
+      });
+    } else {
+      // found user_id but is token valid or not?
+      const result = prtResult[0];
+      const user_id = result.user_id;
+      const email = result.email;
+      if (result.has_expired) {
+        const verifyToken = crypto.randomBytes(32).toString("hex");
+        const expiryTime = new Date(Date.now() + 3600000);
+        //------------------------- inserting/updating verifyToken in password_reset_tokens table -------------------------------
+        const tokenQuery = `UPDATE password_reset_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
+        const [PRTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
+
+        //------------------- call the function to start nodemailer and send email having token, and email id ----------
+        const emailSent = await passwordResetEmailer(email, verifyToken);
+        // console.log("reached here too");
+        if (emailSent.success) {
+          return res.json({
+            success: true,
+            message: emailSent.message,
+          });
+        } else {
+          return res.json({
+            success: false,
+            message: emailSent.message,
+          });
+        }
+      } else {
+        // udpate password
+        const hashedPassword = await bcrypt.hash(new_password, 10); // 10 is the number of salt rounds
+
+        // save in users table
+        try {
+          const uptQuery = `UPDATE users SET password = ? WHERE user_id = ?`;
+          await db.query(uptQuery, [hashedPassword, user_id]);
+          console.log("about to res to fe");
+          return res.json({
+            success: true,
+            message: "password updated",
+          });
+        } catch (error) {
+          console.log("Error in authController while updating in users table :", error);
+          return res.status(400).json({
+            success: false,
+            message: "Server Error. Please try later.",
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.log("Error in authContoller during updatePassword :", error);
+    return res.status(400).json({
+      success: false,
+      message: "Server Error. Please try later.",
     });
   }
 };

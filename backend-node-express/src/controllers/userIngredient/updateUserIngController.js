@@ -4,6 +4,10 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.update_user_ing = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const country = Number(user.country);
+    if (Number.isInteger(country) && country <= 0) {
+      console.log("In createUserIngredient country can't be invalid or 0");
+    }
     // console.log("req body :", req?.body);
     const ogData = req?.body;
     ogData.quantity = Number(ogData.quantity);
@@ -76,7 +80,7 @@ exports.update_user_ing = async (req, res) => {
       await conn.beginTransaction();
       // console.log("before procedure");
       const [result] = await conn.query(
-        `CALL update_user_ingredient_plus_units (?,?,?,?,?,?,?,?,?)`,
+        `CALL update_user_ingredient_plus_units (?,?,?,?,?,?,?,?,?,?)`,
         [
           data.user_ing_id,
           data.name,
@@ -87,6 +91,7 @@ exports.update_user_ing = async (req, res) => {
           data.cup_unit,
           data.notes,
           user.id,
+          country,
         ],
       );
       await conn.commit();

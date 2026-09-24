@@ -19,7 +19,6 @@ const ResetPassword = () => {
 
   // handle Submit button
   const submit = () => {
-    console.log("entered here");
     // basic check of text field
     if (userText.length < 5) {
       setErrMsg("Invalid. Minimum 5 characters required.");
