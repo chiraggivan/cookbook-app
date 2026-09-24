@@ -208,7 +208,7 @@ exports.register = async (req, res) => {
     await conn.commit();
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    const emailSent = await emailVerification(data.email, verifyToken);
+    // const emailSent = await emailVerification(data.email, verifyToken);
     res.json({
       success: true,
       message: `New user created as : ${userData.username}`,
