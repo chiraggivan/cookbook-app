@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username specified
     const [rows] = await db.query(
-      `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, u.email, u.email_verified,
+      `SELECT u.user_id, u.username, u.display_name u.password, u.picture_url, u.email, u.email_verified,
           u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
           cu.symbol as currency_symbol
       FROM users u JOIN countries c 
@@ -59,13 +59,13 @@ exports.login = async (req, res) => {
     }
 
     // Check if user email is verified
-    // if (!user.email_verified) {
-    //   return res.json({
-    //     success: false,
-    //     message: "unverified",
-    //     email: user.email,
-    //   });
-    // }
+    if (user.email_verified === 0) {
+      return res.json({
+        success: false,
+        message: "unverified",
+        email: user.email,
+      });
+    }
 
     // create token with user details to be sent as response
     const token = jwt.sign(
@@ -209,11 +209,18 @@ exports.register = async (req, res) => {
     await conn.commit();
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
-    // const emailSent = await emailVerification(data.name, data.email, verifyToken, );
-    res.json({
-      success: true,
-      message: `New user created as : ${userData.username}`,
-    });
+    const emailSent = await emailVerification(data.name, data.email, verifyToken);
+    if (emailSent.success) {
+      return res.json({
+        success: true,
+        message: emailSent.message,
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: emailSent.message,
+      });
+    }
   } catch (err) {
     await conn.rollback();
     console.log("Error in authController - register :", err);
@@ -351,11 +358,17 @@ exports.reVerifyEmail = async (req, res) => {
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
     const emailSent = await emailVerification(name, email, verifyToken);
-    return res.json({
-      success: true,
-      message: `Resent verification on: ${email}`,
-    });
-    console.log("after response has sent");
+    if (emailSent.success) {
+      return res.json({
+        success: true,
+        message: emailSent.message,
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: emailSent.message,
+      });
+    }
   } catch (error) {
     console.log("Error in AuthController for reVerifyEmail : ", error);
   }
@@ -408,10 +421,17 @@ exports.newEmailForReverification = async (req, res) => {
 
     //------------------- call the function to start nodemailer and send email having token, and email id ----------
     const emailSent = await emailVerification(name, email, verifyToken);
-    return res.json({
-      success: true,
-      message: finalMsg,
-    });
+    if (emailSent.success) {
+      return res.json({
+        success: true,
+        message: emailSent.message,
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: emailSent.message,
+      });
+    }
   } catch (error) {
     console.log("Error in AuthController for reVerifyEmail : ", error);
   }
@@ -420,13 +440,13 @@ exports.newEmailForReverification = async (req, res) => {
 // Check the username / email for password reset link
 exports.pswdResetEmail = async (req, res) => {
   const userText = req.query.q;
-  const finalMsg = "Check email for link";
+  const finalMsg = "If registered, check email for link";
 
   try {
     const userQery = `
-    SELECT user_id, email, email_verified
+    SELECT user_id, display_name, email, email_verified
     FROM users 
-    WHERE (username = ? OR email = ?) AND is_active = 1`;
+    WHERE (username = ? OR email = ?)`;
     const [userResult] = await db.query(userQery, [userText, userText]);
 
     // if no active user found, send generic message
@@ -439,6 +459,7 @@ exports.pswdResetEmail = async (req, res) => {
 
     const user = userResult[0];
     const user_id = user.user_id;
+    const name = user.display_name;
     const email = user.email;
     const verifyToken = crypto.randomBytes(32).toString("hex");
     const expiryTime = new Date(Date.now() + 3600000);
@@ -464,7 +485,7 @@ exports.pswdResetEmail = async (req, res) => {
 
       //------------------- call the function to start nodemailer and send email having token, and email id ----------
 
-      const emailSent = await passwordResetEmailer(email, verifyToken);
+      const emailSent = await passwordResetEmailer(name, email, verifyToken);
       // console.log("reached here too");
       if (emailSent.success) {
         return res.json({
@@ -485,6 +506,78 @@ exports.pswdResetEmail = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Something went wrong. Try after sometime.",
+    });
+  }
+};
+
+//  check if the link for reset password is valid before allowing user to set new password
+exports.chckPwdResetLnk = async (req, res) => {
+  const token = req.query.t;
+  const currentDate = new Date();
+
+  // check token is valid and its expires_at time
+  const tokenQuery = `
+    SELECT prt.user_id, u.email, u.display_name,
+      CASE 
+        WHEN prt.expires_at < ? THEN TRUE
+        WHEN prt.expires_at > ? THEN FALSE
+      END AS has_expired
+    FROM password_reset_tokens prt JOIN users u ON prt.user_id = u.user_id
+    WHERE prt.token = ?`;
+
+  try {
+    const [prtResult] = await db.query(tokenQuery, [currentDate, currentDate, token]);
+
+    // if not token found in db
+    if (prtResult.length === 0) {
+      return res.json({
+        success: false,
+        message: "no token",
+      });
+    }
+
+    // if found check has_expired
+    const user_id = prtResult[0].user_id;
+    const name = prtResult[0].display_name;
+    const email = prtResult[0].email;
+    const has_expired = prtResult[0].has_expired;
+
+    if (has_expired === 1) {
+      const verifyToken = crypto.randomBytes(32).toString("hex");
+      const expiryTime = new Date(Date.now() + 3600000);
+      //------------------------- inserting/updating verifyToken in password_reset_tokens table -------------------------------
+      const tokenQuery = `UPDATE password_reset_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
+      const [PRTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
+
+      //------------------- call the function to start nodemailer and send email having token, and email id ----------
+      const emailSent = await passwordResetEmailer(name, email, verifyToken);
+      // console.log("reached here too");
+      if (emailSent.success) {
+        return res.json({
+          success: false, // using false as link has expired and frontend screen needs to show accordingly
+          message: emailSent.message,
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: "email failed",
+        });
+      }
+      // return res.json({
+      //   sucess: false,
+      //   message: "has expired",
+      // });
+    } else {
+      return res.json({
+        sucess: true,
+        message: "token found",
+      });
+    }
+  } catch (error) {
+    console.log("Error Found in AuthController during check pwd reset link :", error);
+    return res.status(400).json({
+      success: false,
+      message: "backend Server error. Please try later.",
     });
   }
 };
@@ -515,7 +608,7 @@ exports.updatePassword = async (req, res) => {
   // validate token with password_reset_token table
   const currentDate = new Date();
   const prtQuery = `
-    SELECT prt.user_id, u.email,
+    SELECT prt.user_id, u.email, u.display_name,
       CASE 
         WHEN prt.expires_at < ? THEN TRUE
         WHEN prt.expires_at > ? THEN FALSE
@@ -535,6 +628,7 @@ exports.updatePassword = async (req, res) => {
       // found user_id but is token valid or not?
       const result = prtResult[0];
       const user_id = result.user_id;
+      const name = result.display_name;
       const email = result.email;
       if (result.has_expired) {
         const verifyToken = crypto.randomBytes(32).toString("hex");
@@ -544,7 +638,7 @@ exports.updatePassword = async (req, res) => {
         const [PRTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
 
         //------------------- call the function to start nodemailer and send email having token, and email id ----------
-        const emailSent = await passwordResetEmailer(email, verifyToken);
+        const emailSent = await passwordResetEmailer(name, email, verifyToken);
         // console.log("reached here too");
         if (emailSent.success) {
           return res.json({
@@ -565,7 +659,7 @@ exports.updatePassword = async (req, res) => {
         try {
           const uptQuery = `UPDATE users SET password = ? WHERE user_id = ?`;
           await db.query(uptQuery, [hashedPassword, user_id]);
-          console.log("about to res to fe");
+          // console.log("about to res to fe");
           return res.json({
             success: true,
             message: "password updated",

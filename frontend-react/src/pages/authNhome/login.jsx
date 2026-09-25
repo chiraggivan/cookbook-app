@@ -191,7 +191,7 @@ function Login() {
               Login
             </button>
           </form>
-          {successMsg && <p className=" text-green-500 text-sm font-normal">{successMsg}</p>}
+          {successMsg && <p className=" text-green-500 text-sm font-semibold">{successMsg}</p>}
 
           {/* OR Separator */}
           <div className="flex items-center my-2">
