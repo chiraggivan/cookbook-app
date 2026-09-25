@@ -8,7 +8,7 @@ const NewPassword = () => {
   const [rePwd, setRePwd] = useState("");
   const [errMsg, setErrMsg] = useState("");
   const [disableBtn, setDisableBtn] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [pwdupdtdSuccess, setPwdupdtdSuccess] = useState(false);
   const [emailOption, setEmailOption] = useState(false);
   const [newLinkSent, setNewLinkSent] = useState(false);
@@ -19,6 +19,47 @@ const NewPassword = () => {
   // const token = params.get("t");
   const [searchParams] = useSearchParams();
   const token = searchParams.get("t");
+
+  // check link validity and update useState to show screen accordingly
+  useEffect(() => {
+    const url = `/auth/api/checkPasswordResetLink?t=${token}`;
+    const verifyLink = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(url);
+        console.log("res is:", res);
+        if (res.data?.success) {
+          return;
+        }
+        // if success is false check message
+        // if - No token found in db
+        if (res.data?.message === "no token") {
+          console.log("within no token");
+          setEmailOption(true);
+          return;
+        }
+        // if token found BUT it was expired and it resent email
+        if (res.data?.message === "email sent") {
+          setNewLinkSent(true);
+          return;
+        }
+        // if token found BUT FAILED to resend email
+        if (res.data?.message === "email failed") {
+          setErrMsg(
+            "Link expired but failed to resend new link. Try again later or try again with forgot password",
+          );
+          return;
+        }
+      } catch (error) {
+        console.log("Error while checking the link validity :", error);
+        setErrMsg("Something went wrong. Try after sometime.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyLink();
+  }, []);
 
   //   activate submit button logic
   useEffect(() => {
@@ -186,9 +227,9 @@ const NewPassword = () => {
           {/* Information */}
           <p className="mb-6 text-center text-sm leading-6 text-gray-600">
             This password reset link is no longer valid. Please request a new link on registered
-            <span className="font-bold text-black"> email</span> address or{" "}
-            <span className="font-bold text-black">username</span> to reset your password and change
-            your password within <span className="font-bold text-black">1 hour.</span>
+            <span className="font-bold text-black"> email</span> address by giving
+            <span className="font-bold text-black"> username/Email</span> and change your password
+            within <span className="font-bold text-black">1 hour.</span>
           </p>
 
           <form onSubmit={handleSubmit}>

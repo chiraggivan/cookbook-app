@@ -17,8 +17,8 @@ const ResetPassword = () => {
     }
   }, [userText]);
 
-  // handle Submit button
-  const submit = () => {
+  //  handle Submit button
+  const handleSubmit = () => {
     // basic check of text field
     if (userText.length < 5) {
       setErrMsg("Invalid. Minimum 5 characters required.");
@@ -114,10 +114,10 @@ const ResetPassword = () => {
           {errMsg && <div className="mt-1 text-xs text-red-500">{errMsg}</div>}
         </div>
 
-        {/* Submit */}
+        {/* handle Submit */}
         <button
           type="button"
-          onClick={submit}
+          onClick={handleSubmit}
           disabled={!textFound}
           className={
             textFound
