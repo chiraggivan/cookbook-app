@@ -78,7 +78,7 @@ const ReVerifyEmail = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm border border-gray-200">
         {/* Email icon */}
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
           <svg
             className="h-8 w-8 text-green-600"
             fill="none"
@@ -124,7 +124,7 @@ const ReVerifyEmail = () => {
         <button
           type="button"
           onClick={() => navigate("/login")}
-          className="mt-6 w-full rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
+          className="mt-6 w-full rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700 hover:cursor-pointer focus:outline-none focus:ring-4 focus:ring-green-300"
         >
           Go to Login
         </button>

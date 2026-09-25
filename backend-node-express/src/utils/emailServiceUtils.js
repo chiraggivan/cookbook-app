@@ -8,6 +8,8 @@ const emailVerification = async (name, email_to, token) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
+    secure: false,
+    family: 4,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASSWORD,
@@ -202,6 +204,8 @@ const passwordResetEmailer = async (name, email_to, token) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
+    secure: false,
+    family: 4,
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASSWORD,
