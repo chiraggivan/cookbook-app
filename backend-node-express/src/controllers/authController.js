@@ -59,13 +59,13 @@ exports.login = async (req, res) => {
     }
 
     // Check if user email is verified
-    if (user.email_verified === 0) {
-      return res.json({
-        success: false,
-        message: "unverified",
-        email: user.email,
-      });
-    }
+    // if (user.email_verified === 0) {
+    //   return res.json({
+    //     success: false,
+    //     message: "unverified",
+    //     email: user.email,
+    //   });
+    // }
 
     // create token with user details to be sent as response
     const token = jwt.sign(
