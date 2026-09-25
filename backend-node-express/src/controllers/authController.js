@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username specified
     const [rows] = await db.query(
-      `SELECT u.user_id, u.username, u.display_name u.password, u.picture_url, u.email, u.email_verified,
+      `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, u.email, u.email_verified,
           u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
           cu.symbol as currency_symbol
       FROM users u JOIN countries c 
