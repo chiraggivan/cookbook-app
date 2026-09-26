@@ -14,6 +14,8 @@ const ResetPassword = () => {
   useEffect(() => {
     if (userText.trim().length !== 0) {
       setTextFound(true);
+    } else {
+      setTextFound(false);
     }
   }, [userText]);
 

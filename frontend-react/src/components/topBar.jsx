@@ -37,6 +37,7 @@ function TopBar() {
   const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
     useContext(MyRecipeContext);
   // const [searchInput, setSearchInput] = useState("");
+
   const { setSearchRecipe, searchInput, setSearchInput } = useSearch();
   useEffect(() => {
     if (!user) {

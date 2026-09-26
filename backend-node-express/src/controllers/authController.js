@@ -28,22 +28,22 @@ exports.login = async (req, res) => {
       });
     }
 
-    // get user info from db with the username specified
+    // get user info from db with the username / email
     const [rows] = await db.query(
       `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, u.email, u.email_verified,
-          u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
+          u.role, u.country_id , c.name as country_name, c.country_code, c.currency_id,
           cu.symbol as currency_symbol
       FROM users u JOIN countries c 
       ON u.country_id = c.country_id
       JOIN currencies cu
       ON cu.currency_id = c.currency_id
-      WHERE u.username = ? AND u.is_active = 1`,
-      [username],
+      WHERE (LOWER(u.username) = LOWER(?) OR LOWER(u.email) = LOWER(?)) AND u.is_active = 1`,
+      [username, username],
     );
     if (rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "No such active User found",
+        message: "Username and password does not match",
       });
     }
     const user = rows[0];
@@ -322,7 +322,7 @@ exports.reVerifyEmail = async (req, res) => {
     const [userResult] = await db.query(
       `SELECT user_id, display_name 
       FROM users 
-      WHERE email = ? AND email_verified = 0`,
+      WHERE email = ? `,
       [email],
     );
 
@@ -464,42 +464,43 @@ exports.pswdResetEmail = async (req, res) => {
     const verifyToken = crypto.randomBytes(32).toString("hex");
     const expiryTime = new Date(Date.now() + 3600000);
     // console.log("user is:", user);
-    if (user.email_verified) {
-      //------------------------- inserting/updating verifyToken in password_reset_tokens table -------------------------------
-      const [result] = await db.query(
-        `SELECT user_id 
+
+    //------------------------- inserting/updating verifyToken in password_reset_tokens table -------------------------------
+    const [result] = await db.query(
+      `SELECT user_id 
       FROM password_reset_tokens
       WHERE user_id = ?
       `,
-        [user_id],
-      );
+      [user_id],
+    );
 
-      if (result.length) {
-        const tokenQuery = `UPDATE password_reset_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
-        const [EVTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
-      } else {
-        const tokenQuery = `INSERT INTO password_reset_tokens(user_id, token, expires_at)
-                          VALUES (?, ?,?)`;
-        const [EVTresult] = await db.query(tokenQuery, [user_id, verifyToken, expiryTime]);
-      }
-
-      //------------------- call the function to start nodemailer and send email having token, and email id ----------
-
-      const emailSent = await passwordResetEmailer(name, email, verifyToken);
-      // console.log("reached here too");
-      if (emailSent.success) {
-        return res.json({
-          success: true,
-          message: finalMsg,
-        });
-      } else {
-        return res.json({
-          success: false,
-          message: emailSent.message,
-        });
-      }
+    if (result.length != 0) {
+      const tokenQuery = `UPDATE password_reset_tokens SET token = ?, expires_at = ? WHERE user_id = ?`;
+      const [EVTresult] = await db.query(tokenQuery, [verifyToken, expiryTime, user_id]);
     } else {
-      // if email not verified then send them to the email verification page
+      const tokenQuery = `INSERT INTO password_reset_tokens(user_id, token, expires_at)
+                          VALUES (?, ?,?)`;
+      const [EVTresult] = await db.query(tokenQuery, [user_id, verifyToken, expiryTime]);
+    }
+
+    //------------------- call the function to start nodemailer and send email having token, and email id ----------
+
+    const emailSent = await passwordResetEmailer(name, email, verifyToken);
+    // console.log("reached here too");
+    if (emailSent.success) {
+      return res.json({
+        success: true,
+        message: finalMsg,
+      });
+    } else {
+      console.log(
+        "Error in authController for pwdResetEmail during sending email :",
+        email.message,
+      );
+      return res.json({
+        success: false,
+        message: "Something went wrong. Try after sometime.",
+      });
     }
   } catch (error) {
     console.log("Error in authController - pswdResetEmail :", error);
@@ -656,8 +657,10 @@ exports.updatePassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(new_password, 10); // 10 is the number of salt rounds
 
         // save in users table
+        // update email_verified = 1 as this request is coming from link via registered email so
+        // even if user was un verified , this process should verify it.
         try {
-          const uptQuery = `UPDATE users SET password = ? WHERE user_id = ?`;
+          const uptQuery = `UPDATE users SET password = ?, email_verified = 1 WHERE user_id = ?`;
           await db.query(uptQuery, [hashedPassword, user_id]);
           // console.log("about to res to fe");
           return res.json({
@@ -755,7 +758,7 @@ exports.googleSignin = async (req, res) => {
 
       const [userUpdt] = await db.query(
         `UPDATE users 
-        SET last_login_at = CURRENT_TIMESTAMP, picture_url = ?, display_name = ?
+        SET last_login_at = CURRENT_TIMESTAMP, picture_url = ?, display_name = ?, email_verified = 1
         WHERE email = ?`,
         [imgUrl, fullName, email],
       );
@@ -798,7 +801,7 @@ exports.googleSignin = async (req, res) => {
           [],
         );
         const country_id = cntryResult[0].country_id;
-        console.log("country id to be added in case of google signing is :", country_id);
+        // console.log("country id to be added in case of google signing is :", country_id);
         const [result] = await db.query(
           ` INSERT INTO users ( display_name, picture_url, email, email_verified, google_sub, role, country_id, last_login_at )
           VALUES (?, ?, ?, 1, ?, 'user', ?, CURRENT_TIMESTAMP)
@@ -871,8 +874,11 @@ exports.googleSignin = async (req, res) => {
 
     // return res.json({ success: true, user: payload });
   } catch (error) {
-    console.log("something went wrong", error);
-    return res.status(400).json({ success: false, message: "something went wrong" });
+    console.log("something went wrong during google signin :", error);
+    return res.status(400).json({
+      success: false,
+      message: "something went wrong with google signin. Please try again later",
+    });
   }
 
   return res.json({

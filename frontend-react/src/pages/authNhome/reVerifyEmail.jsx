@@ -19,7 +19,7 @@ const ReVerifyEmail = () => {
   const email = location.state?.email;
   if (!email) {
     console.log("no email found");
-    return;
+    return <div>No email attached to check</div>;
   }
 
   // onclick of resend
@@ -34,7 +34,7 @@ const ReVerifyEmail = () => {
           navigate(`/login?successMsg=${encodeURIComponent(msg)}`);
         } catch (error) {
           console.log("Error in VerifyingUserEmail: ", error);
-          setStatus("error");
+          // setStatus("error");
         }
       };
 
@@ -57,24 +57,6 @@ const ReVerifyEmail = () => {
   }
 
   return (
-    // <div>
-    //   <h2>
-    //     Verification email was sent during registration. Please check spam folder if not found.
-    //   </h2>
-    //   <p>
-    //     For new verification email, click{" "}
-    //     <span
-    //       className="text-app-primary hover:cursor-pointer"
-    //       onClick={() => {
-    //         setResend(true);
-    //         setLoading(true);
-    //       }}
-    //     >
-    //       here.
-    //     </span>{" "}
-    //     or go to login page.
-    //   </p>
-    // </div>
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm border border-gray-200">
         {/* Email icon */}
