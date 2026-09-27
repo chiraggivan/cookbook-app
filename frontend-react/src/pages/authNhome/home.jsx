@@ -216,19 +216,21 @@ function Home() {
 
                 {/* details of recipe */}
                 <div className="mx-1 my-2 w-full">
+                  {/* Recipe name */}
                   <div
                     className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer"
                     onClick={() => navigate(`/recipe/${i.recipe_id}`)}
                   >
                     {i.name}
                   </div>
+                  {/* portion size */}
                   <p
                     className="text-sm line-clamp-1 font-semibold text-gray-600 "
                     onClick={() => navigate(`/recipe/${i.recipe_id}`)}
                   >
                     portion : {i.portion_size}
                   </p>
-
+                  {/* recipe owner name */}
                   <p
                     className="text-sm line-clamp-1 font-semibold text-gray-600 "
                     onClick={() => navigate(`/recipesBy/${i.user_id}`)}

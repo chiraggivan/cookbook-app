@@ -95,6 +95,36 @@ the source code.
 9. [Responsive Left Bar](#79-responsive-left-bar)
 10. [User Profile](#710-user-profile)
 
+## 8. Home Page
+
+1. [Initial Recipe Listing](#81-initial-recipe-listing)
+2. [Progressive Recipe Loading](#82-progressive-recipe-loading)
+3. [Recipe Search](#83-recipe-search)
+4. [Search Results](#84-search-results)
+5. [Recipe Display](#85-recipe-display)
+
+## 9. Read Recipe
+
+1. [Viewing Another User's Recipe](#91-viewing-another-users-recipe)
+2. [Viewing Own Recipe](#92-viewing-own-recipe)
+
+## 13. My Recipes
+
+1. [My Recipe Listing](#131-my-recipe-listing)
+2. [My Recipe Search](#132-my-recipe-search)
+3. [Search Results](#133-search-results)
+4. [Recipe Display](#134-recipe-display)
+
+## 14. Users' Recipes
+
+1. [Accessing a User's Recipes](#141-accessing-a-users-recipes)
+2. [Identifying the Selected User](#142-identifying-the-selected-user)
+3. [Retrieving the User's Recipes](#143-retrieving-the-users-recipes)
+4. [Progressive Recipe Loading](#144-progressive-recipe-loading)
+5. [Recipe Search](#145-recipe-search)
+6. [Search Results](#146-search-results)
+7. [Recipe Display](#147-recipe-display)
+
 ---
 
 # 1. Register
@@ -1040,3 +1070,248 @@ On smaller screens, its navigation options are provided through the navigation d
 The Top Bar contains a user profile button on medium-sized screens and larger.
 
 The functionality available through the user profile button can be documented separately once its behavior is defined.
+
+# 8. Home Page
+
+The Home Page is the main recipe browsing area of the application.
+
+It is displayed within the **Application Shell**, which provides the common navigation and other shared functionality. The Home Page is therefore responsible only for displaying and loading recipes and handling Home Page specific interactions.
+
+## 8.1 Initial Recipe Listing
+
+When the Home Page is opened, the application retrieves recipes that are either **publicly available** or **owned by the logged in user**.
+
+Recipes that are not public are excluded from the listing unless they are owned by the logged in user.
+
+The recipes are displayed in order from the newest recipe to the oldest recipe.
+
+The recipes are retrieved in predefined batches rather than loading all available recipes at once.
+
+The first batch of recipes is displayed when the Home Page initially loads.
+
+## 8.2 Progressive Recipe Loading
+
+When the user reaches the end of the currently displayed recipes, the application automatically requests the next batch of recipes.
+
+The newly retrieved recipes are added to the existing list.
+
+This process continues as the user scrolls down the page, allowing additional recipes to be loaded without requiring the user to manually select a next page.
+
+## 8.3 Recipe Search
+
+The user can search for recipes using the search facility provided by the Application Shell.
+
+When the user enters search text and submits the search, the application retrieves recipes matching the search text.
+
+The search checks both:
+
+- Recipe name
+- Recipe description
+
+Therefore, a recipe can be returned even when the search text does not appear in the recipe name but appears in its description.
+
+## 8.4 Search Results
+
+Search results follow the same progressive loading approach as the normal Home Page recipe listing.
+
+The first batch of matching recipes is displayed after the search is submitted.
+
+When the user reaches the end of the currently displayed search results, the next batch of matching recipes is retrieved and added to the existing results.
+
+## 8.5 Recipe Display
+
+Each recipe is presented as a recipe card.
+
+The recipe card provides the main information needed for the user to identify the recipe, including:
+
+- Recipe image
+- Recipe name
+- Recipe author
+- Recipe author's profile image
+- Options menu
+
+The recipe card acts as the entry point for interacting with the individual recipe.
+
+# 9. Read Recipe
+
+The Read Recipe page allows users to view a recipe in a read only format.
+
+When a user selects a recipe, they are taken to the Read Recipe page. The information and options available on the page depend on whether the logged in user owns the recipe.
+
+## 9.1 Viewing Another User's Recipe
+
+When the logged in user views a recipe owned by another user, the recipe is displayed in a read only format.
+
+The user can view:
+
+- Recipe image
+- Recipe name
+- Recipe By
+- Portion size
+- Description
+- Ingredients
+- Steps
+
+The Ingredients and Steps are displayed as separate tabs, allowing the user to switch between the two sections.
+
+As the user does not own the recipe, no recipe management options are provided.
+
+## 9.2 Viewing Own Recipe
+
+1. [Privacy Toggle Option for Owner](#921-privacy-toggle)
+
+When the logged in user views a recipe that they own, the recipe is displayed in the same read only format, with additional options available to the owner.
+
+The owner can view:
+
+- Recipe image
+- Recipe name
+- Portion size
+- Description
+- Ingredients
+- Steps
+
+The **Recipe By** information is not displayed because the recipe belongs to the logged in user.
+
+The owner is also provided with the following options:
+
+- Privacy toggle
+- Edit Recipe
+- Delete Recipe
+- Dish Created
+
+The business logic for **Edit Recipe**, **Delete Recipe** and **Dish Created** is documented separately in their respective sections.
+
+### 9.2.1 Privacy Toggle
+
+When the owner views their own recipe, they can change the recipe's privacy status using the Privacy Toggle.
+
+When the user changes the toggle:
+
+1. The recipe ID of the recipe currently being viewed is sent to the backend.
+2. The backend identifies the currently authenticated user.
+3. The system checks that the recipe belongs to the authenticated user.
+4. The system checks that both the user and the recipe are active.
+5. The system checks whether the requested privacy status is different from the recipe's current privacy status.
+6. If all checks are successful, the recipe's privacy status is updated.
+7. The backend returns a successful response to the application.
+
+If the privacy status is already the same as the requested value, no update is required and the process completes without making a change.
+
+If an error occurs while validating or updating the privacy status, the backend returns an error response.
+
+The application does not display a success message when the privacy status is successfully changed. The change is treated as a normal background action.
+
+If the update fails, the user is informed that something went wrong while updating the recipe's privacy and is advised to try again later.
+
+# 13. My Recipes
+
+The My Recipes page allows the user to view and search recipes that they own.
+
+When the user selects **My Recipes** from the application navigation, the application retrieves recipes belonging to the logged in user only.
+
+## 13.1 My Recipe Listing
+
+The recipes are retrieved in predefined batches and displayed as a list of recipe cards.
+
+The progressive loading behavior follows the same approach described in [8.2 Progressive Recipe Loading](#82-progressive-recipe-loading).
+
+As the user reaches the end of the currently displayed recipes, the next batch of the user's recipes is retrieved and added to the existing list.
+
+## 13.2 My Recipe Search
+
+The My Recipes page provides a separate search facility for searching the user's own recipes.
+
+When the user enters search text and selects the search button, the application searches only the recipes owned by the logged in user.
+
+The search checks both:
+
+- Recipe name
+- Recipe description
+
+## 13.3 Search Results
+
+The matching recipes are displayed using the same progressive loading approach as the normal My Recipes listing.
+
+The search results contain only recipes owned by the logged in user.
+
+Additional matching recipes are loaded as the user reaches the end of the currently displayed results.
+
+## 13.4 Recipe Display
+
+Recipes are displayed using the same recipe card format as the Home Page, with one difference.
+
+Instead of displaying the **Recipe By** information, the My Recipes recipe card displays the **recipe description**.
+
+When the user selects one of their recipes, they are taken to the **Read Recipe** page.
+
+The Read Recipe page then follows the ownership specific behavior described in [9.2 Viewing Own Recipe](#92-viewing-own-recipe).
+
+# 14. Users' Recipes
+
+The Users' Recipes page allows a user to view recipes belonging to another user.
+
+There is no separate Users' Recipes option in the application navigation. The page is accessed by selecting the recipe owner's profile image or name from a recipe card.
+
+## 14.1 Accessing a User's Recipes
+
+When the user selects the recipe owner's profile image or name, the application identifies the selected recipe owner.
+
+The application checks whether the selected user is the same as the currently logged in user.
+
+If the selected user is the logged in user, the application automatically directs the user to the **My Recipes** page.
+
+If the selected user is different from the logged in user, the user remains on the Users' Recipes page and the selected user's recipes are retrieved.
+
+## 14.2 Identifying the Selected User
+
+The selected user's identity is used to determine which recipes can be displayed.
+
+The system verifies that the selected user information is valid and that the selected user exists and is active.
+
+If the selected user information is invalid or the user cannot be found, the user is informed that "No such user exists".
+
+## 14.3 Retrieving the User's Recipes
+
+Once the selected user has been successfully validated, the application retrieves recipes belonging to that user.
+
+Only recipes that the selected user is permitted to have displayed are included in the results.
+
+## 14.4 Progressive Recipe Loading
+
+The user's recipes are retrieved in predefined batches.
+
+The first batch is displayed when the page loads.
+
+As the user reaches the end of the currently displayed recipes, the next batch is automatically retrieved and added to the existing list.
+
+This provides the same progressive loading behavior used by the Home Page and My Recipes page.
+
+## 14.5 Recipe Search
+
+The Users' Recipes page provides a separate search facility for searching the selected user's recipes.
+
+When the user enters search text and selects the search button, the application searches the recipes belonging to the selected user.
+
+The search checks both:
+
+- Recipe name
+- Recipe description
+
+Only recipes belonging to the selected user are included in the search results.
+
+## 14.6 Search Results
+
+Search results use the same progressive loading behavior as the normal Users' Recipes listing.
+
+The first batch of matching recipes is displayed after the search is submitted.
+
+As the user reaches the end of the displayed results, additional matching recipes are retrieved and added to the list when available.
+
+## 14.7 Recipe Display
+
+Recipes are displayed using the recipe card format applicable to Users' Recipes.
+
+When the user selects a recipe, they are taken to the **Read Recipe** page.
+
+Because the selected recipes belong to another user, the Read Recipe page follows the behavior described in [9.1 Viewing Another User's Recipe](#91-viewing-another-users-recipe).

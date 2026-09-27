@@ -132,7 +132,7 @@ function RecipeDetails() {
 
     try {
       const res = await axios[method](url, body, config);
-      console.log("res :", res);
+      // console.log("res :", res);
     } catch (err) {
       // console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
       window.alert("Something went wrong while updating privacy. Please try again later.");
