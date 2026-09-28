@@ -22,6 +22,7 @@ function EditIngredient() {
   const { state } = useLocation();
   const id = state?.data?.user_ingredient_id;
   const user = JSON.parse(localStorage.getItem("user"));
+  const currencySymbol = user.currency_symbol || "£";
   // console.log("user is :", user);
   const navigate = useNavigate();
   const orgData = state?.data;
@@ -320,6 +321,7 @@ function EditIngredient() {
       isConfirmModalOpen={isConfirmModalOpen}
       handleDelete={handleDelete}
       navigate={navigate}
+      currencySymbol={currencySymbol}
     />
     // <>
     //   <div className="flex flex-col  mt-(--top-bar-height) md:ml-(--left-side-bar)">

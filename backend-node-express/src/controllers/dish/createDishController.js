@@ -204,7 +204,7 @@ exports.create_dish = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Server error. Please try again later.",
     });
   } finally {
     conn.release();

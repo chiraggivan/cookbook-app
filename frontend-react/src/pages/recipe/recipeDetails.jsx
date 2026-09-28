@@ -243,15 +243,16 @@ function RecipeDetails() {
         return;
       } else {
         // alert(res?.data?.message);
-        console.log(res?.data?.message);
+        // console.log(res?.data?.message);
         setIsAlert(true);
         setAlertMsg(res?.data?.message);
         return;
       }
     } catch (err) {
       // console.log("response message for dish created button:", err.response);
-      console.log(err.response?.data?.message);
-      alert(err.response?.data?.message);
+      // console.log(err.response?.data?.message);
+      setIsAlert(true);
+      setAlertMsg(err.response?.data?.message);
       return;
     }
     // } else {

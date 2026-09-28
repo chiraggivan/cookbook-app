@@ -17,6 +17,8 @@ import { FaCarrot } from "react-icons/fa6";
 function MyIngredients() {
   const token = localStorage.getItem("token");
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const currencySymbol = user.currency_symbol || "£";
   const navigate = useNavigate();
   const { myIngredients, setMyIngredients, fetchedOnce, setFetchedOnce } =
     useContext(MyIngredientContext);
@@ -211,7 +213,7 @@ function MyIngredients() {
               <div className="px-2">
                 <p className="text-lg font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
                 <p className="text-gray-500 italic text-md line-clamp-1">
-                  £{i.display_price} for {i.display_quantity} {i.display_unit}{" "}
+                  {currencySymbol} {i.display_price} for {i.display_quantity} {i.display_unit}{" "}
                 </p>
                 <div className="flex items-center line-clamp-2">
                   <TbBowlSpoonFilled className="text-gray-500" />

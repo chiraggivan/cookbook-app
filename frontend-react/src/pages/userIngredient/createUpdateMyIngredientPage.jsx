@@ -19,6 +19,7 @@ function CreateUpdateMyIngredientPage({
   isConfirmModalOpen,
   handleDelete,
   navigate,
+  currencySymbol,
 }) {
   return (
     <>
@@ -150,7 +151,7 @@ function CreateUpdateMyIngredientPage({
                       <TextInput
                         className=" border-gray-300 rounded-lg w-26"
                         value={ingData?.display_price ?? ""}
-                        addon="£"
+                        addon={currencySymbol}
                         onChange={(e) => {
                           setIngData((prev) => ({
                             ...prev,
