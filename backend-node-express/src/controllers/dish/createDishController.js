@@ -119,6 +119,9 @@ exports.create_dish = async (req, res) => {
     const [idResult] = await conn.query(
       `INSERT INTO dishes(
           user_id, 
+          country_id,
+          currency_id,
+          currency_symbol,
           recipe_id, 
           recipe_name, 
           portion_size, 
@@ -132,6 +135,9 @@ exports.create_dish = async (req, res) => {
         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
       [
         user.id,
+        user.country_id,
+        user.currency_id,
+        user.currency_symbol,
         recipeId,
         recipeName,
         portionSize,

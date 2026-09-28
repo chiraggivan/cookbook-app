@@ -231,7 +231,9 @@ function MyDishes() {
                 <p className=" text-sm text-gray-500 line-clamp-1">
                   Prepared: {i.preparation_date} for {i.meal}
                 </p>
-                <p className="text-sm text-gray-500">Costing: £ {i.total_cost}</p>
+                <p className="text-sm text-gray-500">
+                  Costing: {i.currency_symbol} {i.total_cost}
+                </p>
                 <p className="text-sm text-gray-500 font-semibold line-clamp-2">
                   Comment: <span className="italic font-normal">{i.comment}</span>
                 </p>

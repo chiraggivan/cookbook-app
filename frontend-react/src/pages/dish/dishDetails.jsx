@@ -17,7 +17,8 @@ function DishDetails() {
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { dishDetails, setDishDetails } = useContext(DishContext);
-  const [foundDish, setFoundDish] = useState();
+  const [currencySymbol, setCurrencySymbol] = useState();
+  const [foundDish, setFoundDish] = useState("");
   const [fetchLoading, setFetchLoading] = useState(true);
   let tableRows = [];
   let ingsDiv = [];
@@ -61,7 +62,6 @@ function DishDetails() {
     setFoundDish(searchDish);
   }, [dishDetails]);
 
-  // setFoundDish(dishDetails?.find((d) => d.dish.dish_id === Number(id)));
   useEffect(() => {
     if (!searchDish) {
       const fetchData = async () => {
@@ -69,7 +69,9 @@ function DishDetails() {
           setFetchLoading(true);
           if (token) {
             const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
+            console.log("res is :", res);
             setDishDetails((prev) => [...prev, res?.data?.data]);
+            setCurrencySymbol(res?.data?.data?.dish?.currency_symbol);
           }
         } catch (err) {
           console.log("error while fetching dish details with axios is :", err.response);
@@ -144,9 +146,11 @@ function DishDetails() {
                 </div>
               </div>
               <div className="flex flex-col min-w-15 my-0.5">
-                <div className="flex w-full text-md justify-end mr-1">£ {i.cost.toFixed(3)}</div>
+                <div className="flex w-full text-md justify-end mr-1">
+                  {currencySymbol} {i.cost.toFixed(3)}
+                </div>
                 <div className="flex w-full text-sm justify-end mr-1 text-gray-500">
-                  £{i.base_price}/{Number(i.base_quantity)} {i.base_unit}
+                  {currencySymbol} {i.base_price}/{Number(i.base_quantity)} {i.base_unit}
                 </div>
               </div>
             </div>
