@@ -84,7 +84,8 @@ function RecipeDetails() {
 
           // save the new recipe details in recipeDetails Context variable if user's recipe
           if (tempRecipe?.recipe?.user_id === user.user_id) {
-            setRecipeDetails((prev) => [...prev, tempRecipe]);
+            // Below vairable is for useContext. Temp switching off. Need to work on it for every condition
+            // setRecipeDetails((prev) => [...prev, tempRecipe]);
           }
           setFoundRecipeDetails(tempRecipe);
         } catch (err) {
@@ -138,19 +139,19 @@ function RecipeDetails() {
       window.alert("Something went wrong while updating privacy. Please try again later.");
 
       //  change back the privacy that we set with onChange in Toggle component, during err in above try block
-      setRecipeDetails(
-        recipeDetails.map((item) =>
-          item.recipe.recipe_id === id
-            ? {
-                ...item,
-                recipe: {
-                  ...item.recipe,
-                  privacy: val === "pubic" ? "private" : "public",
-                },
-              }
-            : item,
-        ),
-      );
+      // setRecipeDetails(
+      //   recipeDetails.map((item) =>
+      //     item.recipe.recipe_id === id
+      //       ? {
+      //           ...item,
+      //           recipe: {
+      //             ...item.recipe,
+      //             privacy: val === "pubic" ? "private" : "public",
+      //           },
+      //         }
+      //       : item,
+      //   ),
+      // );
       return;
     } finally {
       // setFetchLoading(false);
@@ -173,11 +174,11 @@ function RecipeDetails() {
         // alert(res?.data?.message);
         setAlertMsg(res?.data?.message);
         setIsAlert(true);
-        // edit context variables as well
-        const x = recipeDetails.filter((i) => i.recipe.recipe_id !== Number(id));
-        setRecipeDetails(x);
-        const y = myRecipes.filter((i) => i.recipe_id !== Number(id));
-        setMyRecipes(y);
+        // // edit context variables as well
+        // const x = recipeDetails.filter((i) => i.recipe.recipe_id !== Number(id));
+        // setRecipeDetails(x);
+        // const y = myRecipes.filter((i) => i.recipe_id !== Number(id));
+        // setMyRecipes(y);
         // ---------------------------
         navigate("/MyRecipes");
         return;
@@ -236,7 +237,7 @@ function RecipeDetails() {
               }
             : i,
         );
-        setRecipeDetails(updatedDetails);
+        // setRecipeDetails(updatedDetails);
         setIsDishModalOpen(false);
 
         // navigate(`/recipe/`);
@@ -490,19 +491,19 @@ function RecipeDetails() {
                                   privacy: prev.recipe.privacy === "private" ? "public" : "private",
                                 },
                               }));
-                              setRecipeDetails((prev) =>
-                                prev.map((item) =>
-                                  item.recipe.recipe_id === Number(id)
-                                    ? {
-                                        ...item,
-                                        recipe: {
-                                          ...item.recipe,
-                                          privacy: e.target.checked ? "private" : "public",
-                                        },
-                                      }
-                                    : item,
-                                ),
-                              );
+                              // setRecipeDetails((prev) =>
+                              //   prev.map((item) =>
+                              //     item.recipe.recipe_id === Number(id)
+                              //       ? {
+                              //           ...item,
+                              //           recipe: {
+                              //             ...item.recipe,
+                              //             privacy: e.target.checked ? "private" : "public",
+                              //           },
+                              //         }
+                              //       : item,
+                              //   ),
+                              // );
                               changePrivacy(e.target.checked ? "private" : "public");
                               setChangePrvcyLoading(false);
                             }}

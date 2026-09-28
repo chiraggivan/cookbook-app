@@ -56,6 +56,7 @@ function DishDetails() {
   const body = null;
 
   // console.log("Data from dishContext for dishDetails is :", dishDetails);
+  // below variable used during useContext
   const searchDish = dishDetails?.find((d) => d.dish.dish_id === Number(id));
   // ------------------ fetch data from backend only for once if not found in context ---------------------
   useEffect(() => {
@@ -69,8 +70,9 @@ function DishDetails() {
           setFetchLoading(true);
           if (token) {
             const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
-            console.log("res is :", res);
-            setDishDetails((prev) => [...prev, res?.data?.data]);
+            // console.log("res is :", res);
+            setFoundDish(res?.data?.data);
+            // setDishDetails((prev) => [...prev, res?.data?.data]);
             setCurrencySymbol(res?.data?.data?.dish?.currency_symbol);
           }
         } catch (err) {
