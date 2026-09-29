@@ -43,7 +43,7 @@ function MyIngredients() {
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
   const method = "get";
-  const url = `/useringredient/api/`;
+  const url = `/useringredient/api/list`;
 
   // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {

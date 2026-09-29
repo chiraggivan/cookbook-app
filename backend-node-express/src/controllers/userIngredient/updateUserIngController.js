@@ -4,7 +4,7 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.update_user_ing = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const country = Number(user.country);
+    const country = Number(user.country_id);
     if (Number.isInteger(country) && country <= 0) {
       console.log("In createUserIngredient country can't be invalid or 0");
     }

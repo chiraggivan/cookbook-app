@@ -4,7 +4,7 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 exports.create_user_ingredient = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const country = Number(user.country);
+    const country = Number(user.country_id);
     if (Number.isInteger(country) && country <= 0) {
       console.log("In createUserIngredient country can't be invalid or 0");
     }
@@ -27,36 +27,38 @@ exports.create_user_ingredient = async (req, res) => {
       });
     }
 
-    // console.log(" normalisation and validation done for data. Now starting with image file.");
-    // Read & save image file
-    const image_file = req.file;
+    // --------------------- Read & save image file ----------------------------
+    // This section is not required and in future if required we can implement
+    // it in similar way we did with recipe image with cloudinary.
 
-    // check if file is really jpeg or png and not some malicious file
-    if (image_file && !["image/jpeg", "image/png"].includes(image_file.mimetype)) {
-      return res.status(400).json({ error: "Invalid image type" });
-    }
+    // const image_file = req.file;
 
-    if (image_file) {
-      //   console.log("image found with data");
+    // // check if file is really jpeg or png and not some malicious file
+    // if (image_file && !["image/jpeg", "image/png"].includes(image_file.mimetype)) {
+    //   return res.status(400).json({ error: "Invalid image type" });
+    // }
 
-      // generate unique filename
-      const path = require("path");
-      const { v4: uuidv4 } = require("uuid");
+    // if (image_file) {
+    //   //   console.log("image found with data");
 
-      const ext = path.extname(image_file.originalname);
-      const unique_filename = `${uuidv4().replace(/-/g, "")}${ext}`;
-      const save_path = path.join("static/images/user_ingredients", unique_filename);
+    //   // generate unique filename
+    //   const path = require("path");
+    //   const { v4: uuidv4 } = require("uuid");
 
-      // console.log("ext is :", ext);
-      // console.log("unique_filename : ", unique_filename);
-      // console.log("save_path :", save_path);
+    //   const ext = path.extname(image_file.originalname);
+    //   const unique_filename = `${uuidv4().replace(/-/g, "")}${ext}`;
+    //   const save_path = path.join("static/images/user_ingredients", unique_filename);
 
-      // file already saved via middleware (e.g., multer)
-      data["image_path"] = `ingredients/${unique_filename}`;
-    } else {
-      // console.log("no image came with data");
-      data["image_path"] = null;
-    }
+    //   // console.log("ext is :", ext);
+    //   // console.log("unique_filename : ", unique_filename);
+    //   // console.log("save_path :", save_path);
+
+    //   // file already saved via middleware (e.g., multer)
+    //   data["image_path"] = `ingredients/${unique_filename}`;
+    // } else {
+    //   // console.log("no image came with data");
+    //   data["image_path"] = null;
+    // }
 
     // ----------------- Checking with db ------------------------
 
@@ -93,25 +95,6 @@ exports.create_user_ingredient = async (req, res) => {
         message: `You already have this ingredient (${data.name}).`,
       });
     }
-
-    // JUST FOR TEST WITHOUT ACTUAL INSERTION
-    // const sampleData = {
-    //   user_ingredient_id: 99,
-    //   name: "test",
-    //   display_quantity: 1,
-    //   display_unit: "kg",
-    //   display_price: 1,
-    //   cup_weight: 1,
-    //   cup_unit: "kg",
-    //   notes: "",
-    //   image_path: null,
-    // };
-    // return res.status(200).json({
-    //   success: true,
-    //   message: " done with normalisation, validation along with db check",
-    //   sampleData,
-    //   ogData,
-    // });
 
     // ------------------------------ Now insert the data thru procedure ------------------------------------------
 

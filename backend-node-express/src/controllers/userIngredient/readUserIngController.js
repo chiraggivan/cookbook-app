@@ -36,7 +36,7 @@ exports.search_user_ings = async (req, res) => {
 };
 
 // search user ingredients
-exports.search_user_and_mmain_ings_names = async (req, res) => {
+exports.search_user_and_main_ings_names = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const q = (req.query.q || "").trim().toLowerCase();

@@ -12,7 +12,6 @@ function normaliseIngredientData(data) {
     "cup_weight",
     "cup_unit",
     "notes",
-    "country",
   ];
   // ingredient_dict = data[0]
 

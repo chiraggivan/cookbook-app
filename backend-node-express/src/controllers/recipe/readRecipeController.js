@@ -57,7 +57,7 @@ exports.get_user_recipes = async (req, res) => {
     const offset = (pageNo - 1) * limit;
     const queryLimit = limit + 1;
 
-    if (!searchedUser || searchedUser < 1 || !Number.isInteger(searchedUser)) {
+    if (!searchedUser || !Number.isInteger(searchedUser) || searchedUser < 1) {
       return res.status(404).json({
         success: false,
         message: "user not found in params or not defined properly",

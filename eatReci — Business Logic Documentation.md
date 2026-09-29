@@ -105,8 +105,19 @@ the source code.
 
 ## 9. Read Recipe
 
-1. [Viewing Another User's Recipe](#91-viewing-another-users-recipe)
-2. [Viewing Own Recipe](#92-viewing-own-recipe)
+1. [Opening the Read Recipe Page](#91-opening-the-read-recipe-page)
+2. [Backend Authentication and Recipe Validation](#92-backend-authentication-and-recipe-validation)
+3. [Recipe Access and Privacy Validation](#93-recipe-access-and-privacy-validation)
+4. [Retrieving Recipe Details](#94-retrieving-recipe-details)
+5. [Retrieving Last Prepared Information](#95-retrieving-last-prepared-information)
+6. [Backend Response](#96-backend-response)
+7. [Frontend Processing of Recipe Details](#97-frontend-processing-of-recipe-details)
+8. [Viewing Another User's Recipe](#98-viewing-another-users-recipe)
+9. [Viewing Own Recipe](#99-viewing-own-recipe)
+10. [Privacy Toggle](#910-privacy-toggle)
+11. [Privacy Toggle Response](#911-privacy-toggle-response)
+12. [Error, Unauthorized and Recipe Not Found Handling](#912-error-unauthorized-and-recipe-not-found-handling)
+13. [Pending Improvement — Recipe Not Found Page](#913-pending-improvement--recipe-not-found-page)
 
 ## 13. My Recipes
 
@@ -126,58 +137,110 @@ the source code.
 
 ## 14. Users' Recipes
 
-1. [Accessing a User's Recipes](#141-accessing-a-users-recipes)
-2. [Identifying the Selected User](#142-identifying-the-selected-user)
-3. [Retrieving the User's Recipes](#143-retrieving-the-users-recipes)
-4. [Progressive Recipe Loading](#144-progressive-recipe-loading)
-5. [Recipe Search](#145-recipe-search)
-6. [Search Results](#146-search-results)
-7. [Recipe Display](#147-recipe-display)
+1. [Opening the Users' Recipes Page](#141-opening-the-users-recipes-page)
+2. [Requesting the User's Recipes](#142-requesting-the-users-recipes)
+3. [Backend Authentication and User Validation](#143-backend-authentication-and-user-validation)
+4. [Identifying the Selected User](#144-identifying-the-selected-user)
+5. [Retrieving the User's Recipes](#145-retrieving-the-users-recipes)
+6. [Backend Response](#146-backend-response)
+7. [Frontend Processing of the Response](#147-frontend-processing-of-the-response)
+8. [Users' Recipes Page](#148-users-recipes-page)
+9. [Searching the User's Recipes](#149-searching-the-users-recipes)
+10. [Progressive Loading of Search Results](#1410-progressive-loading-of-search-results)
+11. [Opening a Recipe](#1411-opening-a-recipe)
+12. [Error and Unauthorized Handling](#1412-error-and-unauthorized-handling)
+13. [Pending Improvement — User or Page Not Found](#1413-pending-improvement--user-or-page-not-found)
 
-## 15. Dish Created Workflow
+## 15. Dish Created
 
-- [15.1 Accessing Dish Created](#151-accessing-dish-created)
-- [15.2 Dish Details Within Modal](#152-dish-details-within-modal)
-- [15.3 Creating the Dish](#153-creating-the-dish)
-- [15.4 Database Transaction](#154-database-transaction)
-- [15.5 Immutable Historical Record](#155-immutable-historical-record)
-- [15.6 After Successful Creation](#156-after-successful-creation)
-- [15.7 Success and Error Handling](#157-success-and-error-handling)
+1. [Accessing Dish Created](#151-accessing-dish-created)
+2. [Dish Created Form](#152-dish-created-form)
+3. [Submitting the Dish Created](#153-submitting-the-dish-created)
+4. [Backend Request Validation](#154-backend-request-validation)
+5. [Normalizing and Validating the Dish Data](#155-normalizing-and-validating-the-dish-data)
+6. [Recipe Ownership Validation](#156-recipe-ownership-validation)
+7. [Ingredient Validation](#157-ingredient-validation)
+8. [Creating the Dish](#158-creating-the-dish)
+9. [Creating Dish Ingredients](#159-creating-dish-ingredients)
+10. [Completing the Dish Created Transaction](#1510-completing-the-dish-created-transaction)
+11. [Frontend Handling of Successful Dish Creation](#1511-frontend-handling-of-successful-dish-creation)
+12. [Error and Unauthorized Handling](#1512-error-and-unauthorized-handling)
+13. [Important Business Rule](#1513-important-business-rule)
 
 ## 16. Dishes Made
 
-- [16.1 Loading Dishes Made](#161-loading-dishes-made)
-- [16.2 Search Prepared Dishes](#162-search-prepared-dishes)
-- [16.3 Dish Card](#163-dish-card)
-- [16.4 Historical Snapshot](#164-historical-snapshot)
+1. [Opening Dishes Made](#161-opening-dishes-made)
+2. [Requesting Dishes Made](#162-requesting-dishes-made)
+3. [Backend Authentication and Request Processing](#163-backend-authentication-and-request-processing)
+4. [Retrieving the User's Dishes](#164-retrieving-the-users-dishes)
+5. [Backend Response](#165-backend-response)
+6. [Frontend Processing and Display](#166-frontend-processing-and-display)
+7. [Dish Card](#167-dish-card)
+8. [Progressive Loading](#168-progressive-loading)
+9. [Searching Dishes Made](#169-searching-dishes-made)
+10. [Progressive Loading of Search Results](#1610-progressive-loading-of-search-results)
+11. [Historical Snapshot](#1611-historical-snapshot)
+12. [Error Handling](#1612-error-handling)
 
 ## 17. Read Dish
 
-- [17.1 Accessing Dish Details](#171-accessing-dish-details)
-- [17.2 User and Dish Validation](#172-user-and-dish-validation)
-- [17.3 Retrieving Dish Details](#173-retrieving-dish-details)
-- [17.4 Displaying Dish Details](#174-displaying-dish-details)
-- [17.5 Available Actions](#175-available-actions)
-- [17.6 Handling Errors or Unauthorised Requests](176-handling-errors-or-unauthorised-requests)
+1. [Opening the Read Dish Page](#171-opening-the-read-dish-page)
+2. [Backend Authentication and Dish Validation](#172-backend-authentication-and-dish-validation)
+3. [Retrieving Dish Details](#173-retrieving-dish-details)
+4. [Returning the Dish Details](#174-returning-the-dish-details)
+5. [Frontend Processing and Display](#175-frontend-processing-and-display)
+6. [Available Actions](#176-available-actions)
+7. [Error and Unauthorized Handling](#177-error-and-unauthorized-handling)
+8. [Historical Dish Information](#178-historical-dish-information)
 
 ## 18. Delete Dish
 
-- [18.1 Delete Confirmation](#181-delete-confirmation)
-- [18.2 Delete Request](#182-delete-request)
-- [18.3 User and Dish Validation](#183-user-and-dish-validation)
-- [18.4 Soft Delete](#184-soft-delete)
-- [18.5 After Successful Deletion](#185-after-successful-deletion)
-- [18.6 Handling Backend Errors](#186-handling-backend-errors)
+1. [Delete Confirmation](#181-delete-confirmation)
+2. [Submitting the Delete Request](#182-submitting-the-delete-request)
+3. [Backend Authentication and Dish Validation](#183-backend-authentication-and-dish-validation)
+4. [Soft Deletion of the Dish](#184-soft-deletion-of-the-dish)
+5. [Completing the Deletion](#185-completing-the-deletion)
+6. [Frontend Handling of Successful Deletion](#186-frontend-handling-of-successful-deletion)
+7. [Error and Unauthorized Handling](#187-error-and-unauthorized-handling)
 
 ## 19. My Ingredients
 
-- [19.1 Loading My Ingredients](#191-loading-my-ingredients)
-- [19.2 Add New Button](#192-add-new-button)
-- [19.3 Search Ingredients](#193-search-ingredients)
-- [19.4 Ingredient Card](#194-ingredient-card)
-- [19.5 Edit Button](#195-edit-button)
+1. [Opening My Ingredients](#191-opening-my-ingredients)
+2. [Backend Authentication and Request Processing](#192-backend-authentication-and-request-processing)
+3. [Retrieving the User's Ingredients](#193-retrieving-the-users-ingredients)
+4. [Backend Response](#194-backend-response)
+5. [Frontend Processing and Display](#195-frontend-processing-and-display)
+6. [Progressive Loading](#196-progressive-loading)
+7. [Searching My Ingredients](#197-searching-my-ingredients)
+8. [Displaying Search Results](#198-displaying-search-results)
+9. [Adding a New Ingredient](#199-adding-a-new-ingredient)
+10. [Editing an Ingredient](#1910-editing-an-ingredient)
+11. [Authentication Error Handling](#1911-authentication-error-handling)
 
----
+## 20. Create New Ingredient
+
+1. [Opening Create New Ingredient](#201-opening-create-new-ingredient)
+2. [Similar Ingredient Names](#202-similar-ingredient-names)
+3. [Searching Similar Ingredient Names](#203-searching-similar-ingredient-names)
+4. [Backend Authentication and Search Processing](#204-backend-authentication-and-search-processing)
+5. [Displaying Similar Ingredient Names](#205-displaying-similar-ingredient-names)
+6. [Ingredient Name](#206-ingredient-name)
+7. [Quantity](#207-quantity)
+8. [Unit](#208-unit)
+9. [Price](#209-price)
+10. [Cup Weight and Cup Unit](#2010-cup-weight-and-cup-unit)
+11. [Purpose of Cup Weight](#2011-purpose-of-cup-weight)
+12. [Form Validation](#2012-form-validation)
+13. [Submitting the New Ingredient](#2013-submitting-the-new-ingredient)
+14. [Backend Request Validation](#2014-backend-request-validation)
+15. [Normalizing and Validating Ingredient Data](#2015-normalizing-and-validating-ingredient-data)
+16. [Checking for Existing Ingredients](#2016-checking-for-existing-ingredients)
+17. [Creating the Ingredient](#2017-creating-the-ingredient)
+18. [Creating Ingredient Units](#2018-creating-ingredient-units)
+19. [Successful Ingredient Creation](#2019-successful-ingredient-creation)
+20. [Frontend Handling of Successful Creation](#2020-frontend-handling-of-successful-creation)
+21. [Error Handling](#2021-error-handling)
+22. [Canceling Ingredient Creation](#2022-canceling-ingredient-creation)
 
 # 1. Register
 
@@ -1186,11 +1249,90 @@ The recipe card acts as the entry point for interacting with the individual reci
 
 # 9. Read Recipe
 
-The Read Recipe page allows users to view a recipe in a read only format.
+The Read Recipe page allows the user to view the details of a recipe in a read only format.
 
-When a user selects a recipe, they are taken to the Read Recipe page. The information and options available on the page depend on whether the logged in user owns the recipe.
+When a user selects a recipe, the application opens the Read Recipe page and retrieves the information required to display the recipe. The information and options available on the page depend on whether the logged in user owns the recipe.
 
-## 9.1 Viewing Another User's Recipe
+## 9.1 Opening the Read Recipe Page
+
+When the user selects a recipe, the recipe identifier is provided to the Read Recipe page.
+
+The application first checks whether the recipe information is already available from previously retrieved recipe data.
+
+If the required recipe information is already available, it can be used to display the recipe without retrieving the same information again.
+
+If the recipe information is not available, the application requests the recipe details from the backend using the recipe identifier.
+
+## 9.2 Backend Authentication and Recipe Validation
+
+When the backend receives the request, it identifies the currently authenticated user.
+
+The backend then validates the recipe identifier provided with the request.
+
+The system checks that:
+
+- A recipe identifier has been provided.
+- The recipe identifier is in a valid format.
+- The requested recipe exists.
+
+If the recipe identifier is invalid or the recipe cannot be found, the recipe details cannot be retrieved.
+
+## 9.3 Recipe Access and Privacy Validation
+
+Once the recipe has been found, the system determines whether the logged in user is allowed to view it.
+
+The system checks whether the logged in user is the owner of the recipe.
+
+If the logged in user owns the recipe, the recipe can be displayed regardless of whether it is public or private.
+
+If the logged in user does not own the recipe, the system checks whether the recipe is public.
+
+A private recipe belonging to another user must not be displayed.
+
+## 9.4 Retrieving Recipe Details
+
+Once the recipe has passed the access and privacy checks, the system retrieves the information required to display the recipe.
+
+This includes:
+
+- Recipe details
+- Ingredients
+- Ingredient measurement information
+- Recipe steps
+- Meal information
+- Last prepared information for the recipe, where applicable
+
+The ingredient measurement information is included as part of the retrieved recipe data because the same information is also required by other recipe functionality, such as editing a recipe.
+
+The information required for the Read Recipe page is combined into a single recipe result before it is returned to the application.
+
+## 9.5 Retrieving Last Prepared Information
+
+For the recipe owner, the system checks whether there is an existing active Dish Created record for the recipe and the logged in user.
+
+If a previous record exists, the most recent preparation date and meal type are retrieved.
+
+If no previous record exists, the system indicates that the recipe has not previously been prepared.
+
+This information is used by the Read Recipe page to display the **Last Prepared** information when the logged in user owns the recipe.
+
+## 9.6 Backend Response
+
+After all required information has been retrieved and combined, the backend returns the recipe details to the application.
+
+A successful response contains the information required to display the recipe and determine which owner specific options should be available.
+
+If an error occurs while validating the request or retrieving the recipe information, an appropriate error response is returned instead.
+
+## 9.7 Frontend Processing of Recipe Details
+
+When the application receives a successful recipe response, it stores the recipe information and uses it to display the Read Recipe page.
+
+The application determines whether the logged in user is the owner of the recipe by comparing the logged in user's identity with the recipe owner's identity returned with the recipe details.
+
+The page is then displayed according to the ownership of the recipe.
+
+## 9.8 Viewing Another User's Recipe
 
 When the logged in user views a recipe owned by another user, the recipe is displayed in a read only format.
 
@@ -1206,20 +1348,19 @@ The user can view:
 
 The Ingredients and Steps are displayed as separate tabs, allowing the user to switch between the two sections.
 
-As the user does not own the recipe, no recipe management options are provided.
+No recipe management options are provided because the user does not own the recipe.
 
-## 9.2 Viewing Own Recipe
+## 9.9 Viewing Own Recipe
 
-1. [Privacy Toggle Option for Owner](#921-privacy-toggle)
-
-When the logged in user views a recipe that they own, the recipe is displayed in the same read only format, with additional options available to the owner.
+When the logged in user views a recipe that they own, the recipe is displayed in the same read only format, with additional owner specific information and options.
 
 The **Recipe By** information is not displayed because the recipe belongs to the logged in user.
 
-In addition to the recipe details, the user is shown **Last Prepared**, which indicates the date on which the dish was most recently prepared.
+The user is also shown **Last Prepared** information.
 
-If a previous Dish Created record exists, the date and the meal type of the most recent record is displayed.
-If no Dish Created record exists, the user is informed that this dish has not been prepared in the past.
+If a previous Dish Created record exists, the date and meal type of the most recent record are displayed.
+
+If no previous Dish Created record exists, the user is informed that the recipe has not been prepared in the past.
 
 The owner is also provided with the following options:
 
@@ -1228,29 +1369,54 @@ The owner is also provided with the following options:
 - Delete Recipe
 - Dish Created
 
-The business logic for **Edit Recipe**, **Delete Recipe** and **Dish Created** is documented separately in their respective sections.
+The business logic for **Edit Recipe**, **Delete Recipe**, and **Dish Created** is documented separately in their respective sections.
 
-### 9.2.1 Privacy Toggle
+## 9.10 Privacy Toggle
 
-When the owner views their own recipe, they can change the recipe's privacy status using the Privacy Toggle.
+When the owner changes the recipe's privacy status using the Privacy Toggle, the requested privacy status and the recipe identifier are sent to the backend.
 
-When the user changes the toggle:
+The backend identifies the authenticated user and checks:
 
-1. The recipe ID of the recipe currently being viewed is sent to the backend.
-2. The backend identifies the currently authenticated user.
-3. The system checks that the recipe belongs to the authenticated user.
-4. The system checks that both the user and the recipe are active.
-5. The system checks whether the requested privacy status is different from the recipe's current privacy status.
-6. If all checks are successful, the recipe's privacy status is updated.
-7. The backend returns a successful response to the application.
+- That the recipe belongs to the authenticated user.
+- That the user is active.
+- That the recipe is active.
+- That the requested privacy status is different from the current privacy status.
 
-If the privacy status is already the same as the requested value, no update is required and the process completes without making a change.
+If all checks are successful, the recipe's privacy status is updated.
 
-If an error occurs while validating or updating the privacy status, the backend returns an error response.
+If the recipe already has the requested privacy status, no update is required.
 
-The application does not display a success message when the privacy status is successfully changed. The change is treated as a normal background action.
+The backend returns the result of the operation to the application.
 
-If the update fails, the user is informed that something went wrong while updating the recipe's privacy and is advised to try again later.
+## 9.11 Privacy Toggle Response
+
+When the privacy update is successful, the application reflects the new privacy status.
+
+No success message is displayed because changing the privacy status is treated as a normal background action.
+
+If the backend returns an error or the update is not authorized, the application informs the user that something went wrong while updating the recipe's privacy and advises them to try again later.
+
+## 9.12 Error, Unauthorized and Recipe Not Found Handling
+
+If the backend returns an error while loading the recipe, the application currently keeps the user on the Home Page and displays a generic message informing the user that something went wrong while loading the recipe details.
+
+This also covers situations where:
+
+- The recipe identifier is invalid.
+- The recipe no longer exists.
+- The recipe is private and belongs to another user.
+- The request is not authorized.
+- An unexpected backend error occurs.
+
+The application does not currently provide a dedicated page explaining that the requested recipe could not be found.
+
+## 9.13 Pending Improvement — Recipe Not Found Page
+
+A dedicated **Page Not Found** or equivalent page should be introduced for situations where a user attempts to open a recipe that does not exist or is no longer available.
+
+For example, this may occur when a user opens an old URL containing a recipe identifier after the recipe has been deleted.
+
+The current generic error handling should remain until the dedicated page is implemented.
 
 # 13. My Recipes
 
@@ -1402,263 +1568,967 @@ These changes should preserve the existing business rule that **My Recipes conta
 
 # 14. Users' Recipes
 
-The Users' Recipes page allows a user to view recipes belonging to another user.
+The Users' Recipes page allows the logged in user to view recipes belonging to another user.
 
-There is no separate Users' Recipes option in the application navigation. The page is accessed by selecting the recipe owner's profile image or name from a recipe card.
+There is no dedicated **Users' Recipes** option in the application navigation. The page is accessed by selecting the recipe author's name or profile image from a recipe card on the Home Page.
 
-## 14.1 Accessing a User's Recipes
+## 14.1 Opening the Users' Recipes Page
 
-When the user selects the recipe owner's profile image or name, the application identifies the selected recipe owner.
+When the user selects the recipe author's name or profile image from a recipe card, the application opens the Users' Recipes page.
 
-The application checks whether the selected user is the same as the currently logged in user.
+The selected user's `user_id` is attached to the URL as a parameter when the page is opened.
 
-If the selected user is the logged in user, the application automatically directs the user to the **My Recipes** page.
+When the Users' Recipes page loads, the frontend retrieves the `user_id` from the URL.
 
-If the selected user is different from the logged in user, the user remains on the Users' Recipes page and the selected user's recipes are retrieved.
+The frontend then uses this `user_id` when requesting the selected user's recipes from the backend.
 
-## 14.2 Identifying the Selected User
+## 14.2 Requesting the User's Recipes
 
-The selected user's identity is used to determine which recipes can be displayed.
+The frontend sends a request to the backend to retrieve the recipes belonging to the selected user.
 
-The system verifies that the selected user information is valid and that the selected user exists and is active.
+The request contains:
 
-If the selected user information is invalid or the user cannot be found, the user is informed that "No such user exists".
+- The selected user's `user_id`
+- The user's authenticated session information
+- Search text, if the user has entered a search
+- The information required to retrieve the results progressively
 
-## 14.3 Retrieving the User's Recipes
+The search and progressive loading information allows the same page to support both normal recipe browsing and searching within the selected user's recipes.
 
-Once the selected user has been successfully validated, the application retrieves recipes belonging to that user.
+## 14.3 Backend Authentication and User Validation
 
-Only recipes that the selected user is permitted to have displayed are included in the results.
+When the backend receives the request, it first identifies the logged in user from the authenticated session.
 
-## 14.4 Progressive Recipe Loading
+The backend verifies that the logged in user can be identified and is valid.
 
-The user's recipes are retrieved in predefined batches.
+The backend then validates the selected user's `user_id`.
 
-The first batch is displayed when the page loads.
+The system checks:
 
-As the user reaches the end of the currently displayed recipes, the next batch is automatically retrieved and added to the existing list.
+- Whether the user ID has been provided.
+- Whether the user ID is a valid number.
+- Whether the user ID represents a valid user.
 
-This provides the same progressive loading behavior used by the Home Page and My Recipes page.
+If the user ID is missing, invalid, or does not identify an existing user, the recipe retrieval process does not continue.
 
-## 14.5 Recipe Search
+The backend returns an appropriate response so that the frontend can inform the user that the requested user could not be found.
 
-The Users' Recipes page provides a separate search facility for searching the selected user's recipes.
+## 14.4 Identifying the Selected User
 
-When the user enters search text and selects the search button, the application searches the recipes belonging to the selected user.
+Once the supplied `user_id` has passed validation, the backend identifies the user whose recipes have been requested.
 
-The search checks both:
+The system retrieves the information required to identify that user on the Users' Recipes page.
+
+The selected user's information is returned together with the recipe results.
+
+## 14.5 Retrieving the User's Recipes
+
+After the selected user has been successfully identified, the backend retrieves recipes belonging to that user.
+
+Only recipes belonging to the selected user are included in the results.
+
+If search text has been supplied, the backend searches the selected user's recipes using:
 
 - Recipe name
 - Recipe description
 
-Only recipes belonging to the selected user are included in the search results.
+The results are retrieved progressively so that the application does not need to load the complete collection of recipes at once.
 
-## 14.6 Search Results
+## 14.6 Backend Response
 
-Search results use the same progressive loading behavior as the normal Users' Recipes listing.
+After the recipes have been retrieved, the backend returns the result to the frontend.
 
-The first batch of matching recipes is displayed after the search is submitted.
+The successful response provides:
 
-As the user reaches the end of the displayed results, additional matching recipes are retrieved and added to the list when available.
+- Information about the selected user
+- The selected user's recipes
+- Information required for continuing to retrieve additional results when required
 
-## 14.7 Recipe Display
+If an error occurs while validating the user or retrieving the recipes, an appropriate error response is returned instead.
 
-Recipes are displayed using the recipe card format applicable to Users' Recipes.
+## 14.7 Frontend Processing of the Response
 
-When the user selects a recipe, they are taken to the **Read Recipe** page.
+When the frontend receives a successful response, it stores the selected user's information and the retrieved recipes.
 
-Because the selected recipes belong to another user, the Read Recipe page follows the behavior described in [9.1 Viewing Another User's Recipe](#91-viewing-another-users-recipe).
+The Users' Recipes page is then updated to display the selected user's information and recipe collection.
 
-# 15. Dish Created Workflow
+The recipe results are displayed using recipe cards.
 
-## 15.1 Accessing Dish Created
+When additional recipes are required, the frontend requests the next set of results and adds them to the recipes already displayed.
 
-- The **Dish Created** option is available only when the recipe owner views their own recipe.
-- Selecting it opens the Dish Created modal.
+## 14.8 Users' Recipes Page
 
-## 15.2 Dish Details within Modal
+The Users' Recipes page displays information about the selected user at the top of the page.
 
-- **Date** is required.
-- **Meal Type** is required and is retrieved from the `meals` table.
-- **Comment/Notes** are optional.
-- The **Create Dish** button remains disabled until the required fields are selected.
+This includes:
 
-## 15.3 Creating the Dish
+- Selected user's profile image
+- Search bar for searching the selected user's recipes
 
-- The frontend submits the selected details together with the current recipe and ingredient information.
-- The backend validates the recipe, ownership, ingredients, units, prices, and other referenced data.
+The user's recipes are displayed below this information.
 
-## 15.4 Database Transaction
-
-- The dish record is created in the `dishes` table.
-- The ingredient snapshot is created in `dish_ingredients`.
-- Both operations are handled within a single transaction.
-- If any operation fails, the transaction is rolled back.
-
-## 15.5 Immutable Historical Record
-
-- A Dish Created record cannot be edited after creation.
-- If the record is incorrect, the user must delete it and create a new one.
-- Deleting a Dish Created record does not affect the original recipe.
-
-## 15.6 After Successful Creation
-
-- The frontend updates the **Last Prepared** information without requiring a full page reload.
-
-## 15.7 Success and Error Handling
-
-- In case of a successful or unsuccessful response from the backend, the user is alerted with the corresponding success or error message.
-
-# 16. Dishes Made
-
-## 16.1 Loading Dishes Made
-
-When the user selects **Dishes Made** from the navigation menu, the frontend requests the user's previously created dishes from the backend.
-
-- The request includes the user's authentication token.
-- The backend authentication middleware validates the token and identifies the authenticated user.
-- The middleware also verifies that the user is active. If validation fails, the appropriate response is returned to the frontend.
-- Once the user is successfully identified, the backend retrieves the user's active Dish Created records.
-- The initial request retrieves the first 20 dishes without sending `limit` and `offset` parameters.
-- The retrieved dishes are returned to the frontend and displayed.
-- As the user scrolls, the frontend sends the same API request with the required `limit` and `offset` values.
-- Each subsequent request retrieves the next 20 dishes based on the supplied pagination values.
-
-## 16.2 Search Prepared Dishes
-
-- The page provides a search option for the user's prepared dishes.
-- The search checks both the **recipe name** and the **comments/notes** recorded when the dish was created.
-- Matching dishes are displayed in the same dish card format.
-
-## 16.3 Dish Card
-
-Each Dish Created card displays:
+Each recipe is displayed as a recipe card containing:
 
 - Recipe image
 - Recipe name
 - Portion size
-- **Prepared On** date and meal type
-- Cost of the prepared dish
-- Comment/notes
+- Recipe description
 
-## 16.4 Historical Snapshot
+## 14.9 Searching the User's Recipes
 
-- Dish Created records contain immutable historical data captured when the dish was created.
-- The recipe image displayed is the image captured at the time the dish was created.
-- If the recipe image is changed later, the image displayed in the Dish Created record remains unchanged.
-- The user cannot edit the Dish Created record or its stored image.
+The Users' Recipes page provides a search facility specifically for the selected user's recipes.
+
+When the user enters search text and submits the search, the frontend sends the search criteria to the backend together with the selected user's `user_id`.
+
+The backend searches only recipes belonging to the selected user.
+
+The search checks both the recipe name and recipe description.
+
+The matching results are then returned to the frontend and displayed on the page.
+
+## 14.10 Progressive Loading of Search Results
+
+Search results use the same progressive loading behavior as the normal Users' Recipes listing.
+
+The first set of matching recipes is displayed after the search is submitted.
+
+When the user reaches the end of the currently displayed results, the frontend requests additional matching recipes when available.
+
+The newly retrieved recipes are added to the existing results.
+
+## 14.11 Opening a Recipe
+
+When the user selects a recipe from the Users' Recipes page, the application opens the **Read Recipe** page for that recipe.
+
+Because the recipe belongs to another user, the Read Recipe page follows the **Viewing Another User's Recipe** behavior described in [9.8 Viewing Another User's Recipe](#98-viewing-another-users-recipe).
+
+## 14.12 Error and Unauthorized Handling
+
+If the backend determines that the request cannot be processed because the authenticated user is invalid, the selected user cannot be identified, or another error occurs while retrieving the recipes, the frontend handles the returned error and informs the user that the requested information could not be retrieved.
+
+The Users' Recipes page should not display recipe information when the selected user cannot be successfully validated.
+
+## 14.13 Pending Improvement — User or Page Not Found
+
+A dedicated **Page Not Found** or equivalent page should be introduced for situations where the requested user does not exist or the Users' Recipes page cannot be found.
+
+The current error handling can continue to provide a generic error message until the dedicated page is implemented.
+
+# 15. Dish Created
+
+## 15.1 Accessing Dish Created
+
+The **Dish Created** action is available only when the logged in user owns the recipe.
+
+The action is available from the **Read Recipe** page.
+
+The Read Recipe page already contains the recipe information required for the Dish Created process.
+
+## 15.2 Dish Created Form
+
+When the user selects **Dish Created**, the Dish Created form is displayed.
+
+The form contains:
+
+- Date
+- Meal Type
+- Comment/Notes
+
+Date and Meal Type are required.
+
+Comment/Notes is optional and remains disabled until the required information has been selected.
+
+The user selects the date and meal type and can optionally enter comments or notes.
+
+## 15.3 Submitting the Dish Created
+
+When the user selects **Create Dish**, the frontend sends the required information to the backend through an API request.
+
+The request contains the recipe and dish information required to create the Dish Created record.
+
+The authenticated user has already been identified through the authenticated session.
+
+## 15.4 Backend Request Validation
+
+When the backend receives the request, it first checks that the required request data has been provided.
+
+If the required request data is missing, the backend returns an error response and the Dish Created record is not created.
+
+## 15.5 Normalizing and Validating the Dish Data
+
+The data received from the frontend is normalized and validated before any database changes are made.
+
+The system checks that the expected properties are present and that the supplied values are valid.
+
+The information required for the Dish Created record includes:
+
+- Recipe ID
+- Recipe name
+- Portion size
+- Preparation date
+- Meal Type
+- Recipe owner
+- Comment/Notes
+- Total cost
+- Recipe image
+- Country
+- Currency
+
+The country and currency information is associated with the user's current settings and is used when recording the dish.
+
+If normalization or validation fails, the backend returns the relevant validation error to the frontend and the Dish Created process does not continue.
+
+## 15.6 Recipe Ownership Validation
+
+After the submitted data has passed validation, the backend checks that:
+
+- The recipe exists.
+- The recipe belongs to the authenticated user.
+
+If the recipe does not exist or does not belong to the authenticated user, the Dish Created operation is not authorized and the backend returns an appropriate error response.
+
+## 15.7 Ingredient Validation
+
+The backend then validates the ingredient information associated with the recipe.
+
+The system checks that the ingredient measurement information, including the relevant base unit and base price, is valid before the dish is created.
+
+If the ingredient information is not valid, the Dish Created operation does not continue and an appropriate error response is returned.
+
+## 15.8 Creating the Dish
+
+Once all authentication, ownership, data, and ingredient validations have successfully passed, the backend creates the Dish Created record.
+
+The newly created dish receives its own identifier.
+
+That identifier is then used to associate the relevant recipe ingredients with the newly created dish.
+
+## 15.9 Creating Dish Ingredients
+
+The backend creates the corresponding Dish Ingredient records using the newly created Dish ID.
+
+This connects the ingredients used by the recipe to the newly created dish.
+
+The Dish Created operation is considered successful only after the dish and its associated ingredients have been successfully created.
+
+## 15.10 Completing the Dish Created Transaction
+
+Once the Dish Created record and its associated ingredients have been successfully created, the database changes are committed.
+
+The backend then returns a successful response to the frontend.
+
+If an error occurs before the operation is completed, the Dish Created operation is not considered successful.
+
+## 15.11 Frontend Handling of Successful Dish Creation
+
+When the frontend receives a successful response, the Dish Created form is considered successfully completed.
+
+The date and meal type selected by the user when creating the dish are retained by the frontend.
+
+The recipe details currently displayed on the Read Recipe page are then updated using the newly selected preparation information.
+
+The **Last Prepared** information is updated without requiring the user to refresh the page.
+
+The page therefore immediately displays the newly created dish's:
+
+- Preparation date
+- Meal Type
+
+## 15.12 Error and Unauthorized Handling
+
+If the backend returns an error or the Dish Created operation is not authorized, the frontend does not update the Last Prepared information.
+
+The user is shown an alert informing them that something went wrong and that the dish could not be created.
+
+The user can dismiss the alert using the **OK** button.
+
+The Dish Created operation is therefore only reflected on the Read Recipe page when the backend confirms that the dish has been successfully created.
+
+## 15.13 Important Business Rule
+
+The Last Prepared information shown on the Read Recipe page is updated only after the backend has successfully created the Dish Created record and its associated ingredients.
+
+This ensures that the page does not show a preparation date or meal type for a dish that was not successfully saved.
+
+# 16. Dishes Made
+
+The **Dishes Made** page allows the logged in user to view the dishes they have previously created.
+
+The page is accessed through the **Dishes Made** option in the application navigation.
+
+## 16.1 Opening Dishes Made
+
+When the user selects **Dishes Made** from the navigation, the Dishes Made page is opened.
+
+When the page loads, the frontend requests the dishes previously created by the logged in user from the backend.
+
+The request is sent as a GET request.
+
+The request does not require a request body. The information required for searching and progressive loading can be provided with the request.
+
+## 16.2 Requesting Dishes Made
+
+The frontend sends the request to retrieve the user's previously created dishes.
+
+The request can include:
+
+- Search text
+- Page number
+- Number of results to retrieve
+
+If no page number is provided, the default page is the first page.
+
+If no result limit is provided, the default number of results is 20.
+
+## 16.3 Backend Authentication and Request Processing
+
+When the backend receives the request, it obtains the authenticated user's information from the authenticated session.
+
+The authenticated user has already been validated during the authentication process.
+
+The backend then identifies any search text and pagination information supplied with the request.
+
+If no search text is supplied, the request retrieves the user's dishes without a search filter.
+
+## 16.4 Retrieving the User's Dishes
+
+The backend retrieves the **Dish Created** records belonging to the logged in user.
+
+Only dishes created by the authenticated user are included in the results.
+
+If search text has been supplied, the backend searches the user's dishes using:
+
+- Recipe name
+- Comments/Notes
+
+The matching dishes are retrieved according to the requested page and result limit.
+
+## 16.5 Backend Response
+
+Once the dishes have been retrieved, the backend returns the results to the frontend.
+
+The response contains the information required to display the user's previously created dishes.
+
+If an error occurs while retrieving the dishes, an appropriate error response is returned to the frontend.
+
+## 16.6 Frontend Processing and Display
+
+When the frontend receives a successful response, it processes the returned dish information for display.
+
+The preparation date is formatted into a user friendly format before being displayed.
+
+The dishes are then displayed using dish cards.
+
+## 16.7 Dish Card
+
+Each Dish Created card displays:
+
+- Recipe/Dish image
+- Recipe/Dish name
+- Portion size
+- Prepared On date
+- Cost of the prepared dish with the relevant currency symbol
+- Comments/Notes
+
+The image displayed on the card represents the image captured when the dish was created.
+
+## 16.8 Progressive Loading
+
+The Dishes Made page uses progressive loading to retrieve additional dishes.
+
+When the user reaches the end of the currently displayed dishes, the frontend requests the next page of results from the backend.
+
+The newly retrieved dishes are added to the dishes already displayed.
+
+This process continues as the user moves through the user's previously created dishes.
+
+## 16.9 Searching Dishes Made
+
+The Dishes Made page provides a search facility for the user's previously created dishes.
+
+When the user enters search text and submits the search, the frontend sends the search criteria to the backend.
+
+The backend searches only dishes belonging to the logged in user.
+
+The search checks:
+
+- Recipe name
+- Comments/Notes
+
+The matching results are returned to the frontend and displayed using the same dish card format.
+
+## 16.10 Progressive Loading of Search Results
+
+Search results use the same progressive loading behavior as the normal Dishes Made listing.
+
+The first set of matching dishes is displayed after the search is submitted.
+
+When the user reaches the end of the currently displayed search results, the frontend requests additional matching dishes when available.
+
+The newly retrieved dishes are added to the existing results.
+
+## 16.11 Historical Snapshot
+
+Dish Created records contain historical information captured when the dish was created.
+
+The recipe image stored with the Dish Created record represents the image at the time the dish was created.
+
+If the recipe image is changed later, the image displayed for the previously created dish does not change.
+
+The Dish Created record therefore represents a historical snapshot of the dish at the time it was prepared.
+
+## 16.12 Error Handling
+
+If the backend returns an error while retrieving the user's dishes or processing a search, the frontend displays an appropriate error message on the Dishes Made page.
+
+The user is not shown the results as a successful retrieval when the backend has returned an error.
 
 # 17. Read Dish
 
-## 17.1 Accessing Dish Details
+The **Read Dish** page allows the logged in user to view the historical details of a dish that they previously created.
 
-When the user selects a dish from **Dishes Made**, the frontend sends the selected **Dish ID** to the backend.
+The page is accessed by selecting a dish from the **Dishes Made** page.
 
-## 17.2 User and Dish Validation
+## 17.1 Opening the Read Dish Page
 
-- The backend identifies the authenticated user from the authentication token.
-- It verifies that the Dish ID exists in the `dishes` table.
-- It verifies that the dish belongs to the authenticated user.
-- The dish must also be active.
-- If any validation fails, the appropriate error message is returned to the frontend.
+When the user selects a dish from the Dishes Made page, the application opens the Read Dish page for the selected dish.
+
+The selected **Dish ID** is provided to the frontend so that the details of that specific dish can be requested from the backend.
+
+The frontend then sends a request to the backend to retrieve the dish details.
+
+## 17.2 Backend Authentication and Dish Validation
+
+When the backend receives the request, it identifies the logged in user from the authenticated session.
+
+The backend then validates the supplied Dish ID.
+
+The system checks:
+
+- Whether a Dish ID has been provided.
+- Whether the Dish ID is valid.
+- Whether the dish exists.
+- Whether the dish belongs to the authenticated user.
+- Whether the dish is active.
+
+If any of these checks fail, the dish details are not retrieved and an appropriate error response is returned to the frontend.
 
 ## 17.3 Retrieving Dish Details
 
-Once the dish has been successfully validated:
+Once the dish has successfully passed the authentication and validation checks, the backend retrieves the information required to display the dish.
 
-- The dish details are retrieved from the `dishes` table.
-- The associated ingredient details are retrieved from the `dish_ingredients` table.
-- The `dish_ingredients` table contains the historical snapshot information required to display the ingredients, including ingredient name, quantity, unit, cost, base quantity, base price, base unit, ingredient source, and display order.
+The dish information is retrieved from the Dish Created record.
 
-## 17.4 Displaying Dish Details
+The associated historical ingredient information is also retrieved.
 
-The data retrieved from the `dishes` and `dish_ingredients` tables is combined and returned to the frontend.
+The ingredient information is obtained from the Dish Ingredients records associated with the selected dish.
 
-The frontend:
+Because the Dish Ingredients records contain the information captured when the dish was created, they provide the historical ingredient information for that particular dish.
 
-- Checks the backend response for errors.
-- Displays the appropriate error message if the request fails.
-- If successful, displays the historical dish information, including recipe name, portion size, cost, prepared date and meal type, stored image, comments, and historical ingredient details.
+This includes information such as:
 
-## 17.5 Available Actions
+- Ingredient name
+- Quantity
+- Unit
+- Cost
+- Base quantity
+- Base price
+- Base unit
+- Ingredient source
+- Display order
 
-The user can:
+## 17.4 Returning the Dish Details
 
-- **Delete** the dish from the Read Dish page.
-- **Print/Save as PDF** will be available as a future functionality.
+The backend combines the dish information and its associated historical ingredient information and returns the complete result to the frontend.
 
-## 17.6 Handling Errors or Unauthorised Requests
+The returned information contains the information required to display the historical dish, including:
 
-- If the dish does not exist, the user does not own the dish, or the request is unauthorised, the backend returns the appropriate error response.
-- The frontend displays the corresponding error message to the user.
+- Recipe name
+- Portion size
+- Cost
+- Prepared date
+- Meal type
+- Stored recipe image
+- Comments/Notes
+- Historical ingredient information
+
+## 17.5 Frontend Processing and Display
+
+When the frontend receives a successful response, it processes the returned information and displays the Read Dish page.
+
+The page displays the dish using the information stored when the dish was created.
+
+The historical information is displayed as the state of the dish at the time it was created rather than using the current recipe information.
+
+If the backend returns an error, the frontend does not display the dish as a successfully retrieved record and instead displays the appropriate error message.
+
+## 17.6 Available Actions
+
+The Read Dish page allows the user to **Delete** the Dish Created record.
+
+The deletion process is handled separately from the process of reading the dish.
+
+A **Print/Save as PDF** option is planned as a future feature and is therefore not currently part of the active Read Dish functionality.
+
+## 17.7 Error and Unauthorized Handling
+
+If the backend determines that the dish does not exist, does not belong to the logged in user, is inactive, or the request is otherwise unauthorized, the backend returns an appropriate error response.
+
+The frontend handles the response and informs the user that the dish could not be retrieved.
+
+The Read Dish page must not display dish information when the backend has not successfully validated and retrieved the requested dish.
+
+## 17.8 Historical Dish Information
+
+The Read Dish page displays the historical information captured when the dish was created.
+
+Changes made to the original recipe after the dish was created do not change the historical information stored for the dish.
+
+This ensures that the Read Dish page represents the dish as it existed when it was originally created.
 
 # 18. Delete Dish
 
+The **Delete Dish** functionality allows the logged in user to remove a previously created dish from their Dishes Made collection.
+
 ## 18.1 Delete Confirmation
 
-- When the user selects **Delete** from the Read Dish page, a confirmation modal is displayed.
-- The user can select **Yes** to continue or **Cancel** to return to the Read Dish page.
+When the user selects **Delete** from the Read Dish page, a confirmation modal is displayed.
 
-## 18.2 Delete Request
+The user can either select **Yes** to continue with the deletion or **Cancel** to return to the Read Dish page without making any changes.
 
-- When the user confirms deletion, the frontend sends the **Dish ID** to the backend through the delete API.
+## 18.2 Submitting the Delete Request
 
-## 18.3 User and Dish Validation
+When the user confirms the deletion, the frontend sends the selected **Dish ID** to the backend through the delete request.
 
-- The backend identifies the authenticated user from the authentication token.
-- It validates that the Dish ID exists and belongs to the authenticated user.
-- It also verifies that the dish is currently active.
-- If the validation fails, the appropriate response is returned to the frontend.
+The authenticated user's information is provided through the existing authenticated session.
 
-## 18.4 Soft Delete
+## 18.3 Backend Authentication and Dish Validation
 
-- The `dishes` record is soft deleted by setting `is_active` to `0`.
-- The associated records in `dish_ingredients` are also soft deleted by setting `is_active` to `0`.
-- The historical records are therefore retained in the database but are no longer available to the user.
+When the backend receives the delete request, it identifies the logged in user from the authenticated session.
 
-## 18.5 After Successful Deletion
+The backend then validates the supplied Dish ID.
 
-- After successful deletion, the frontend redirects the user to **Dishes Made**.
-- The deleted dish is no longer displayed in the user's list of dishes.
+The system checks:
 
-## 18.6 Handling Backend Errors
+- Whether the Dish ID has been provided.
+- Whether the dish exists.
+- Whether the dish belongs to the authenticated user.
+- Whether the dish is currently active.
 
-- If the backend returns an error during validation or deletion, the frontend displays the corresponding error message to the user.
-- The user remains on the current page unless the deletion is successfully completed.
+If any of these checks fail, the deletion does not continue and an appropriate error response is returned to the frontend.
+
+## 18.4 Soft Deletion of the Dish
+
+Once the dish has successfully passed the authentication and validation checks, the dish is soft deleted.
+
+The Dish Created record is retained in the database, but its active status is changed so that it is no longer considered an active dish.
+
+The associated Dish Ingredients records are also soft deleted by changing their active status.
+
+The historical records are therefore retained in the database but are no longer available as active dishes to the user.
+
+## 18.5 Completing the Deletion
+
+The deletion is considered successful only when the Dish Created record and its associated Dish Ingredients records have been successfully marked as inactive.
+
+The backend then returns a successful response to the frontend.
+
+## 18.6 Frontend Handling of Successful Deletion
+
+When the frontend receives confirmation that the dish has been successfully deleted, the user is redirected to the **Dishes Made** page.
+
+The deleted dish is no longer included in the user's active Dishes Made collection.
+
+## 18.7 Error and Unauthorized Handling
+
+If the backend returns an error during authentication, validation, or deletion, the frontend displays the appropriate error message to the user.
+
+The user remains on the current page and the dish remains available unless the backend confirms that the deletion was successfully completed.
 
 # 19. My Ingredients
 
-## 19.1 Loading My Ingredients
+The **My Ingredients** page allows the logged in user to view the active ingredients that they have created.
 
-When the user selects **My Ingredients** from the navigation menu, the page retrieves the ingredients created by the logged in user from the backend.
+The page also provides a search facility and an option to add new ingredients.
 
-- The first 20 ingredients are retrieved initially.
-- As the user scrolls, additional ingredients are fetched and displayed using infinite scrolling.
-- If the user has not created any ingredients, a message is displayed informing them that they currently have no custom ingredients and prompting them to use the **Add New** option.
+## 19.1 Opening My Ingredients
 
-## 19.2 Add New Button
+When the user selects **My Ingredients** from the application navigation, the My Ingredients page is opened.
 
-The page provides an **Add New** button that allows the user to navigate to the page for creating a new custom ingredient.
+When the page loads, the frontend requests the ingredients created by the logged in user from the backend.
 
-## 19.3 Search Ingredients
+The request is sent to the User Ingredients API.
 
-The page provides a search option that allows the user to search through their custom ingredients.
+The request can include:
 
-- The search retrieves the first 20 matching ingredients.
-- As the user scrolls, additional matching ingredients are fetched and displayed using infinite scrolling.
+- Search text
+- Page number
+- Number of results to retrieve
 
-## 19.4 Ingredient Card
+These values are provided as request parameters rather than as part of the URL.
 
-Each custom ingredient is displayed in a card containing:
+When the page is opened for the first time, no search text is provided.
 
-- Ingredient image
+## 19.2 Backend Authentication and Request Processing
+
+When the request reaches the backend, it first passes through the application's authentication process.
+
+The authenticated user is identified from the user's authenticated session.
+
+The controller then obtains the authenticated user information and any search text supplied with the request.
+
+Because the user has already been authenticated before the request reaches the controller, the backend can proceed with retrieving the user's ingredients.
+
+## 19.3 Retrieving the User's Ingredients
+
+The backend retrieves the active ingredients belonging to the authenticated user.
+
+Only ingredients created by the logged in user are included in the results.
+
+Inactive ingredients are not included in the My Ingredients listing.
+
+When no search text has been provided, the user's active ingredients are retrieved without a search filter.
+
+If search text has been provided, the backend uses the supplied search text when retrieving the user's matching ingredients.
+
+The results are returned to the frontend as a list of ingredients.
+
+## 19.4 Backend Response
+
+After the ingredients have been retrieved, the backend returns the ingredient list to the frontend.
+
+If the request is successfully processed, the frontend receives the list of ingredients required to display the My Ingredients page.
+
+If the authentication process cannot identify the user, the authentication middleware returns the appropriate error response and the ingredient retrieval process does not continue.
+
+## 19.5 Frontend Processing and Display
+
+When the frontend receives the ingredient list successfully, it stores the returned ingredients and updates the My Ingredients page.
+
+The page then displays the ingredients as ingredient cards.
+
+Each ingredient card displays information including:
+
 - Ingredient name
-- Price for the corresponding units
-- Cup weight information, if provided
-- **Edit** button
+- User's current currency
+- Display quantity
+- Display unit
+- Cup weight
+- Edit option
 
-## 19.5 Edit Button
+The currency displayed for an ingredient is based on the currency associated with the user's currently selected country.
 
-The ingredient information displayed on the My Ingredients page is read only.
+## 19.6 Progressive Loading
 
-Selecting the **Edit** button takes the user to the **Edit My Ingredient** page, where they can modify the ingredient information.
+The My Ingredients page uses progressive loading so that ingredients can be retrieved in multiple sets rather than loading the complete collection at once.
+
+When the user reaches the end of the currently displayed ingredients, the frontend requests the next set of ingredients from the backend.
+
+The newly retrieved ingredients are added to the ingredients already displayed.
+
+This allows the user to continue scrolling through their ingredients without manually selecting another page.
+
+## 19.7 Searching My Ingredients
+
+The My Ingredients page provides a search bar at the top of the page.
+
+The user can enter search text and select the **Search** button to search their ingredients.
+
+When the search is submitted, the frontend sends the entered search text to the same User Ingredients API as a request parameter.
+
+The backend then uses the supplied search text to retrieve the user's matching active ingredients.
+
+The matching ingredient list is returned to the frontend and displayed on the My Ingredients page.
+
+## 19.8 Displaying Search Results
+
+When the frontend receives the search results, the ingredient list displayed on the page is updated according to the returned results.
+
+The matching ingredients are displayed using the same ingredient card format as the normal My Ingredients listing.
+
+The search results also support the progressive loading behavior of the page when additional results are available.
+
+## 19.9 Adding a New Ingredient
+
+The My Ingredients page provides an option to add a new ingredient.
+
+When the user selects the **Add New Ingredient** button, the application opens the functionality for creating a new ingredient.
+
+The business logic for creating a new ingredient is documented separately.
+
+## 19.10 Editing an Ingredient
+
+Each ingredient card provides an **Edit** option.
+
+When the user selects **Edit**, the application opens the functionality for editing that ingredient.
+
+The business logic for editing an ingredient is documented separately.
+
+## 19.11 Authentication Error Handling
+
+The main error condition for retrieving My Ingredients occurs when the user's authenticated session is no longer valid or the user cannot be identified.
+
+In this situation, the authentication process prevents the request from continuing and returns an appropriate error response to the frontend.
+
+The frontend handles the returned error according to the application's authentication error handling.
+
+Other errors returned while retrieving the ingredient data are also handled by the frontend and are not treated as a successful ingredient retrieval.
+
+# 20. Create New Ingredient
+
+The **Create New Ingredient** functionality allows the logged in user to create a new ingredient and add it to their My Ingredients collection.
+
+The functionality is accessed through the **Create New** button on the My Ingredients page.
+
+## 20.1 Opening Create New Ingredient
+
+When the user selects **Create New** from the My Ingredients page, the application opens the **Create New Ingredient** page.
+
+The page displays an empty ingredient form containing:
+
+- Ingredient Name
+- Quantity
+- Unit
+- Price
+- Cup Weight
+- Cup Unit
+- Save
+- Cancel
+
+The page also provides information explaining the purpose of the optional Cup Weight and Cup Unit fields.
+
+## 20.2 Similar Ingredient Names
+
+The Create New Ingredient page provides a reference section that displays ingredient names similar to the name being entered by the user.
+
+This allows the user to see whether an ingredient with the same or a similar name already exists in the system before attempting to create a new ingredient.
+
+The displayed results can include:
+
+- Main system ingredients
+- Ingredients previously created by users
+
+The similar ingredient names are provided as a reference to help the user avoid creating a duplicate ingredient.
+
+## 20.3 Searching Similar Ingredient Names
+
+When the user enters text into the Ingredient Name field, the application waits briefly after the user stops typing before requesting matching ingredient names from the backend.
+
+The search request contains:
+
+- The entered search text
+- The information required for progressive retrieval of matching results
+
+The request is sent to the backend without placing these values in the URL.
+
+## 20.4 Backend Authentication and Search Processing
+
+When the similar ingredient search request reaches the backend, the user's authenticated session is validated.
+
+The authenticated user is identified before the search is processed.
+
+The backend then retrieves ingredient names matching the supplied search text.
+
+The search includes the relevant main system ingredients and ingredients created by users.
+
+Only active ingredients are included in the matching results.
+
+The matching results are returned to the frontend.
+
+## 20.5 Displaying Similar Ingredient Names
+
+When the frontend receives the matching ingredient names, they are displayed in the similar ingredient section of the Create New Ingredient page.
+
+If matching ingredient names are found, they are shown to the user.
+
+If no matching names are found, the section remains empty.
+
+The similar ingredient section does not prevent the user from continuing by itself. It acts as a reference to help the user identify an existing or similar ingredient.
+
+## 20.6 Ingredient Name
+
+The user enters the name of the ingredient they want to create.
+
+The Ingredient Name field is required.
+
+The ingredient name is later checked by the backend against existing system ingredients and ingredients created by users before the new ingredient is created.
+
+## 20.7 Quantity
+
+The user enters the quantity associated with the ingredient price.
+
+The Quantity field accepts numeric values only and is subject to the permitted quantity limits.
+
+## 20.8 Unit
+
+The user selects the ingredient's unit from a predefined list.
+
+The available units represent different types of measurement, including weight, volume, and count based measurements.
+
+The available units are:
+
+- Kilogram
+- Gram
+- Pound
+- Liter
+- Milliliter
+- Fluid Ounce
+- Pint
+- Piece
+- Bunch
+
+The user cannot enter a unit outside the predefined list.
+
+## 20.9 Price
+
+The user enters the price associated with the specified quantity and unit.
+
+The Price field accepts numeric values.
+
+The entered price is used as part of the ingredient's pricing information.
+
+## 20.10 Cup Weight and Cup Unit
+
+Cup Weight and Cup Unit are optional fields.
+
+The user can provide a weight equivalent for one cup of the ingredient.
+
+The Cup Weight field accepts numeric values.
+
+The Cup Unit field provides a predefined list of weight units:
+
+- Kilogram
+- Gram
+- Ounce
+- Pound
+
+Both Cup Weight and Cup Unit must be provided together.
+
+If the user provides one of these values without the other, the form informs the user that both values are required.
+
+The user can also leave both fields empty.
+
+## 20.11 Purpose of Cup Weight
+
+The Create New Ingredient page informs the user that providing Cup Weight and Cup Unit allows the application to generate additional ingredient measurements such as:
+
+- Cup
+- Tablespoon
+- Teaspoon
+
+These additional measurements are particularly useful for ingredients that are commonly measured by volume, such as grains, flour, and powders.
+
+## 20.12 Form Validation
+
+Before the ingredient can be saved, the required information must be provided and valid.
+
+The Save button remains unavailable while required information is missing or invalid.
+
+The form also checks that Cup Weight and Cup Unit are either both provided or both left empty.
+
+The ingredient cannot be submitted until the form satisfies the required validation rules.
+
+## 20.13 Submitting the New Ingredient
+
+When the user selects **Save** after completing the form, the frontend sends the ingredient information to the backend.
+
+The submitted information includes:
+
+- Ingredient Name
+- Quantity
+- Unit
+- Price
+- Cup Weight, if provided
+- Cup Unit, if provided
+
+The authenticated user's information is provided through the existing authenticated session.
+
+## 20.14 Backend Request Validation
+
+When the backend receives the request, it first checks that the required ingredient data has been provided.
+
+If the required request data is missing, the ingredient is not created and an appropriate error response is returned to the frontend.
+
+The backend also obtains the authenticated user's information from the authenticated session.
+
+## 20.15 Normalizing and Validating Ingredient Data
+
+The submitted ingredient information is normalized before it is processed further.
+
+The backend normalizes and validates the supplied values, including:
+
+- Ingredient Name
+- Quantity
+- Unit
+- Price
+- Cup Weight
+- Cup Unit
+
+The validation ensures that the normalized values meet the requirements for creating an ingredient.
+
+If the data is invalid, the ingredient is not created and the appropriate validation error is returned to the frontend.
+
+## 20.16 Checking for Existing Ingredients
+
+After the submitted data has passed the initial validation, the backend checks whether the ingredient name already exists.
+
+The system checks both:
+
+- Main system ingredients
+- Ingredients previously created by users
+
+If an ingredient with the same name already exists, the new ingredient is not created.
+
+This prevents duplicate ingredient names from being created.
+
+## 20.17 Creating the Ingredient
+
+If the ingredient name does not already exist and all validation checks have passed, the backend proceeds with creating the new ingredient.
+
+The database operation performs its own validation before creating the ingredient.
+
+If all database validations pass, the new ingredient is created and receives a new ingredient identifier.
+
+## 20.18 Creating Ingredient Units
+
+The ingredient's available measurement information is created according to the unit selected by the user.
+
+If the user has also provided Cup Weight and Cup Unit, the system creates the additional measurement information required to support:
+
+- Cup
+- Tablespoon
+- Teaspoon
+
+These additional measurements are based on the supplied cup weight information.
+
+## 20.19 Successful Ingredient Creation
+
+When the ingredient and its associated measurement information have been successfully created, the backend returns a successful response.
+
+The response includes confirmation that the operation was successful and the newly created ingredient information, including its new identifier.
+
+## 20.20 Frontend Handling of Successful Creation
+
+When the frontend receives confirmation that the ingredient was successfully created, the new ingredient information is added to the ingredient data already available to the application.
+
+The My Ingredients list is therefore updated to include the newly created ingredient.
+
+The user is then returned to the **My Ingredients** page.
+
+The newly created ingredient is displayed in the My Ingredients list without requiring the user to manually refresh the page.
+
+## 20.21 Error Handling
+
+If an error occurs during authentication, validation, duplicate checking, database processing, or ingredient creation, the ingredient is not added to the My Ingredients list.
+
+The frontend displays the appropriate error message to the user.
+
+The user remains on the Create New Ingredient page so that they can correct the information or try again.
+
+## 20.22 Canceling Ingredient Creation
+
+The Create New Ingredient page provides a **Cancel** option.
+
+If the user selects **Cancel**, the ingredient creation process is abandoned and no new ingredient is created.
+
+The user can return to the My Ingredients page without saving the entered ingredient information.
