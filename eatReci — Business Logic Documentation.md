@@ -242,6 +242,43 @@ the source code.
 21. [Error Handling](#2021-error-handling)
 22. [Canceling Ingredient Creation](#2022-canceling-ingredient-creation)
 
+## 21. Update My Ingredient
+
+1. [Opening Update My Ingredient](#211-opening-update-my-ingredient)
+2. [Displaying Existing Ingredient Information](#212-displaying-existing-ingredient-information)
+3. [Searching Similar Ingredient Names](#213-searching-similar-ingredient-names)
+4. [Displaying Similar Ingredient Names](#214-displaying-similar-ingredient-names)
+5. [Updating Ingredient Information](#215-updating-ingredient-information)
+6. [Form Validation](#216-form-validation)
+7. [Unit Change Warning](#217-unit-change-warning)
+8. [Submitting the Update](#218-submitting-the-update)
+9. [Backend Authentication and Request Validation](#219-backend-authentication-and-request-validation)
+10. [Ingredient Ownership Validation](#2110-ingredient-ownership-validation)
+11. [Normalizing and Validating Ingredient Data](#2111-normalizing-and-validating-ingredient-data)
+12. [Checking for Duplicate Ingredient Names](#2112-checking-for-duplicate-ingredient-names)
+13. [Updating the Ingredient](#2113-updating-the-ingredient)
+14. [Updating Associated Ingredient Units](#2114-updating-associated-ingredient-units)
+15. [Impact on Existing Recipes](#2115-impact-on-existing-recipes)
+16. [Updating Cup Measurements](#2116-updating-cup-measurements)
+17. [Completing the Update](#2117-completing-the-update)
+18. [Frontend Handling of Successful Update](#2118-frontend-handling-of-successful-update)
+19. [Error Handling](#2119-error-handling)
+20. [Canceling the Update](#2120-canceling-the-update)
+
+## 22. Delete My Ingredient
+
+1. [Accessing Delete My Ingredient](#221-accessing-delete-my-ingredient)
+2. [Delete Confirmation](#222-delete-confirmation)
+3. [Submitting the Delete Request](#223-submitting-the-delete-request)
+4. [Backend Authentication and User Validation](#224-backend-authentication-and-user-validation)
+5. [Ingredient Ownership Validation](#225-ingredient-ownership-validation)
+6. [Deleting the User Ingredient](#226-deleting-the-user-ingredient)
+7. [Updating Associated Ingredient Units](#227-updating-associated-ingredient-units)
+8. [Updating Recipe Ingredient References](#228-updating-recipe-ingredient-references)
+9. [Completing the Deletion](#229-completing-the-deletion)
+10. [Frontend Handling of Successful Deletion](#2210-frontend-handling-of-successful-deletion)
+11. [Error and Unauthorized Handling](#2211-error-and-unauthorized-handling)
+
 # 1. Register
 
 ## 1.1 Purpose
@@ -2532,3 +2569,309 @@ The Create New Ingredient page provides a **Cancel** option.
 If the user selects **Cancel**, the ingredient creation process is abandoned and no new ingredient is created.
 
 The user can return to the My Ingredients page without saving the entered ingredient information.
+
+# 21. Update My Ingredient
+
+The **Update My Ingredient** functionality allows the logged in user to modify an ingredient that they previously created.
+
+The functionality is accessed through the **Edit** option on an ingredient displayed on the My Ingredients page.
+
+## 21.1 Opening Update My Ingredient
+
+When the user selects **Edit** for an ingredient, the application opens the **Update My Ingredient** page.
+
+The selected ingredient information is provided to the Update My Ingredient page.
+
+The page uses this information to populate the ingredient form with the ingredient's existing values.
+
+The form contains:
+
+- Ingredient Name
+- Quantity
+- Unit
+- Price
+- Cup Weight
+- Cup Unit
+- Save
+- Cancel
+
+The page also provides the similar ingredient name section and the information explaining the purpose of Cup Weight and Cup Unit.
+
+## 21.2 Displaying Existing Ingredient Information
+
+When the Update My Ingredient page opens, the existing ingredient information is displayed in the corresponding fields.
+
+The user can review and modify the existing:
+
+- Ingredient Name
+- Quantity
+- Unit
+- Price
+- Cup Weight
+- Cup Unit
+
+The existing ingredient identifier is retained so that the backend can identify the specific ingredient being updated.
+
+## 21.3 Searching Similar Ingredient Names
+
+The Ingredient Name field provides the same similar ingredient search functionality used when creating a new ingredient.
+
+When the user enters or changes the ingredient name, the application requests matching ingredient names from the backend.
+
+The request also identifies the ingredient currently being edited.
+
+The current ingredient is excluded from the search results so that the ingredient does not appear as a duplicate of itself.
+
+The search can therefore identify other system ingredients or user ingredients with the same or similar name without displaying the ingredient currently being edited.
+
+## 21.4 Displaying Similar Ingredient Names
+
+When matching ingredient names are returned, they are displayed in the similar ingredient section.
+
+If no matching ingredient names are found, the section remains empty.
+
+The similar ingredient section continues to act as a reference for the user and does not by itself prevent the ingredient from being updated.
+
+## 21.5 Updating Ingredient Information
+
+The user can modify any of the editable ingredient information.
+
+The same form rules used when creating an ingredient apply when updating an ingredient.
+
+The required fields must contain valid information before the ingredient can be saved.
+
+Cup Weight and Cup Unit remain optional, but if one is provided, the other must also be provided.
+
+## 21.6 Form Validation
+
+Before the update can be submitted, the frontend validates the entered information.
+
+The Save button remains unavailable while required information is missing or invalid.
+
+The form also ensures that Cup Weight and Cup Unit are either both provided or both left empty.
+
+## 21.7 Unit Change Warning
+
+Changing the ingredient's base unit can affect the measurement information associated with the ingredient.
+
+This is particularly important when the user changes between different measurement types, such as changing from a weight based unit such as kilograms to a volume based unit such as liters.
+
+The user is therefore informed that changing the ingredient's unit may affect recipes that use this ingredient or its associated measurement units.
+
+The user should also be informed that deleting an ingredient can affect recipes in which that ingredient has been used.
+
+## 21.8 Submitting the Update
+
+When the user selects **Save**, the frontend sends the updated ingredient information to the backend.
+
+The request includes the identifier of the ingredient being updated together with the updated ingredient information.
+
+The authenticated user's information is provided through the existing authenticated session.
+
+## 21.9 Backend Authentication and Request Validation
+
+When the backend receives the update request, it identifies the authenticated user and validates the submitted request data.
+
+The backend checks that the required information has been provided and that the submitted values are valid.
+
+The ingredient identifier is also validated so that the correct ingredient is updated.
+
+If the request is invalid, the update does not continue and an appropriate error response is returned.
+
+## 21.10 Ingredient Ownership Validation
+
+Before updating the ingredient, the backend verifies that the selected ingredient belongs to the authenticated user.
+
+An ingredient belonging to another user cannot be updated through this functionality.
+
+If the ingredient cannot be identified or does not belong to the authenticated user, the update is not permitted.
+
+## 21.11 Normalizing and Validating Ingredient Data
+
+The submitted ingredient information is normalized and validated before the update is performed.
+
+This includes:
+
+- Ingredient Name
+- Quantity
+- Unit
+- Price
+- Cup Weight
+- Cup Unit
+
+The same validation requirements used when creating an ingredient apply to the updated information.
+
+## 21.12 Checking for Duplicate Ingredient Names
+
+After the submitted information has passed validation, the backend checks whether the updated ingredient name already exists in the relevant ingredient records.
+
+The ingredient currently being updated is excluded from this comparison.
+
+This prevents the user from changing the ingredient name to one that is already being used by another ingredient.
+
+## 21.13 Updating the Ingredient
+
+Once all validation and ownership checks have successfully passed, the existing user ingredient is updated rather than creating a new ingredient.
+
+The update is performed using the existing ingredient identifier.
+
+The updated ingredient retains its identity while its changed information is applied.
+
+## 21.14 Updating Associated Ingredient Units
+
+When the ingredient is updated, the associated ingredient measurement information is also reviewed.
+
+The existing associated units are deactivated before the system establishes the units required by the updated ingredient.
+
+The system then determines which measurement units should be available based on the newly selected base unit.
+
+The required units are activated or created as appropriate for the updated ingredient.
+
+If the base unit has changed to a different measurement type, units that are no longer appropriate are no longer available for that ingredient.
+
+For example, changing the base unit from a weight measurement to a volume measurement can cause the previous weight based units to become inactive and the appropriate volume based units to become available.
+
+## 21.15 Impact on Existing Recipes
+
+Updating an ingredient's base unit or measurement information may affect recipes that already use that ingredient.
+
+When the ingredient is updated, the system recalculates the active measurement units based on the newly provided information.
+
+Units that are no longer compatible with the updated ingredient information are deactivated, while the appropriate units supported by the updated ingredient are activated or created.
+
+As a result, existing recipes that use the affected ingredient or its measurement units may be affected by the update.
+
+The user should therefore be informed that changing the ingredient's unit or measurement information may affect recipes that already use the ingredient.
+
+The specific units affected depend on the information provided when the ingredient is updated.
+
+## 21.16 Updating Cup Measurements
+
+If Cup Weight and Cup Unit have been provided, the associated Cup, Tablespoon, and Teaspoon measurement information is updated according to the new cup weight information.
+
+If the user has not provided Cup Weight and Cup Unit, these additional measurements are not created or retained as active measurements for the updated ingredient.
+
+## 21.17 Completing the Update
+
+Once the ingredient information and its associated measurement information have been successfully updated, the backend returns a successful response to the frontend.
+
+The response confirms that the existing ingredient has been updated successfully and provides the updated ingredient information.
+
+## 21.18 Frontend Handling of Successful Update
+
+When the frontend receives confirmation that the update was successful, the updated ingredient information is applied to the My Ingredients data.
+
+The user is then returned to the **My Ingredients** page.
+
+The updated ingredient is displayed using its new information without requiring the user to manually refresh the page.
+
+## 21.19 Error Handling
+
+If an error occurs during authentication, validation, ownership checking, duplicate checking, or updating the ingredient, the update is not considered successful.
+
+The user remains on the **Update My Ingredient** page.
+
+The appropriate error message is displayed so that the user can review the problem and try again.
+
+## 21.20 Canceling the Update
+
+The Update My Ingredient page provides a **Cancel** option.
+
+If the user selects **Cancel**, the update process is abandoned.
+
+No changes are made to the existing ingredient, and the user can return to the My Ingredients page.
+
+# 22. Delete My Ingredient
+
+The **Delete My Ingredient** functionality allows the logged in user to remove an ingredient that they previously created.
+
+The functionality is accessed from the **Update My Ingredient** page.
+
+## 22.1 Accessing Delete My Ingredient
+
+The Update My Ingredient page provides the user with the following options:
+
+- Save
+- Cancel
+- Delete
+
+When the user selects **Delete**, a confirmation modal is displayed before any changes are made.
+
+## 22.2 Delete Confirmation
+
+The confirmation modal informs the user about the consequences of deleting the ingredient.
+
+The user can either confirm the deletion or cancel the operation.
+
+If the user cancels the deletion, no changes are made and the user remains on the Update My Ingredient page.
+
+## 22.3 Submitting the Delete Request
+
+When the user confirms the deletion, the frontend sends the selected **User Ingredient ID** to the backend through the delete request.
+
+The authenticated user's information is provided through the existing authenticated session.
+
+## 22.4 Backend Authentication and User Validation
+
+When the backend receives the delete request, the authentication process identifies the logged in user.
+
+The backend then validates the supplied user information and the User Ingredient ID.
+
+The system verifies that the user can be identified and that the supplied user information is valid.
+
+The user's active status does not need to be checked again at this stage because the authentication process has already performed the required user validation.
+
+## 22.5 Ingredient Ownership Validation
+
+The backend verifies that the selected user ingredient belongs to the authenticated user.
+
+If the ingredient does not belong to the authenticated user, the deletion is not permitted and an appropriate error response is returned.
+
+## 22.6 Deleting the User Ingredient
+
+Once the authentication and ownership checks have successfully passed, the backend proceeds with the deletion process.
+
+The deletion is performed through the database process responsible for deleting a user ingredient.
+
+The process verifies that:
+
+- The user ingredient exists.
+- The ingredient belongs to the specified user.
+
+If these checks are successful, the user ingredient is soft deleted.
+
+## 22.7 Updating Associated Ingredient Units
+
+The associated ingredient measurement units are also updated as part of the deletion process.
+
+The units associated with the deleted user ingredient are marked as inactive so that they are no longer available for active use.
+
+## 22.8 Updating Recipe Ingredient References
+
+The system also updates recipe ingredient records that reference the deleted user ingredient.
+
+These references are marked as inactive so that the deleted user ingredient is no longer treated as an active ingredient within the affected recipes.
+
+This ensures that the deleted user ingredient and its associated measurement information are no longer available as active ingredient references.
+
+## 22.9 Completing the Deletion
+
+The deletion is considered successful only after the user ingredient and its associated records have been successfully updated.
+
+The backend then returns a successful response confirming that the user ingredient has been deleted.
+
+## 22.10 Frontend Handling of Successful Deletion
+
+When the frontend receives confirmation that the ingredient has been successfully deleted, the user is returned to the **My Ingredients** page.
+
+The My Ingredients list is updated so that the deleted ingredient is no longer displayed.
+
+The user does not need to manually refresh the page to see the updated ingredient list.
+
+## 22.11 Error and Unauthorized Handling
+
+If an error occurs during authentication, validation, ownership checking, or deletion, the ingredient is not considered successfully deleted.
+
+The frontend displays the appropriate error message to the user.
+
+The user remains on the current page unless the deletion is successfully completed.

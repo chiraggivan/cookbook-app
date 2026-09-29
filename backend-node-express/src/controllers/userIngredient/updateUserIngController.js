@@ -10,6 +10,13 @@ exports.update_user_ing = async (req, res) => {
     }
     // console.log("req body :", req?.body);
     const ogData = req?.body;
+    if (!ogData) {
+      return res.status(500).json({
+        success: false,
+        message: "Data not sent with the body.",
+      });
+    }
+
     ogData.quantity = Number(ogData.quantity);
     ogData.price = Number(ogData.price);
     if (ogData.cup_weight === "null") {
@@ -19,13 +26,6 @@ exports.update_user_ing = async (req, res) => {
     ogData.user_ing_id = Number(ogData.user_ing_id);
     ogData.user_id = Number(ogData.user_id);
     ogData.notes = ogData.notes ?? "";
-
-    if (!ogData) {
-      return res.status(500).json({
-        success: false,
-        message: "Data not sent with the body.",
-      });
-    }
 
     // ----------------- normalise and validate the data --------------------
     const data = normaliseIngredientData(ogData);

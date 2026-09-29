@@ -124,8 +124,10 @@ exports.list_user_ings = async (req, res) => {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const q = (req.query.q || "").trim().toLowerCase();
 
-    const limit = Math.min(parseInt(req.query.limit) || 10, 20); // cap for safety
-    const offset = parseInt(req.query.offset) || 0;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20; // cap for safety
+    const queryLimit = limit + 1;
+    const offset = (page - 1) * limit;
 
     //  base condition
     let condition = `submitted_by = ? AND is_active = 1`;
@@ -142,9 +144,9 @@ exports.list_user_ings = async (req, res) => {
       `SELECT
             user_ingredient_id AS id,
             name,
-            display_unit AS unit,
-            display_price AS price,
-            display_quantity AS quantity,
+            display_unit,
+            display_price,
+            display_quantity,
             cup_weight,
             cup_unit,
             notes
@@ -152,14 +154,27 @@ exports.list_user_ings = async (req, res) => {
         WHERE ${condition}
         ORDER BY name ASC, user_ingredient_id ASC
         LIMIT ? OFFSET ?`,
-      [params, limit, offset],
+      [params, queryLimit, offset],
     );
+
+    if (rows.length > 0) {
+      for (const row of rows) {
+        row.display_price = Number(row.display_price);
+        row.display_quantity = Number(row.display_quantity);
+        if (Number(row.cup_weight)) {
+          row.cup_weight = Number(row.cup_weight);
+        }
+      }
+    }
+    const hasMore = rows.length > limit;
+    const data = rows.slice(0, limit);
 
     // FINAL response
     res.json({
       success: true,
       message: `user ingredients found`,
-      data: rows,
+      data,
+      hasMore,
     });
   } catch (err) {
     console.error("Error in readUserIngController - (list_user_ings)  is : ", err);

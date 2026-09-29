@@ -3,6 +3,7 @@ import { cupUnits, mainUnits } from "../../utils/ingredientConstant";
 import { capitaliseWords, confirmInputNumber, validateInputNumber } from "../../utils/appUtils";
 import ConfirmModal from "../../components/confirmModal";
 import { HiTrash } from "react-icons/hi";
+import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 
 function CreateUpdateMyIngredientPage({
   mode,
@@ -334,7 +335,7 @@ function CreateUpdateMyIngredientPage({
           {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
         </div>
         {isConfirmModalOpen && (
-          <ConfirmModal
+          <ConfirmDeleteModal
             isOpen={isConfirmModalOpen}
             onClose={() => setIsConfirmModalOpen(false)}
             onConfirm={handleDelete}

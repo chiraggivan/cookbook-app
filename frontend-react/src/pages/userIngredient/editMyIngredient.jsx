@@ -128,7 +128,7 @@ function EditIngredient() {
     // set new timeout for the delay text search
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
-        if (ingData.name || token) {
+        if (ingData.name && token) {
           try {
             const res = await axios.get(
               `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
