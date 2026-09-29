@@ -146,7 +146,7 @@ function UserRecipes() {
   // console.log("data before return html : ", data);
   // console.log("searchRecipe is :", searchRecipe);
   // console.log("recipeData is :", recipeData);
-  // console.log("searchedUserInfo is:", searchedUserInfo);
+  console.log("searchedUserInfo is:", searchedUserInfo);
   // console.log("has more recipe in db is :", hasMore);
   // console.log("isLoadingMore is :", isLoadingMore);
 
@@ -180,10 +180,13 @@ function UserRecipes() {
             {searchedUserInfo && (
               <div className=" px-2">
                 <p className="text-5xl mb-2">
-                  {searchedUserInfo?.username?.charAt(0).toUpperCase() +
-                    searchedUserInfo?.username?.slice(1)}
+                  {searchedUserInfo?.display_name ?? searchedUserInfo?.email}
+                  {/* {searchedUserInfo?.username?.charAt(0).toUpperCase() +
+                    searchedUserInfo?.username?.slice(1)} */}
                 </p>
-                <p className="text-1xl px-1">@{searchedUserInfo.username}</p>
+                <p className="text-1xl px-1">
+                  {searchedUserInfo.username ?? searchedUserInfo.email}
+                </p>
                 <p className="text-1xl mb-2 px-1 text-gray-400">More about me</p>
               </div>
             )}

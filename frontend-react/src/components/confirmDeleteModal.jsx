@@ -7,6 +7,7 @@ export default function ConfirmDeleteModal({
   onConfirm,
   title,
   message,
+  warningMessage,
   OKtext,
   OKtextIcon,
   cancelText,
@@ -19,10 +20,8 @@ export default function ConfirmDeleteModal({
           <HiOutlineExclamationCircle className="mx-auto mb-4 h-18 w-18 text-red-600" />
           <div className="mb-2 text-lg font-normal text-gray-700 dark:text-gray-400">{message}</div>
           <div className="mb-8 text-sm text-gray-500">
-            {" "}
-            <span className="text-red-600">Warning:</span> Deleting this ingredient will remove it
-            from your active ingredients and will affect recipes that use this ingredient or its
-            measurement units.{" "}
+            <span className="text-red-600">Warning : </span>
+            {warningMessage}
             <span className="font-semibold text-gray-700">This action cannot be undone.</span>
           </div>
           <div className="flex justify-center gap-4">

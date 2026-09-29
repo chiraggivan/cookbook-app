@@ -5,7 +5,8 @@ import { useEffect, useState, useContext } from "react";
 import { GiCarrot, GiHamburgerMenu, GiSettingsKnobs } from "react-icons/gi";
 import { useSearch } from "../context/globalSearchContext";
 import { MyRecipeContext } from "../context/myRecipeContext";
-
+import { DishContext } from "../context/dishContext";
+import { MyIngredientContext } from "../context/myIngredientContext";
 import {
   HiBookmark,
   HiClipboardList,
@@ -36,8 +37,8 @@ function TopBar() {
   const navigate = new useNavigate();
   const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
     useContext(MyRecipeContext);
-  // const [searchInput, setSearchInput] = useState("");
-
+  const { dishes, dishDetails } = useContext(DishContext);
+  const { myIngredients } = useContext(MyIngredientContext);
   const { setSearchRecipe, searchInput, setSearchInput } = useSearch();
   useEffect(() => {
     if (!user) {
@@ -95,6 +96,11 @@ function TopBar() {
 
   // console.log("searchInput : ", searchInput);
   // console.log("from topbar user is :", user);
+
+  // for context testing
+  // console.log("Context are myRecipes :", myRecipes, " recipeDetails :", recipeDetails);
+  // console.log("context for dishes are - dishes:", dishes, " dishDetails :", dishDetails);
+  // console.log("Context for my ingredients - myIngredients: ", myIngredients);
 
   return (
     <>

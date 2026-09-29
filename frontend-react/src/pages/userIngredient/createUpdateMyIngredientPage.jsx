@@ -341,6 +341,9 @@ function CreateUpdateMyIngredientPage({
             onConfirm={handleDelete}
             title={"Delete"}
             message={`Are you sure. delete - ${capitaliseWords(ingData.name)} ?`}
+            warningMessage={`Deleting this ingredient will remove it
+            from your active ingredients and will affect recipes that use this ingredient or its
+            measurement units.`}
             OKtext={"Delete"}
             OKtextIcon={HiTrash}
             cancelText={"No, Are you crazy"}

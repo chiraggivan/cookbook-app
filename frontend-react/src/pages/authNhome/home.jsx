@@ -52,7 +52,7 @@ function Home() {
     }
   }, [authHookLoading, token, isAuthenticated, navigate]);
 
-  //  verify token (valid or expired) and search recipe
+  //----------------------  verify token and search recipe ----------------------------
   useEffect(() => {
     const fetchData = async () => {
       if (token) {
@@ -80,7 +80,7 @@ function Home() {
     fetchData();
   }, [token]);
 
-  // for search recipe state change
+  //---------------------- for search recipe state change -----------------------------
   useEffect(() => {
     setData([]);
     setPage(1);

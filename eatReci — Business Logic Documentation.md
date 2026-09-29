@@ -242,9 +242,9 @@ the source code.
 21. [Error Handling](#2021-error-handling)
 22. [Canceling Ingredient Creation](#2022-canceling-ingredient-creation)
 
-## 21. Update My Ingredient
+## 21. Edit My Ingredient
 
-1. [Opening Update My Ingredient](#211-opening-update-my-ingredient)
+1. [Opening Edit My Ingredient](#211-opening-edit-my-ingredient)
 2. [Displaying Existing Ingredient Information](#212-displaying-existing-ingredient-information)
 3. [Searching Similar Ingredient Names](#213-searching-similar-ingredient-names)
 4. [Displaying Similar Ingredient Names](#214-displaying-similar-ingredient-names)
@@ -2570,17 +2570,17 @@ If the user selects **Cancel**, the ingredient creation process is abandoned and
 
 The user can return to the My Ingredients page without saving the entered ingredient information.
 
-# 21. Update My Ingredient
+# 21. Edit My Ingredient
 
-The **Update My Ingredient** functionality allows the logged in user to modify an ingredient that they previously created.
+The **Edit My Ingredient** functionality allows the logged in user to modify an ingredient that they previously created.
 
 The functionality is accessed through the **Edit** option on an ingredient displayed on the My Ingredients page.
 
-## 21.1 Opening Update My Ingredient
+## 21.1 Opening Edit My Ingredient
 
-When the user selects **Edit** for an ingredient, the application opens the **Update My Ingredient** page.
+When the user selects **Edit** for an ingredient, the application opens the **Edit My Ingredient** page.
 
-The selected ingredient information is provided to the Update My Ingredient page.
+The selected ingredient information is provided to the Edit My Ingredient page.
 
 The page uses this information to populate the ingredient form with the ingredient's existing values.
 
@@ -2599,7 +2599,7 @@ The page also provides the similar ingredient name section and the information e
 
 ## 21.2 Displaying Existing Ingredient Information
 
-When the Update My Ingredient page opens, the existing ingredient information is displayed in the corresponding fields.
+When the Edit My Ingredient page opens, the existing ingredient information is displayed in the corresponding fields.
 
 The user can review and modify the existing:
 
@@ -2610,7 +2610,7 @@ The user can review and modify the existing:
 - Cup Weight
 - Cup Unit
 
-The existing ingredient identifier is retained so that the backend can identify the specific ingredient being updated.
+The existing `user_ingredient_id` is retained so that the backend can identify the specific ingredient being updated.
 
 ## 21.3 Searching Similar Ingredient Names
 
@@ -2769,13 +2769,13 @@ The updated ingredient is displayed using its new information without requiring 
 
 If an error occurs during authentication, validation, ownership checking, duplicate checking, or updating the ingredient, the update is not considered successful.
 
-The user remains on the **Update My Ingredient** page.
+The user remains on the **Edit My Ingredient** page.
 
 The appropriate error message is displayed so that the user can review the problem and try again.
 
-## 21.20 Canceling the Update
+## 21.20 Canceling the Edit
 
-The Update My Ingredient page provides a **Cancel** option.
+The Edit My Ingredient page provides a **Cancel** option.
 
 If the user selects **Cancel**, the update process is abandoned.
 
@@ -2785,11 +2785,11 @@ No changes are made to the existing ingredient, and the user can return to the M
 
 The **Delete My Ingredient** functionality allows the logged in user to remove an ingredient that they previously created.
 
-The functionality is accessed from the **Update My Ingredient** page.
+The functionality is accessed from the **Edit My Ingredient** page.
 
 ## 22.1 Accessing Delete My Ingredient
 
-The Update My Ingredient page provides the user with the following options:
+The Edit My Ingredient page provides the user with the following options:
 
 - Save
 - Cancel
@@ -2807,7 +2807,7 @@ If the user cancels the deletion, no changes are made and the user remains on th
 
 ## 22.3 Submitting the Delete Request
 
-When the user confirms the deletion, the frontend sends the selected **User Ingredient ID** to the backend through the delete request.
+When the user confirms the deletion, the frontend sends the selected `user_ingredient_id` to the backend through the delete request.
 
 The authenticated user's information is provided through the existing authenticated session.
 
@@ -2815,7 +2815,7 @@ The authenticated user's information is provided through the existing authentica
 
 When the backend receives the delete request, the authentication process identifies the logged in user.
 
-The backend then validates the supplied user information and the User Ingredient ID.
+The backend then validates the supplied user information and the `user_ingredient_id`.
 
 The system verifies that the user can be identified and that the supplied user information is valid.
 
@@ -2823,7 +2823,7 @@ The user's active status does not need to be checked again at this stage because
 
 ## 22.5 Ingredient Ownership Validation
 
-The backend verifies that the selected user ingredient belongs to the authenticated user.
+The backend verifies that the selected `user_ingredient_id` belongs to the authenticated user.
 
 If the ingredient does not belong to the authenticated user, the deletion is not permitted and an appropriate error response is returned.
 
@@ -2831,24 +2831,24 @@ If the ingredient does not belong to the authenticated user, the deletion is not
 
 Once the authentication and ownership checks have successfully passed, the backend proceeds with the deletion process.
 
-The deletion is performed through the database process responsible for deleting a user ingredient.
+The deletion is performed through the database procedure `delete_user_ingredient` responsible for deleting a user ingredient.
 
 The process verifies that:
 
-- The user ingredient exists.
+- The `user_ingredient_id` exists.
 - The ingredient belongs to the specified user.
 
 If these checks are successful, the user ingredient is soft deleted.
 
 ## 22.7 Updating Associated Ingredient Units
 
-The associated ingredient measurement units are also updated as part of the deletion process.
+The associated ingredient measurement units are also updated in `units` table as part of the deletion process.
 
-The units associated with the deleted user ingredient are marked as inactive so that they are no longer available for active use.
+The units associated with the deleted `user_ingredient_id` are marked as inactive in `units` table so that they are no longer available for active use.
 
 ## 22.8 Updating Recipe Ingredient References
 
-The system also updates recipe ingredient records that reference the deleted user ingredient.
+The system also updates `recipe_ingredients` table records that reference the deleted `user_ingredient_id`.
 
 These references are marked as inactive so that the deleted user ingredient is no longer treated as an active ingredient within the affected recipes.
 

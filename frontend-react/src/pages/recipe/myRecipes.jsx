@@ -4,7 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { CurrentUserContext } from "../../context/currentUserContext";
-import { serverURL } from "../../utils/appUtils";
+import { JWTunverifiedMsg, serverURL } from "../../utils/appUtils";
 import Button from "../../components/button";
 import Input from "../../components/input";
 import TopBar from "../../components/topBar";
@@ -17,17 +17,33 @@ import { Spinner } from "flowbite-react";
 function MyRecipes() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
-  // console.log("user is :", user);
-  const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
+  // const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { myRecipes, setMyRecipes, fetchedOnce, setFetchedOnce } = useContext(MyRecipeContext);
+  const {
+    myRecipes,
+    setMyRecipes,
+    hasMoreMyRecipes,
+    setHasMoreMyRecipes,
+    pageNoMyRecipes,
+    setPageNoMyRecipes,
+  } = useContext(MyRecipeContext);
   const { currentUserId } = useContext(CurrentUserContext);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchRecipe, setSearchRecipe] = useState("");
+  const [srchBtnPrssd, setSrchBtnPrssd] = useState(false);
   const [displayRecipes, setDisplayRecipes] = useState();
 
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
+  //  variable for infinite scroll with out search text
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [pageChanged, setPageChanged] = useState(false);
+  const limit = 5;
+  const scrollwindowPercent = 99;
+  // variables for search criteria infinite scroll
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchHasMore, setSearchHasMore] = useState(false);
+  const [searchPageChanged, setSearchPageChanged] = useState(false);
 
   //-------------------------------- Redirect to home if token not found -----------------------------------
   useEffect(() => {
@@ -35,7 +51,8 @@ function MyRecipes() {
       navigate("/login");
     }
   }, []);
-  //-------------------------------- Redirect to home if token not found -----------------------------------
+
+  //-------------------------------- initialise url, method and config -----------------------------------
   // useEffect(() => {
   //   if (!authHookLoading && (!token || !isAuthenticated)) {
   //     navigate("/login");
@@ -45,19 +62,49 @@ function MyRecipes() {
   // ------------------- fetch the data by giving url, method and body(if required) -------------------------
   const method = "get";
   const url = `${serverURL}/recipe/api/my`;
+  // config for page load / no search text as we are saving in context the result of the response
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      q: searchRecipe || undefined,
+      page: pageNoMyRecipes,
+      limit,
+    },
+  };
 
-  // ----------------------------- fetch data from backend only for once -------------------------------------
+  // config for search as searchPage is different and we are not saving the recipe list of searched text in context
+  const searchConfig = {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      q: searchRecipe.trim().replace(/\s+/g, " ").toLowerCase(),
+      page: searchPage,
+      limit,
+    },
+  };
+
+  // -------------------- fetch data from backend on every page number change as well -------------------------------------
   useEffect(() => {
-    if (!fetchedOnce) {
+    // check if context variable myRecipes is empty or pageChanged is true. this
+    // useEffects only run on first load(when context variable is empty) and when pageChanged value is true
+    if (myRecipes.length === 0 || pageChanged) {
       const fetchData = async () => {
         try {
-          setIsLoading(true);
-          if (token) {
-            const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
-            // console.log("res : ", res);
-            const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
+          if (pageNoMyRecipes === 1) {
+            setIsLoading(true);
+          } else {
+            setIsLoadingMore(true);
+          }
+
+          const res = await axios[method](url, config);
+          setHasMoreMyRecipes(res?.data?.hasMore);
+          const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
+
+          if (pageNoMyRecipes === 1) {
             setMyRecipes(refinedMyRecipes);
-            setFetchedOnce(true);
+            // setDisplayRecipes(refinedMyRecipes);
+          } else {
+            setMyRecipes((prev) => [...prev, ...refinedMyRecipes]);
+            // setDisplayRecipes((prev) => [...prev, ...refinedMyRecipes]);
           }
         } catch (err) {
           console.log(
@@ -66,40 +113,107 @@ function MyRecipes() {
           );
         } finally {
           setIsLoading(false);
+          setIsLoadingMore(false);
+          setPageChanged(false);
         }
       };
       fetchData();
     }
     setIsLoading(false);
-  }, []);
+    setIsLoadingMore(false);
+  }, [pageNoMyRecipes]);
 
-  // ----------------------------- update the display recipe list if search has text --------------------
-  // As currently we have useContext and all the dishes are stored and accessed later onwards, we will fetch the
-  // searchIng list from the context variable itself.
+  // -------------------- transfer data from myRecipes context variable to displayRecipes variable ------------------
   useEffect(() => {
-    let timer;
-    const string = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
-    if (!string) {
-      setDisplayRecipes(myRecipes);
-    } else {
-      timer = setTimeout(
-        () =>
-          setDisplayRecipes(
-            myRecipes.filter(
-              (item) =>
-                item.name.toLowerCase().includes(string) ||
-                item.description?.toLowerCase().includes(string) ||
-                item.portion_size?.toLowerCase().includes(string),
-            ),
-          ),
-        500,
-      );
-    }
+    setDisplayRecipes(myRecipes);
+  }, [myRecipes]);
+
+  // -------------------------------- scroll listener for My recipe page without search text--------------------------------
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
+      // console.log("scroll % :", scrollPercentage);
+      if (scrollPercentage >= scrollwindowPercent && hasMoreMyRecipes && !isLoadingMore) {
+        setPageChanged(true);
+        setPageNoMyRecipes((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, [searchRecipe, myRecipes]);
+  }, [hasMoreMyRecipes, isLoadingMore]);
+
+  //
+  // ---------------------------- Sreached button pressed -----------------------------
+  useEffect(() => {
+    const searchText = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
+    if (searchText || searchPageChanged) {
+      const fetchData = async () => {
+        try {
+          if (searchPage === 1) {
+            setIsLoading(true);
+          } else {
+            setIsLoadingMore(true);
+          }
+
+          const res = await axios[method](url, searchConfig);
+          setSearchHasMore(res?.data?.hasMore);
+          const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
+
+          if (searchPage === 1) {
+            // setMyRecipes(refinedMyRecipes);
+            setDisplayRecipes(refinedMyRecipes);
+          } else {
+            // setMyRecipes((prev) => [...prev, ...refinedMyRecipes]);
+            setDisplayRecipes((prev) => [...prev, ...refinedMyRecipes]);
+          }
+        } catch (err) {
+          console.log(
+            "error while fetching my ingredients list with axios is :",
+            err.response.message,
+          );
+        } finally {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+          setPageChanged(false);
+        }
+      };
+      fetchData();
+    } else if (searchText === "") {
+      setDisplayRecipes(myRecipes);
+    }
+    setIsLoading(false);
+    setIsLoadingMore(false);
+  }, [srchBtnPrssd, searchPage]);
+
+  // ---------------------------- scroll listener for searched recipes --------------------------------
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
+      // console.log("scroll % :", scrollPercentage);
+      if (scrollPercentage >= scrollwindowPercent && searchHasMore && !isLoadingMore) {
+        setSearchPageChanged(true);
+        setSearchPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [searchHasMore, isLoadingMore]);
 
   // ------------------------------ creating variable to store which recipe have images and valid --------
   const [failedImages, setFailedImages] = useState({});
@@ -109,25 +223,6 @@ function MyRecipes() {
       ...prev,
       [recipeId]: true,
     }));
-  };
-
-  // -------------------------- using search button for dishes --------------------------------------------
-  // currently the recipes are auto searched when typed, if search button should only give result,
-  // then remove the "searchRecipes" variable from the above useEffect
-  const searchRecipeButton = () => {
-    const string = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
-    if (!string) {
-      setDisplayRecipes(myRecipes);
-    } else {
-      setDisplayRecipes(
-        myRecipes.filter(
-          (item) =>
-            item.name.toLowerCase().includes(string) ||
-            item.description?.toLowerCase().includes(string) ||
-            item.portion_size?.toLowerCase().includes(string),
-        ),
-      );
-    }
   };
 
   // ------------------------------------------- loading screen ----------------------------------------------
@@ -143,10 +238,13 @@ function MyRecipes() {
       </div>
     );
   }
+
   // console.log("data before return html : ", data);
   // console.log("myRecipes before return html :", myRecipes);
   // console.log("searchRecipe", searchRecipe);
   // console.log("displayRecipes :", displayRecipes);
+  // console.log("has more :", hasMoreMyRecipes, " and page is :", pageNoMyRecipes);
+
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
@@ -175,7 +273,11 @@ function MyRecipes() {
                 <button
                   className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
                               hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                  onClick={searchRecipeButton}
+                  onClick={() => {
+                    setSearchPage(1);
+                    // searchRecipeButton();
+                    setSrchBtnPrssd((prev) => !prev);
+                  }}
                 >
                   {" "}
                   <FaSearchengin />
@@ -238,7 +340,22 @@ function MyRecipes() {
             </>
           ))}
         </div>
+
+        {/* loading more -spinner */}
+        {isLoadingMore && (
+          <div className="flex w-full h-30 items-center justify-center">
+            <Spinner
+              theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+              color="default"
+              aria-label="Loading"
+              size="xl"
+            />
+          </div>
+        )}
+
+        <div className="h-20"></div>
       </div>
+
       {/* </div> */}
     </>
   );

@@ -6,6 +6,7 @@ import ConfirmModal from "../../components/confirmModal";
 import { useState } from "react";
 import { GiHotMeal, GiHotSpices, GiMeal } from "react-icons/gi";
 import { SlOptionsVertical } from "react-icons/sl";
+import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 
 function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
   const token = localStorage.getItem("token");
@@ -117,7 +118,7 @@ function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
       </div>
       {/* modal for delete dish */}
       {isConfirmModalOpen && (
-        <ConfirmModal
+        <ConfirmDeleteModal
           isOpen={isConfirmModalOpen}
           onClose={() => setIsConfirmModalOpen(false)}
           onConfirm={(e) => handleDelete(e, id, token, navigate)}

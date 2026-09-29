@@ -13,7 +13,16 @@ import LeftSideBar from "../../components/leftSideBar";
 import ConfirmModal from "../../components/confirmModal";
 import DishesModal from "../../components/dishesModal";
 import { capitaliseWords } from "../../utils/appUtils";
-import { Alert, ToggleSwitch, TabItem, Tabs, Button, Dropdown, DropdownItem } from "flowbite-react";
+import {
+  Alert,
+  ToggleSwitch,
+  TabItem,
+  Tabs,
+  Button,
+  Dropdown,
+  DropdownItem,
+  Spinner,
+} from "flowbite-react";
 import { SlOptionsVertical } from "react-icons/sl";
 import { HiTrash, HiClipboardList, HiShare, HiPrinter } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
@@ -22,6 +31,7 @@ import { TbFoodsteps } from "react-icons/tb";
 
 import ToggleSwitchC from "../../components/toggleSwitch";
 import formattedDate from "../../utils/formattedDate";
+import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -33,7 +43,7 @@ function RecipeDetails() {
   const [isPrivate, setIsPrivate] = useState(false);
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
-  const [fetchLoading, setFetchLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
   const [isRecipeOwner, setIsRecipeOwner] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -75,24 +85,22 @@ function RecipeDetails() {
       // console.log("when recipeFound not found recipeDetails");
       const fetchData = async () => {
         try {
-          setFetchLoading(true);
-
+          setIsLoading(true);
           // call api to get recipe details
           const res = await axios[method](url, config);
           const tempRecipe = res?.data?.data;
-          // console.log("data from backend :", tempRecipe);
 
           // save the new recipe details in recipeDetails Context variable if user's recipe
-          if (tempRecipe?.recipe?.user_id === user.user_id) {
-            // Below vairable is for useContext. Temp switching off. Need to work on it for every condition
-            // setRecipeDetails((prev) => [...prev, tempRecipe]);
-          }
+          // if (tempRecipe?.recipe?.user_id === user.user_id) {
+          // Below vairable is for useContext. Temp switching off. Need to work on it for every condition
+          // setRecipeDetails((prev) => [...prev, tempRecipe]);
+          // }
           setFoundRecipeDetails(tempRecipe);
         } catch (err) {
           console.log("error while fetching reicpe details with axios is :", err.response);
           // window.alert("Something went wrong while fetching recipe. Please try again later.");
         } finally {
-          setFetchLoading(false);
+          setIsLoading(false);
         }
       };
 
@@ -100,7 +108,6 @@ function RecipeDetails() {
     } else {
       setFoundRecipeDetails(recipeFound);
     }
-    setFetchLoading(false);
   }, []);
 
   // ----------------------- check if user is the owner of the recipe (helps to show buttons for edit/delete )--------------------------------
@@ -261,9 +268,18 @@ function RecipeDetails() {
     // }
   };
 
-  // ------------------------------  initial page loading screen -------------------------------------------
-  if (fetchLoading) {
-    return <h1> Page Loading .............</h1>;
+  // ------------------------------ Loading screen ---------------------------------
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
   }
 
   // ------------------------ Create html for table with components and ingredients rows -------------------
@@ -379,7 +395,7 @@ function RecipeDetails() {
   // console.log("recipeData : ", state?.recipeData);
   // console.log("image url for src :", foundRecipeDetails?.recipe?.image_url);
   // console.log("imageError is:", imageError);
-  console.log("user is :", user);
+  // console.log("user is :", user);
 
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
@@ -741,7 +757,7 @@ function RecipeDetails() {
       </div>
 
       {isConfirmModalOpen && (
-        <ConfirmModal
+        <ConfirmDeleteModal
           isOpen={isConfirmModalOpen}
           onClose={() => setIsConfirmModalOpen(false)}
           onConfirm={handleDelete}
