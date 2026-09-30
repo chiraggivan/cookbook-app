@@ -106,6 +106,7 @@ function NewRecipe() {
   const [priceValue, setPriceValue] = useState(0);
   const [compUid, setCompUid] = useState(null);
   const [ingUid, setIngUid] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -817,8 +818,9 @@ function NewRecipe() {
     setIsEditBaseValuesOpen(false);
   };
 
-  // ---------------------------- console to show recipe for every input ----------------------------------
+  // ---------------------------- save button logic ----------------------------------
   const handleSubmit = () => {
+    setIsLoading(true);
     // console.log("recipeInfo", recipeInfo);
     // console.log("sections in handlesubmit:", sections);
 
@@ -936,10 +938,12 @@ function NewRecipe() {
     if (sections.some((item) => item.errorText !== "")) {
       isValid = false;
       setErrorMessage("Errors found above in sub headers.");
+      setIsLoading(false);
       return;
     }
 
     // validate sub headers and ingredients (from sections variable)
+    setIsLoading(true);
     checkData.components.forEach((comp, index) => {
       let ingCount = 0; //---------------> to count valid ingredients in each component
 
@@ -1115,6 +1119,7 @@ function NewRecipe() {
       if ((showTopRow && ingCount === 0) || (!showTopRow && index !== 0 && ingCount === 0)) {
         isValid = false;
         isErrMsg = "Need atleast one ingredient within sub heading";
+        setIsLoading(false);
         return;
       }
     });
@@ -1144,7 +1149,7 @@ function NewRecipe() {
       return;
     }
 
-    setCheckFinalData(checkData);
+    setCheckFinalData(checkData); // check at other place as well
 
     // before sending data at backend checking if sub header 0 and its ingredient are empty
     //  if they are empty then discard them and re arrange the other sub header from 0 onwards
@@ -1173,6 +1178,7 @@ function NewRecipe() {
 
     // ---------------------------- final call to API to create recipe ---------------------------------
     // function to call api and save the recipe in db
+    setIsLoading(true);
     const saveRecipe = async () => {
       try {
         const url = `${serverURL}/recipe/api/new`;
@@ -1191,11 +1197,27 @@ function NewRecipe() {
         navigate(`/recipe/${newData.recipe.recipe_id}`);
       } catch (err) {
         console.log("err found during saving new recipe api: ", err.response.data);
+        setErrorMessage(`Error while saving recipe. Try again later.`);
+        setIsLoading(false);
         return;
       }
     };
     saveRecipe();
   };
+
+  // ------------------------------  loading screen used at save button -------------------------------------------
+  if (isLoading) {
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
+  }
 
   // console.log("sections :", sections);
   // console.log("suggested ing  :", suggestedIng);
