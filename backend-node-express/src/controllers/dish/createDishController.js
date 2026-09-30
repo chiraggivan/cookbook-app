@@ -132,7 +132,7 @@ exports.create_dish = async (req, res) => {
           recipe_by, 
           comment,
           image_url) 
-        VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         user.id,
         user.country_id,

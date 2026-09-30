@@ -199,7 +199,7 @@ function UserRecipes() {
                 <Input
                   className="flex-1 border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                           focus:border-2 h-10 w-full placeholder:text-gray-400"
-                  placeholder={`Search recipe by ${searchedUserInfo?.username}`}
+                  placeholder={`Search recipe by ${searchedUserInfo?.username ?? searchedUserInfo?.display_name ?? searchedUserInfo?.email}`}
                   onChange={(e) => setSearchRecipe(e.target.value)}
                   value={searchRecipe}
                 />

@@ -24,7 +24,7 @@ import {
   Spinner,
 } from "flowbite-react";
 import { SlOptionsVertical } from "react-icons/sl";
-import { HiTrash, HiClipboardList, HiShare, HiPrinter } from "react-icons/hi";
+import { HiTrash, HiClipboardList, HiShare, HiPrinter, HiInformationCircle } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
@@ -32,6 +32,7 @@ import { TbFoodsteps } from "react-icons/tb";
 import ToggleSwitchC from "../../components/toggleSwitch";
 import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
+import { BsFillHandThumbsUpFill } from "react-icons/bs";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -49,6 +50,7 @@ function RecipeDetails() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
+  const [successAlert, setSuccessAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
   const [switch1, setSwitch1] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState("");
@@ -77,7 +79,7 @@ function RecipeDetails() {
   const url = `${serverURL}/recipe/api/${id}`;
   const body = null;
 
-  const recipeFound = recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
+  const recipeFound = undefined; // recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
   // console.log("recipeFound :", recipeFound);
   // ----------------------------- fetch data from backend only for once -------------------------------------
   useEffect(() => {
@@ -116,7 +118,7 @@ function RecipeDetails() {
     if (!foundRecipeDetails) {
       return;
     }
-    if (user.user_id === foundRecipeDetails?.recipe.user_id) {
+    if (user.user_id === foundRecipeDetails?.recipe?.user_id) {
       // console.log("Yes i am the owner");
       setIsRecipeOwner(true);
     } else {
@@ -210,52 +212,52 @@ function RecipeDetails() {
     const now = new Date();
     const currentTime = now.toTimeString().split(" ")[0];
 
-    details4Dish.preparation_date = additionalData.date;
-    details4Dish.comment = additionalData.comment;
-    // need to get meal name from meal_id
+    // need to get meal name from meal_id attached in additionalData
     const mealObject = foundRecipeDetails.meals.find(
       (meal) => meal.meal_id === Number(additionalData.meal),
     );
 
+    // updaating data for dishes with the selected data, meal, comment and time
+    details4Dish.preparation_date = additionalData.date;
+    details4Dish.comment = additionalData.comment;
     details4Dish.meal = mealObject.name;
     details4Dish.time_prepared = currentTime;
 
-    // console.log("additionalData :", additionalData);
-    // console.log("details for dish :", details4Dish);
+    // console.log("details for dish before sending :", details4Dish);
+    // setFoundRecipeDetails((prev) => ({ ...prev, recipe: { ...prev.recipe, last_prepared_date: additionalData.date, meal: mealObject.name }, }));
+    // setIsDishModalOpen(false);
     // return;
-    // if (window.confirm(`Save - ${foundRecipeDetails?.recipe.name} as dish  prepared now.`)) {
+
     const createURL = `${serverURL}/dish/api/create`;
 
+    // call create dish api
     try {
-      const res = await axios.post(createURL, details4Dish, config);
-      // console.log("response for create dish is:", res);
-      if (res?.data?.success === true) {
-        // alert(res?.data?.message);
-        // update the recipeDetails Context (cache) on local machine
-        const updatedDetails = recipeDetails.map((i) =>
-          i.recipe.recipe_id === Number(id)
-            ? {
-                ...i,
-                recipe: {
-                  ...i.recipe,
-                  last_prepared_date: additionalData.date,
-                  last_prepared_time: currentTime,
-                },
-              }
-            : i,
-        );
-        // setRecipeDetails(updatedDetails);
-        setIsDishModalOpen(false);
-
-        // navigate(`/recipe/`);
-        return;
-      } else {
-        // alert(res?.data?.message);
-        // console.log(res?.data?.message);
-        setIsAlert(true);
-        setAlertMsg(res?.data?.message);
-        return;
-      }
+      await axios.post(createURL, details4Dish, config);
+      // update the recipeDetails Context (cache) on local machine
+      // const updatedDetails = recipeDetails.map((i) =>
+      //   i.recipe.recipe_id === Number(id)
+      //     ? {
+      //         ...i,
+      //         recipe: {
+      //           ...i.recipe,
+      //           last_prepared_date: additionalData.date,
+      //           last_prepared_time: currentTime,
+      //         },
+      //       }
+      //     : i,
+      // );
+      // setRecipeDetails(updatedDetails);
+      setFoundRecipeDetails((prev) => ({
+        ...prev,
+        recipe: {
+          ...prev.recipe,
+          last_prepared_date: additionalData.date,
+          meal: mealObject.name,
+        },
+      }));
+      setIsDishModalOpen(false);
+      setSuccessAlert(true);
+      return;
     } catch (err) {
       // console.log("response message for dish created button:", err.response);
       // console.log(err.response?.data?.message);
@@ -263,9 +265,6 @@ function RecipeDetails() {
       setAlertMsg(err.response?.data?.message);
       return;
     }
-    // } else {
-    //   console.log("cancelled");
-    // }
   };
 
   // ------------------------------ Loading screen ---------------------------------
@@ -577,6 +576,18 @@ function RecipeDetails() {
                   </div>
                 </div>
               )}
+
+              {/* alert msg for succefully created dish record */}
+              {isRecipeOwner && successAlert && (
+                <Alert
+                  color="success"
+                  icon={BsFillHandThumbsUpFill}
+                  onDismiss={() => setSuccessAlert(false)}
+                >
+                  <span className="">Dish record successfully created</span>
+                  {alertMsg}
+                </Alert>
+              )}
             </div>
 
             {/* recipe image */}
@@ -785,7 +796,11 @@ function RecipeDetails() {
           onChange={setSelectedMeal}
         />
       )}
-      {isAlert && <Alert message={alertMsg} />}
+      {isAlert && (
+        <Alert color="failure" icon={HiInformationCircle} onDismiss={() => setIsAlert(false)}>
+          {alertMsg}
+        </Alert>
+      )}
     </div>
   );
 }

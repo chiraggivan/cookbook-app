@@ -27,14 +27,14 @@ export default function DishesModal({
       SetErrMsg("Select meal");
     } else {
       onConfirm({
-        date: selectedDate.toISOString().split("T")[0],
+        date: selectedDate.toLocaleDateString("en-CA"), //converts the datetimestamp in date as YYYY-MM-DD for mysql db compatable format
         comment: customMsg,
         meal: Number(selectedMeal),
       });
     }
   };
 
-  // console.log("selectedData is :", selectedDate, " and the type is : ", typeof selectedDate);
+  // console.log("selectedData is :", selectedDate.toLocaleDateString("en-CA"));
   return (
     <Modal size="lg" show={isOpen} onClose={onClose} popup>
       <ModalHeader className="m-2">{title}</ModalHeader>
