@@ -15,7 +15,7 @@ exports.search_ingredients = async (req, res) => {
     const q = (req.params.q || "").trim().toLowerCase();
     const i = `%${q}%`;
     const id = Number(user.id);
-    const countryId = Number(user.country);
+    const countryId = Number(user.country_id);
     // console.log(" id is :", id, " and search word is :", q);
     // console.log("q is a type of ", typeof q, " and id is type of ", typeof id);
 
@@ -70,7 +70,6 @@ exports.search_ingredients = async (req, res) => {
       }
     }
     // FINAL response
-    console.log("createRecipeController in search ingredient before response");
     res.json({
       success: true,
       message: `ingredients found for - ${q}`,

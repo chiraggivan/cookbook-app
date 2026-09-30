@@ -579,14 +579,16 @@ function RecipeDetails() {
 
               {/* alert msg for succefully created dish record */}
               {isRecipeOwner && successAlert && (
-                <Alert
-                  color="success"
-                  icon={BsFillHandThumbsUpFill}
-                  onDismiss={() => setSuccessAlert(false)}
-                >
-                  <span className="">Dish record successfully created</span>
-                  {alertMsg}
-                </Alert>
+                <div className="">
+                  <Alert
+                    color="success"
+                    icon={BsFillHandThumbsUpFill}
+                    onDismiss={() => setSuccessAlert(false)}
+                  >
+                    <span className="">Dish record successfully created</span>
+                    {alertMsg}
+                  </Alert>
+                </div>
               )}
             </div>
 
