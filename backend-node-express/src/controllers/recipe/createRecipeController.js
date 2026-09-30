@@ -127,7 +127,7 @@ exports.get_ingredient_units = async (req, res) => {
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
   console.log("user in create recipe is:", user);
-  const country_id = user.country; // required to be saved in user_price or user_ingredient tables for any updates of ing values
+  const country_id = user.country_id; // required to be saved in user_price or user_ingredient tables for any updates of ing values
 
   // check if data is available
   if (!req.body) {
