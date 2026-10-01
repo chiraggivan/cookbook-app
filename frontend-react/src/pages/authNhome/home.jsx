@@ -66,10 +66,20 @@ function Home() {
           }
           setHasMore(res?.data?.hasMore ?? false);
         } catch (err) {
-          // console.log("Error while fetching all recipes", err);
-          if (err.response?.data.message === JWTunverifiedMsg) {
+          // Message in every page where if token verfication fails then go to login page
+          // if (err.response?.data?.code === "authentication") {
+          //   if (err.response?.data.message === JWTunverifiedMsg) {
+          //     localStorage.removeItem("token");
+          //     navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
+          //     return;
+          //   }
+          //   navigate(`/login?errMsg=${err.response?.data.message}`);
+          // }
+          if (err.response?.data?.code === "authentication") {
             localStorage.removeItem("token");
-            navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
+            localStorage.removeItem("user");
+            navigate(`/login?errMsg=${err.response?.data?.message}`);
+            return;
           }
         } finally {
           setIsLoading(false);

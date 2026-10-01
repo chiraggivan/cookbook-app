@@ -4,6 +4,7 @@ const authenticateToken = (req, res, next) => {
   // console.log("request in authToken:", req);
   const authHeader = req.headers.authorization;
   const token = req.headers.authorization?.split(" ")[1];
+  const code = "authentication";
 
   if (!token) {
     return res.status(401).json({ error: "Access token required" });
@@ -14,9 +15,26 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid or Expired token from: authenticate Token" });
+      console.log("Error from authenticateToken :", err);
+      if (err.name === "TokenExipredError") {
+        return res.status(401).json({
+          success: false,
+          code,
+          message: "Session expired. PLease login again.",
+        });
+      } else if (err.name === "JsonWebTokenError") {
+        return res.status(401).json({
+          success: false,
+          code,
+          message: "Invalid session. PLease login again.",
+        });
+      }
+
+      return res.status(401).json({
+        success: false,
+        code,
+        message: "Invalid or Expired token.",
+      });
     }
 
     req.user = user;
