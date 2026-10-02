@@ -5,6 +5,7 @@ import useFetch from "../../hooks/useFetch";
 import axios from "axios";
 import Navbar from "../../components/navbarOld";
 import Button from "../../components/button";
+import api from "../../api/axios";
 import { HandleDishDelete } from "./utils/handleDishDelete";
 import DishDetailsPage from "./-dishDetailsPage";
 import { DishContext } from "../../context/dishContext";
@@ -69,7 +70,7 @@ function DishDetails() {
         try {
           setFetchLoading(true);
           if (token) {
-            const res = await axios[method](url, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await api[method](url);
             // console.log("res is :", res);
             setFoundDish(res?.data?.data);
             // setDishDetails((prev) => [...prev, res?.data?.data]);

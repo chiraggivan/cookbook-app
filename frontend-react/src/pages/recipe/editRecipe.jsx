@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
+import api from "../../api/axios";
 import Input from "../../components/input";
 import Textarea from "../../components/textarea";
 import Toggle from "../../components/toggle";
@@ -187,24 +188,6 @@ function EditRecipe() {
     sendImage();
   };
 
-  // --------------------------------------------- update db for image selected -------------------------------------
-  // useEffect(() => {
-  //   if (imageURL) {
-  //     const url = `${serverURL}/recipe/api/updateRecipeImage/${id}`;
-  //     const body = { imageURL: imageURL };
-
-  //     const updateImageURL = async () => {
-  //       try {
-  //         const res = await axios.post(url, body, config);
-  //       } catch (err) {
-  //         console.log("Error in editRecipe while updating image in backend", err.response);
-  //       }
-  //     };
-
-  //     updateImageURL();
-  //   }
-  // }, [setImageURL]);
-
   // --------------------------------- function for getting base units ----------------------------------------
   const getBaseUnits = (unit, measuringUnits) => {
     const baseUnitsToShow = [];
@@ -240,14 +223,14 @@ function EditRecipe() {
   // ------------------------------------ get the recipe data via API from backend -----------------------------------------
   useEffect(() => {
     const method = "get";
-    const url = `${serverURL}/recipe/api/${id}`;
+    const url = `$/recipe/api/${id}`;
     const body = null;
 
     const fetchData = async () => {
       try {
         setIsLoading(true);
         // if (token) {
-        const res = await axios[method](url, config);
+        const res = await api[method](url);
         const tempRecipe = res?.data?.data;
         // console.log("Data from the backend of recipe :", tempRecipe);
         tempRecipe?.recipe?.privacy === "private" ? setIsPrivate(true) : setIsPrivate(false);
@@ -383,7 +366,7 @@ function EditRecipe() {
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
-          const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
+          const res = await api.get(`/recipe/api/search/ingredient/${val}`);
           // console.log("ingredients found are : ", res.data);
           setSuggestedIng(res.data.rows);
         } catch (err) {
@@ -466,7 +449,7 @@ function EditRecipe() {
     // //--------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
-        const res = await axios.get(`${serverURL}/recipe/api/search/units/${id}/${source}`, config);
+        const res = await api.get(`/recipe/api/search/units/${id}/${source}`);
         const units = res.data.rows;
         setRecipeInfo((prev) => ({
           ...prev,
@@ -1223,7 +1206,7 @@ function EditRecipe() {
     // return;
 
     // // ----------------------------------- call the bakend api to update recipe -----------------------------------
-    const url = `${serverURL}/recipe/api/update/${id}`;
+    const url = `/recipe/api/update/${id}`;
     const method = "patch";
     const body = finalData;
     console.log("final Data is:", finalData);
@@ -1233,7 +1216,7 @@ function EditRecipe() {
       try {
         setIsLoading(true);
         // call api
-        const res = await axios[method](url, body, config);
+        const res = await api[method](url, body);
         // console.log("response is :", res);
         const x = res.data.data;
         setRecipeDetails((prev) =>

@@ -3,7 +3,7 @@ const { normaliseIngredientData, validateIngredients } = require("../../utils/us
 
 exports.create_user_ingredient = async (req, res) => {
   try {
-    const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    const user = req.user; // as we are doing authenticateToken with this api, user is attached(and cofirmed active user) with req in previous step
     const country = Number(user.country_id);
     if (Number.isInteger(country) && country <= 0) {
       console.log("In createUserIngredient country can't be invalid or 0");
@@ -61,17 +61,6 @@ exports.create_user_ingredient = async (req, res) => {
     // }
 
     // ----------------- Checking with db ------------------------
-
-    // Validate user_id exists
-    const [userRow] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
-    if (userRow.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found or not active.",
-      });
-    }
 
     // Validate if ingredient NAME already present in MAIN ingredients table
     const [ingRow] = await db.query(`SELECT 1 FROM ingredients WHERE name = ? and is_active = 1`, [

@@ -22,7 +22,7 @@ export default function ConfirmDeleteModal({
           <div className="mb-8 text-sm text-gray-500">
             <span className="text-red-600">Warning : </span>
             {warningMessage}
-            <span className="font-semibold text-gray-700">This action cannot be undone.</span>
+            <span className="mt-2 font-semibold text-gray-700"> This action cannot be undone.</span>
           </div>
           <div className="flex justify-center gap-4">
             <Button color="red" onClick={onConfirm}>

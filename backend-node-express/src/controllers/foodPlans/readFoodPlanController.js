@@ -7,17 +7,6 @@ exports.get_food_plan = async (req, res) => {
     const data = {};
     // console.log("user is :", user);
 
-    //  validate user is valid and active
-    const [userRow] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
-    if (userRow.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: `User not found or not active`,
-      });
-    }
-
     // get the food_plan_id for the user
     const [fpRow] = await db.query(
       `SELECT food_plan_id FROM food_plans WHERE user_id = ? AND is_active = 1`,

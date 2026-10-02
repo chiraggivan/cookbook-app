@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
+import api from "../../api/axios";
 import Input from "../../components/input";
 import Textarea from "../../components/textarea";
 import Toggle from "../../components/toggle";
@@ -230,7 +231,7 @@ function NewRecipe() {
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
-          const res = await axios.get(`${serverURL}/recipe/api/search/ingredient/${val}`, config);
+          const res = await api.get(`/recipe/api/search/ingredient/${val}`);
           // console.log("res is :", res);
           setSuggestedIng(res.data.rows);
         } catch (err) {
@@ -342,7 +343,7 @@ function NewRecipe() {
     // //--------- fetch the active units for the ingredient selected --------
     const fetchMeasuringUnits = async (id, source) => {
       try {
-        const res = await axios.get(`${serverURL}/recipe/api/search/units/${id}/${source}`, config);
+        const res = await api.get(`/recipe/api/search/units/${id}/${source}`);
         const units = res.data.rows;
         setSections((prev) =>
           prev.map((section) =>
@@ -1181,11 +1182,11 @@ function NewRecipe() {
     setIsLoading(true);
     const saveRecipe = async () => {
       try {
-        const url = `${serverURL}/recipe/api/new`;
+        const url = `/recipe/api/new`;
         const method = "post";
         const body = dataToSend;
 
-        const res = await axios[method](url, body, config);
+        const res = await api[method](url, body);
         // console.log("res: ", res);
         // return;
         const newData = res?.data?.data;

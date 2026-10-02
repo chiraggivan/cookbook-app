@@ -91,7 +91,7 @@ exports.get_dish_details = async (req, res) => {
       [dishId],
     );
     if (dishResult.length === 0) {
-      return res.status(500).json({
+      return res.status(404).json({
         success: "false",
         message: "Couldnt get details of the dish.",
       });

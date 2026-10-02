@@ -2,6 +2,7 @@ import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
+import api from "../../api/axios";
 import useFetch from "../../hooks/useFetch";
 // import Input from "../../components/input";
 import Dropdown from "../../components/dropdown";
@@ -130,10 +131,7 @@ function EditIngredient() {
       const checkIng = async () => {
         if (ingData.name && token) {
           try {
-            const res = await axios.get(
-              `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
-              { headers: { Authorization: `Bearer ${token}` } },
-            );
+            const res = await api.get(`/useringredient/api/searchCombinedIngs?q=${ingData.name}`);
             // console.log("ingredients found are : ", res.data);
             const ingList = res.data.data.map((i) => i.name);
             const names = ingList.join("\n");
@@ -225,12 +223,11 @@ function EditIngredient() {
     // return;
 
     const method = "put";
-    const url = `${serverURL}/useringredient/api/edit`;
+    const url = `/useringredient/api/edit`;
     try {
-      const res = await axios[method](url, formData, {
+      const res = await api[method](url, formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -254,13 +251,9 @@ function EditIngredient() {
     e.preventDefault();
 
     // if (window.confirm(`Are you sure you want to delete this recipe - ${ingData.name}`)) {
-    const deleteurl = `${serverURL}/useringredient/api/delete/${id}`;
+    const deleteurl = `/useringredient/api/delete/${id}`;
     try {
-      const res = await axios.delete(deleteurl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await api.delete(deleteurl);
       // console.log("response after delete user ingredient is : ", res);
       if (res?.data?.success === true) {
         alert(res?.data?.message);

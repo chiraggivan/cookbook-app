@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
+import api from "../../api/axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import { CurrentUserContext } from "../../context/currentUserContext";
 import { JWTunverifiedMsg, serverURL } from "../../utils/appUtils";
@@ -61,7 +62,7 @@ function MyRecipes() {
 
   // ------------------- fetch the data by giving url, method and body(if required) -------------------------
   const method = "get";
-  const url = `${serverURL}/recipe/api/my`;
+  const url = `/recipe/api/my`;
   // config for page load / no search text as we are saving in context the result of the response
   const config = {
     headers: { Authorization: `Bearer ${token}` },
@@ -95,7 +96,13 @@ function MyRecipes() {
             setIsLoadingMore(true);
           }
 
-          const res = await axios[method](url, config);
+          const res = await api[method](url, {
+            params: {
+              q: searchRecipe || undefined,
+              page: pageNoMyRecipes,
+              limit,
+            },
+          });
           setHasMoreMyRecipes(res?.data?.hasMore);
           const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
 
@@ -107,10 +114,7 @@ function MyRecipes() {
             // setDisplayRecipes((prev) => [...prev, ...refinedMyRecipes]);
           }
         } catch (err) {
-          console.log(
-            "error while fetching my ingredients list with axios is :",
-            err.response.message,
-          );
+          console.log("error while fetching my ingredients list with axios is :", err);
         } finally {
           setIsLoading(false);
           setIsLoadingMore(false);
@@ -150,7 +154,6 @@ function MyRecipes() {
     };
   }, [hasMoreMyRecipes, isLoadingMore]);
 
-  //
   // ---------------------------- Sreached button pressed -----------------------------
   useEffect(() => {
     const searchText = searchRecipe.trim().replace(/\s+/g, " ").toLowerCase();
@@ -163,7 +166,13 @@ function MyRecipes() {
             setIsLoadingMore(true);
           }
 
-          const res = await axios[method](url, searchConfig);
+          const res = await api[method](url, {
+            params: {
+              q: searchRecipe.trim().replace(/\s+/g, " ").toLowerCase(),
+              page: searchPage,
+              limit,
+            },
+          });
           setSearchHasMore(res?.data?.hasMore);
           const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
 

@@ -146,7 +146,7 @@ function UserRecipes() {
   // console.log("data before return html : ", data);
   // console.log("searchRecipe is :", searchRecipe);
   // console.log("recipeData is :", recipeData);
-  console.log("searchedUserInfo is:", searchedUserInfo);
+  // console.log("searchedUserInfo is:", searchedUserInfo);
   // console.log("has more recipe in db is :", hasMore);
   // console.log("isLoadingMore is :", isLoadingMore);
 

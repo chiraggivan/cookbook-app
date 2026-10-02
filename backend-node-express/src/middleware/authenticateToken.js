@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const db = require("../config/database");
 
 const authenticateToken = (req, res, next) => {
   // console.log("request in authToken:", req);
@@ -7,16 +8,17 @@ const authenticateToken = (req, res, next) => {
   const code = "authentication";
 
   if (!token) {
-    return res.status(401).json({ error: "Access token required" });
+    return res.status(401).json({ success: false, message: "Access token required" });
   }
 
   // const decoded = jwt.decode(token);
   // console.log("token has :", decoded);
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
     if (err) {
-      console.log("Error from authenticateToken :", err);
-      if (err.name === "TokenExipredError") {
+      // If error in verify token
+      // console.log("Error from authenticateToken :", Object.getOwnPropertyNames(err));
+      if (err.name === "TokenExpiredError") {
         return res.status(401).json({
           success: false,
           code,
@@ -33,6 +35,18 @@ const authenticateToken = (req, res, next) => {
       return res.status(401).json({
         success: false,
         code,
+        message: "Invalid or Expired token.",
+      });
+    }
+
+    // if token valid , check if user(user_id within token) is active before going to controller
+    const [result] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
+      user.id,
+    ]);
+
+    if (result.length === 0) {
+      return res.status(401).json({
+        success: false,
         message: "Invalid or Expired token.",
       });
     }

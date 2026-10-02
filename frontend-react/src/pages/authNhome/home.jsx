@@ -2,6 +2,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
+import api from "../../api/axios";
 import { Dropdown, DropdownItem, Spinner } from "flowbite-react";
 import {
   serverURL,
@@ -58,7 +59,13 @@ function Home() {
       if (token) {
         try {
           setIsLoading(true);
-          const res = await axios[method](url, config);
+          const res = await api[method](url, {
+            params: {
+              q: searchRecipe || undefined,
+              page,
+              limit,
+            },
+          });
           if (page === 1) {
             setData(res?.data?.data);
           } else {
@@ -66,21 +73,14 @@ function Home() {
           }
           setHasMore(res?.data?.hasMore ?? false);
         } catch (err) {
-          // Message in every page where if token verfication fails then go to login page
+          console.log("error in home is :", err);
+          // // catching error from middleware wrt token verification
           // if (err.response?.data?.code === "authentication") {
-          //   if (err.response?.data.message === JWTunverifiedMsg) {
-          //     localStorage.removeItem("token");
-          //     navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
-          //     return;
-          //   }
-          //   navigate(`/login?errMsg=${err.response?.data.message}`);
+          //   localStorage.removeItem("token");
+          //   localStorage.removeItem("user");
+          //   navigate(`/login?errMsg=${err.response?.data?.message}`);
+          //   return;
           // }
-          if (err.response?.data?.code === "authentication") {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            navigate(`/login?errMsg=${err.response?.data?.message}`);
-            return;
-          }
         } finally {
           setIsLoading(false);
           setImageError(false);
@@ -125,19 +125,25 @@ function Home() {
     const fetchData = async () => {
       try {
         setIsLoadingMore(true);
-        const res = await axios[method](url, config);
+        const res = await api[method](url, {
+          params: {
+            q: searchRecipe || undefined,
+            page,
+            limit,
+          },
+        });
         if (page === 1) {
           setData(res?.data.data);
         } else {
           setData((prev) => [...prev, ...res?.data.data]);
         }
         setHasMore(res?.data.hasMore ?? false);
-      } catch (err) {
-        console.log("Error while fetching all recipes", err);
-        if (err.response?.data.message === JWTunverifiedMsg) {
-          localStorage.removeItem("token");
-          navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
-        }
+      } catch (error) {
+        console.log("Error while fetching all recipes", error);
+        // if (error.response?.data.message === JWTunverifiedMsg) {
+        //   localStorage.removeItem("token");
+        //   navigate(`/login?errMsg=${showTokenErrMsgOnScreen}`);
+        // }
       } finally {
         setIsLoadingMore(false);
         setImageError(false);

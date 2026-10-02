@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
+import api from "../../api/axios";
 import Input from "../../components/input";
 // import Textarea from "../../components/textarea";
 // import Button from "../../components/button";
@@ -103,10 +104,7 @@ function AddIngredient() {
     timeoutRef.current = setTimeout(() => {
       const checkIng = async () => {
         try {
-          const res = await axios.get(
-            `${serverURL}/useringredient/api/searchCombinedIngs?q=${ingData.name}`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
+          const res = await api.get(`/useringredient/api/searchCombinedIngs?q=${ingData.name}`);
           // console.log("ingredients found are : ", res.data);
           const ingList = res.data.data.map((i) => i.name);
           const names = ingList.join("\n");
@@ -183,12 +181,11 @@ function AddIngredient() {
     // return;
 
     const method = "post";
-    const url = `${serverURL}/useringredient/api/create`;
+    const url = `/useringredient/api/create`;
     try {
-      const res = await axios[method](url, body, {
+      const res = await api[method](url, body, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
       alert(res.data.message);

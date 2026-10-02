@@ -1,16 +1,9 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
-import axios from "axios";
-import useFetch from "../../hooks/useFetch";
-import Navbar from "../../components/navbarOld";
+import api from "../../api/axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
-import { serverURL } from "../../utils/appUtils";
-// import Button from "../../components/button";
 import Toggle from "../../components/toggle";
-import TopBar from "../../components/topBar";
-import LeftSideBar from "../../components/leftSideBar";
-import ConfirmModal from "../../components/confirmModal";
 import DishesModal from "../../components/dishesModal";
 import { capitaliseWords } from "../../utils/appUtils";
 import {
@@ -29,7 +22,6 @@ import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
 
-import ToggleSwitchC from "../../components/toggleSwitch";
 import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 import { BsFillHandThumbsUpFill } from "react-icons/bs";
@@ -76,7 +68,7 @@ function RecipeDetails() {
 
   // ---------- fetch the data by giving url, method and body(if required) -------------------------------------
   const method = "get";
-  const url = `${serverURL}/recipe/api/${id}`;
+  const url = `/recipe/api/${id}`;
   const body = null;
 
   const recipeFound = undefined; // recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
@@ -89,7 +81,7 @@ function RecipeDetails() {
         try {
           setIsLoading(true);
           // call api to get recipe details
-          const res = await axios[method](url, config);
+          const res = await api[method](url);
           const tempRecipe = res?.data?.data;
 
           // save the new recipe details in recipeDetails Context variable if user's recipe
@@ -136,12 +128,12 @@ function RecipeDetails() {
   //  only option available to edit in read recipe for quick update.
   const changePrivacy = async (val) => {
     // setFetchLoading(true);
-    const url = `${serverURL}/recipe/api/update-privacy/${id}`;
+    const privacyURL = `/recipe/api/update-privacy/${id}`;
     const method = "put";
     const body = { privacy: val };
 
     try {
-      const res = await axios[method](url, body, config);
+      const res = await api[method](privacyURL, body);
       // console.log("res :", res);
     } catch (err) {
       // console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
@@ -176,9 +168,9 @@ function RecipeDetails() {
     //     `Are you sure you want to delete this recipe - ${foundRecipeDetails?.recipe.name}`,
     //   )
     // ) {
-    const deleteurl = `${serverURL}/recipe/api/delete/${id}`;
+    const deleteurl = `/recipe/api/delete/${id}`;
     try {
-      const res = await axios.delete(deleteurl, config);
+      const res = await api.delete(deleteurl);
       if (res?.data?.success === true) {
         // alert(res?.data?.message);
         setAlertMsg(res?.data?.message);
@@ -228,11 +220,11 @@ function RecipeDetails() {
     // setIsDishModalOpen(false);
     // return;
 
-    const createURL = `${serverURL}/dish/api/create`;
+    const createURL = `/dish/api/create`;
 
     // call create dish api
     try {
-      await axios.post(createURL, details4Dish, config);
+      await api.post(createURL, details4Dish);
       // update the recipeDetails Context (cache) on local machine
       // const updatedDetails = recipeDetails.map((i) =>
       //   i.recipe.recipe_id === Number(id)
