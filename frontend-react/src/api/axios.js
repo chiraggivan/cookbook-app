@@ -6,14 +6,14 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(
-  (config) => {
+  (request) => {
     const token = localStorage.getItem("token");
 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      request.headers.Authorization = `Bearer ${token}`;
     }
 
-    return config;
+    return request;
   },
   (error) => {
     return Promise.reject(error);
