@@ -163,9 +163,9 @@ function EditFoodplanModal({
       block: "nearest",
     });
   }, [highlightedIndex]);
-  // ------------------------------ add the selected ingredient in ingRow data --------------------------------
+  // ------------------------------ add the selected recipe --------------------------------
   const handleSelectedRecipe = (recipe) => {
-    //  check if trhe meal is selected or not
+    //  check if the meal is selected or not
     if (!mealType) {
       setErrMsg("select meal");
       setRecipeList([]);

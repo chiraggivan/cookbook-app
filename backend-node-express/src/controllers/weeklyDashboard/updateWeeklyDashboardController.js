@@ -160,6 +160,7 @@ exports.get_weekly_dashboard = async (req, res) => {
 
     const finalData = {};
 
+    // check if data is attached with request
     if (!data) {
       return res.status(500).json({
         success: false,
@@ -170,6 +171,7 @@ exports.get_weekly_dashboard = async (req, res) => {
     const weekNo = data?.week_no;
     const foodPlanId = data?.food_plan_id;
 
+    // check if data contains weekNo and FoodPlanId.
     if (!foodPlanId || !weekNo) {
       return res.status(500).json({
         success: false,
@@ -177,6 +179,7 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
 
+    // confirm the week No. (Currently only week 1 to 5 are to be used. FUTURE it can change)
     if (weekNo < 1 || weekNo > 6) {
       return res.status(500).json({
         success: false,
@@ -184,14 +187,6 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
     // ----------------------------------------------- connect to db and verify data -----------------------------------
-
-    //  check user is valid
-    const [userRow] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
-    if (userRow.length === 0) {
-      return res.status(404).json({ success: false, message: "User not found or not active" });
-    }
 
     // get food_plan_week_id for user with week no and food plan id in food_plan_weeks table
     const [FPWresult] = await db.query(
@@ -222,7 +217,7 @@ exports.get_weekly_dashboard = async (req, res) => {
         [foodPlanWeekId],
       );
 
-      // start to get data for food_plan_ingredient_records table
+      // start to get data for food_plan_days table
       const [FPDrows] = await conn.query(
         `SELECT food_plan_day_id 
         FROM food_plan_days 
@@ -231,6 +226,7 @@ exports.get_weekly_dashboard = async (req, res) => {
       );
       const days = FPDrows;
 
+      // start to get data for food_plan_meals table
       for (const day of days) {
         const foodPlanDayId = day.food_plan_day_id;
         const [FPMrows] = await conn.query(
@@ -241,6 +237,7 @@ exports.get_weekly_dashboard = async (req, res) => {
         );
         const meals = FPMrows;
 
+        // start to get data for food_plan_recipes table
         for (const meal of meals) {
           const foodPlanMealId = meal.food_plan_meal_id;
           const [FPRrows] = await conn.query(
@@ -251,12 +248,13 @@ exports.get_weekly_dashboard = async (req, res) => {
           );
           const recipes = FPRrows;
 
+          // start to get data for recipe_ingredients table
           for (const recipe of recipes) {
             const foodPlanRecipeId = recipe.food_plan_recipe_id;
             const recipeId = recipe.recipe_id;
             const displayOrder = recipe.display_order;
             const [RIrows] = await conn.query(
-              `SELECT ingredient_id, quantity, unit_id 
+              `SELECT ingredient_id, quantity, unit_id, ingredient_source 
                     FROM recipe_ingredients 
                     WHERE recipe_id = ? AND is_active = 1`,
               [recipeId],
@@ -267,17 +265,18 @@ exports.get_weekly_dashboard = async (req, res) => {
               const ingredientId = ing.ingredient_id;
               const quantity = ing.quantity;
               const unitId = ing.unit_id;
+              const ingSource = ing.ingredient_source;
 
               const [unitRows] = await conn.query(
                 `SELECT unit_id, unit_name, conversion_factor 
                 FROM units 
-                WHERE ingredient_id = ? AND is_active = 1`,
-                [ingredientId],
+                WHERE ingredient_id = ? AND ingredient_source = ? AND is_active = 1`,
+                [ingredientId, ingSource],
               );
               const baseUnitRow = unitRows.find((r) => r.conversion_factor === 1) || null;
               const baseUnit = baseUnitRow ? baseUnitRow.unit_name : null;
 
-              const conversionFactorRow = unitRows.find((r) => r.unit_id === unit_id) || null;
+              const conversionFactorRow = unitRows.find((r) => r.unit_id === unitId) || null;
               const conversionFactor = conversionFactorRow
                 ? conversionFactorRow.conversion_factor
                 : null;

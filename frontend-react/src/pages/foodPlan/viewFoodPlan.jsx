@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import { Spinner } from "flowbite-react";
+import { Button, Spinner } from "flowbite-react";
 import { MdEditNote } from "react-icons/md";
 import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from "flowbite-react";
 import EditFoodplanModal from "../../components/editFoodplanModal";
@@ -94,6 +94,8 @@ function ViewFoodPlan() {
     const editURL = `/foodplan/api/update`;
     const editMethod = `put`;
 
+    // console.log("data for updating foodplan is :", data);
+    // return;
     const submitData = async () => {
       setIsLoading(true);
       try {
@@ -221,6 +223,12 @@ function ViewFoodPlan() {
                       </div>
                     </div>
                   ))}
+                  <Button
+                    className="bg-gray-600 hover:cursor-pointer hover:bg-gray-800"
+                    onClick={"dashboard page link with week id"}
+                  >
+                    Dashboard
+                  </Button>
                 </AccordionContent>
               </AccordionPanel>
             ))}

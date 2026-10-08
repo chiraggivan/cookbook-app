@@ -525,14 +525,6 @@ exports.update_day_food_plan = async (req, res) => {
     // console.log("Food plan recipe ids :", food_plan_recipe_rows);
     // --------------------------- connect db and verify data --------------------------
 
-    // check user is valid and active
-    const [userRows] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
-    if (!userRows.length) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
     // check recipe_id is valid, is_active and owned by user
     for (const recipe_id of recipeIds) {
       const [rows] = await db.query(
@@ -561,7 +553,7 @@ exports.update_day_food_plan = async (req, res) => {
       const [week_id, plan_id, week_no] = JSON.parse(item);
       const [rows] = await db.query(
         `SELECT 1 FROM food_plan_weeks 
-     WHERE food_plan_week_id = ? AND food_plan_id = ? AND week_no = ?`,
+        WHERE food_plan_week_id = ? AND food_plan_id = ? AND week_no = ?`,
         [week_id, plan_id, week_no],
       );
       if (!rows.length) {
@@ -576,7 +568,7 @@ exports.update_day_food_plan = async (req, res) => {
       const [day_id, week_id, day_no] = JSON.parse(item);
       const [rows] = await db.query(
         `SELECT 1 FROM food_plan_days 
-     WHERE food_plan_day_id = ? AND food_plan_week_id = ? AND day_no = ?`,
+        WHERE food_plan_day_id = ? AND food_plan_week_id = ? AND day_no = ?`,
         [day_id, week_id, day_no],
       );
       if (!rows.length) {
@@ -607,7 +599,7 @@ exports.update_day_food_plan = async (req, res) => {
       const [recipes_id, meal_id] = JSON.parse(item);
       const [rows] = await db.query(
         `SELECT 1 FROM food_plan_recipes 
-     WHERE food_plan_recipe_id = ? AND food_plan_meal_id = ?`,
+        WHERE food_plan_recipe_id = ? AND food_plan_meal_id = ?`,
         [recipes_id, meal_id],
       );
       if (!rows.length) {

@@ -28,7 +28,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({
           success: false,
           code,
-          message: "Invalid session. PLease login again.",
+          message: "Invalid session. Please login again.",
         });
       }
 
@@ -40,14 +40,21 @@ const authenticateToken = (req, res, next) => {
     }
 
     // if token valid , check if user(user_id within token) is active before going to controller
-    const [result] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
+    const [result] = await db.query(`SELECT is_active FROM users WHERE user_id = ?`, [user.id]);
 
+    // If token available with user details but no user_id found in table (Next to impossible scenario)
     if (result.length === 0) {
       return res.status(401).json({
         success: false,
         message: "Invalid or Expired token.",
+      });
+    }
+
+    // if token available with user details but is_active is 0 then tell user to contact customer service to resolve issue
+    if (result[0].is_active === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "User access is restricted. Please contact customer support.",
       });
     }
 
