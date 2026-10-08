@@ -770,7 +770,7 @@ function RecipeDetails() {
           message={`Are you sure to delete - ${capitaliseWords(foundRecipeDetails.recipe.name)} ?`}
           OKtext={"Delete"}
           OKtextIcon={HiTrash}
-          cancelText={"No, Are you crazy"}
+          cancelText={"Cancel"}
         />
       )}
       {isDishModalOpen && (

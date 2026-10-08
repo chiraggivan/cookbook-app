@@ -22,7 +22,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({
           success: false,
           code,
-          message: "Session expired. PLease login again.",
+          message: "Session expired. Please login again.",
         });
       } else if (err.name === "JsonWebTokenError") {
         return res.status(401).json({

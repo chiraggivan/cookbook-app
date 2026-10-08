@@ -345,7 +345,7 @@ function CreateUpdateMyIngredientPage({
             from your active ingredients and will affect recipes that use this ingredient.`}
             OKtext={"Delete"}
             OKtextIcon={HiTrash}
-            cancelText={"No, Are you crazy"}
+            cancelText={"Cancel"}
           />
         )}
       </div>
