@@ -156,20 +156,11 @@ exports.set_daily_dashboard = async (req, res) => {
 exports.get_weekly_dashboard = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const data = req.body;
+    const weekNo = Number(req.params.weekNo) || null;
+    const foodPlanId = Number(req.params.planId) || null;
+    // console.log("weekNo is:", weekNo, " and plan Id is :", foodPlanId);
 
     const finalData = {};
-
-    // check if data is attached with request
-    if (!data) {
-      return res.status(500).json({
-        success: false,
-        message: `data missing. cant proceed further`,
-      });
-    }
-
-    const weekNo = data?.week_no;
-    const foodPlanId = data?.food_plan_id;
 
     // check if data contains weekNo and FoodPlanId.
     if (!foodPlanId || !weekNo) {
@@ -202,7 +193,14 @@ exports.get_weekly_dashboard = async (req, res) => {
         message: `No data found for the week of this user.`,
       });
     }
-    const foodPlanWeekId = FPWresult.food_plan_week_id;
+    const foodPlanWeekId = FPWresult[0].food_plan_week_id;
+    // console.log("ffoodPlanWeekId :", foodPlanWeekId);
+
+    // // BREAK POINT
+    // return res.json({
+    //   success: true,
+    //   message: `Most of the things checked and ready to recreate the whole table data `,
+    // });
 
     // NEED to undeerstand PROPERLY. ALSO write the description about it
 
@@ -261,6 +259,7 @@ exports.get_weekly_dashboard = async (req, res) => {
             );
             const ingredients = RIrows;
 
+            // from the ingredients above, get the correponding values of units for that ingredient
             for (const ing of ingredients) {
               const ingredientId = ing.ingredient_id;
               const quantity = ing.quantity;
@@ -273,9 +272,12 @@ exports.get_weekly_dashboard = async (req, res) => {
                 WHERE ingredient_id = ? AND ingredient_source = ? AND is_active = 1`,
                 [ingredientId, ingSource],
               );
+
+              // get the base unit's main text(kg, l, bunch, pc)
               const baseUnitRow = unitRows.find((r) => r.conversion_factor === 1) || null;
               const baseUnit = baseUnitRow ? baseUnitRow.unit_name : null;
 
+              // get the conversion factor of that ing with the help of unitId
               const conversionFactorRow = unitRows.find((r) => r.unit_id === unitId) || null;
               const conversionFactor = conversionFactorRow
                 ? conversionFactorRow.conversion_factor
@@ -286,8 +288,8 @@ exports.get_weekly_dashboard = async (req, res) => {
               // insert into food_plan_ingredient_record
               const [result] = await conn.query(
                 `INSERT INTO food_plan_ingredient_records(food_plan_id, food_plan_week_id, food_plan_day_id, food_plan_meal_id, food_plan_recipe_id,
-                        recipe_id, ingredient_id, quantity, base_unit, display_order, is_active)
-                VALUES(?,?,?,?,?,?,?,?,?,?,1)`,
+                        recipe_id, ingredient_id, ingredient_source, quantity, base_unit, display_order, is_active)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,1)`,
                 [
                   foodPlanId,
                   foodPlanWeekId,
@@ -296,6 +298,7 @@ exports.get_weekly_dashboard = async (req, res) => {
                   foodPlanRecipeId,
                   recipeId,
                   ingredientId,
+                  ingSource,
                   totalQuantity,
                   baseUnit,
                   displayOrder,
@@ -307,12 +310,16 @@ exports.get_weekly_dashboard = async (req, res) => {
       }
       await conn.commit();
     } catch (err) {
+      console.log("Error during delete and insert of fpir table : ", err);
+      return res.status(500).json({
+        success: false,
+        message: `Server Error. please try later.`,
+      });
     } finally {
     }
 
     // retrive data from food plan ingredient records table along with its referenced table
-    const [dashData] = await db.query(
-      `SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_type, fpir.food_plan_recipe_id,
+    const SQLquery = `SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_type, fpir.food_plan_recipe_id,
             fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.quantity, fpir.base_unit, 
             COALESCE(up.custom_price, i.default_price) as base_price, i.cup_weight, i.cup_unit
         FROM food_plan_ingredient_records fpir
@@ -322,9 +329,23 @@ exports.get_weekly_dashboard = async (req, res) => {
             JOIN recipes r ON r.recipe_id = fpir.recipe_id AND r.is_active = 1
             JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1 
             LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? `,
-      [user.id, foodPlanId, foodPlanWeekId],
-    );
+        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?`;
+
+    const sqlQuery = `
+      SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_id, m.name AS meal_type, fpir.food_plan_recipe_id,
+            fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.ingredient_source, fpir.quantity, fpir.base_unit, 
+            COALESCE(up.custom_price, i.default_price) as base_price, i.cup_weight, i.cup_unit
+      FROM food_plan_ingredient_records fpir
+            JOIN food_plan_weeks fpw ON fpw.food_plan_week_id = fpir.food_plan_week_id AND fpw.is_active = 1
+            JOIN food_plan_days fpd ON fpd.food_plan_day_id = fpir.food_plan_day_id AND fpd.is_active = 1
+            JOIN food_plan_meals fpm ON fpm.food_plan_meal_id = fpir.food_plan_meal_id AND fpm.is_active = 1
+            JOIN meals m ON fpm.meal_id = m.meal_id AND m.is_active = 1
+            JOIN recipes r ON r.recipe_id = fpir.recipe_id AND r.is_active = 1
+            JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1 
+            LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
+      WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?
+    `;
+    const [dashData] = await db.query(SQLquery, [user.id, foodPlanId, foodPlanWeekId]);
     if (dashData.length === 0) {
       return res.status(500).json({
         success: false,
@@ -474,7 +495,8 @@ exports.get_weekly_dashboard = async (req, res) => {
 
     // create dictonary to show food plan of whole even empty days or meals
     const weeklyData = fillMissingMeals(dashData);
-    finalData.weeklyDaya = weeklyData;
+    finalData.weeklyData = weeklyData;
+
     // FINAL response
     res.json({
       success: true,

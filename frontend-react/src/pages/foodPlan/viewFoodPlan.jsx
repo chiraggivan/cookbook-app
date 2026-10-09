@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { Button, Spinner } from "flowbite-react";
 import { MdEditNote } from "react-icons/md";
@@ -13,8 +14,9 @@ function ViewFoodPlan() {
   const [isOpen, setIsOpen] = useState(false);
   const [dayData, setDayData] = useState(null);
   const [weekData, setWeekData] = useState(null);
-  const [fooplanId, setFooplanId] = useState();
+  const [foodplanId, setFoodplanId] = useState();
   const [errMsg, setErrMsg] = useState("");
+  const navigate = useNavigate();
   const method = "get";
   const url = `/foodplan/api/view`;
 
@@ -43,7 +45,7 @@ function ViewFoodPlan() {
           // if food_plan exist for user
           const res = await api[method](url);
           setFoodplanData(res.data?.data);
-          setFooplanId(res.data?.data.food_plan_id);
+          setFoodplanId(res.data?.data.food_plan_id);
           setHasFoodPlan(true);
         }
       } catch (error) {
@@ -78,7 +80,7 @@ function ViewFoodPlan() {
         // if food_plan exist for user
         const res = await api[method](url);
         setFoodplanData(res.data?.data);
-        setFooplanId(res.data?.data.food_plan_id);
+        setFoodplanId(res.data?.data.food_plan_id);
         setHasFoodPlan(true);
       }
     } catch (error) {
@@ -105,7 +107,7 @@ function ViewFoodPlan() {
         // refetch the foodPlan data from backend to get all updated data
         const response = await api[method](url);
         setFoodplanData(response.data?.data);
-        setFooplanId(response.data?.data.food_plan_id);
+        setFoodplanId(response.data?.data.food_plan_id);
       } catch (error) {
         console.log("Error while saving edited dayplan data in viewFoodPlan page:", error.response);
       } finally {
@@ -117,7 +119,7 @@ function ViewFoodPlan() {
 
   // console.log("foodplanData is :", foodplanData);
   // console.log("dayData is :", dayData);
-  // console.log("food plan id is :", fooplanId);
+  console.log("food plan id is :", foodplanId);
   // console.log("isLoading is :", isLoading);
   // console.log("hasFoodPlan is :", hasFoodPlan);
 
@@ -225,7 +227,7 @@ function ViewFoodPlan() {
                   ))}
                   <Button
                     className="bg-gray-600 hover:cursor-pointer hover:bg-gray-800"
-                    onClick={"dashboard page link with week id"}
+                    onClick={() => navigate(`/dashboard/${week.week_no}/${foodplanId}`)}
                   >
                     Dashboard
                   </Button>
@@ -246,7 +248,7 @@ function ViewFoodPlan() {
           cancelText={"cancel"}
           dayData={dayData}
           weekData={weekData}
-          foodplanId={fooplanId}
+          foodplanId={foodplanId}
           meals={foodplanData.meals}
         />
       )}

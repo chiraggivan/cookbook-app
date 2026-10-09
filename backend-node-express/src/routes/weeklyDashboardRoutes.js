@@ -7,6 +7,11 @@ const updtWklyDshbrdController = require("../controllers/weeklyDashboard/updateW
 // create api for Weekly Dashboard
 
 // Read api for Weekly Dashboard
+router.get(
+  "/getWeeklyDashboard/:weekNo/:planId",
+  authToken,
+  updtWklyDshbrdController.get_weekly_dashboard,
+);
 
 // Update api for Weekly Dashboard
 router.put("/setdaily", authToken, updtWklyDshbrdController.set_daily_dashboard);
