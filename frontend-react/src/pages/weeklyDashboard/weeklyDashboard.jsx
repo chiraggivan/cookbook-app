@@ -7,7 +7,7 @@ function WeeklyDashboard() {
   const params = useParams();
   const weekNo = Number(params.weekNo);
   const planId = Number(params.planId);
-  const [aggregateData, setAggregateData] = useState();
+  const [aggData, setAggData] = useState();
   const [recipeData, setRecipeData] = useState();
   const [mealData, setMealData] = useState();
   const [ingData, setIngData] = useState();

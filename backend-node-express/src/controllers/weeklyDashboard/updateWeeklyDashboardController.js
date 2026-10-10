@@ -274,7 +274,7 @@ exports.get_weekly_dashboard = async (req, res) => {
               );
 
               // get the base unit's main text(kg, l, bunch, pc)
-              const baseUnitRow = unitRows.find((r) => r.conversion_factor === 1) || null;
+              const baseUnitRow = unitRows.find((r) => r.conversion_factor == 1) || null;
               const baseUnit = baseUnitRow ? baseUnitRow.unit_name : null;
 
               // get the conversion factor of that ing with the help of unitId
@@ -319,60 +319,78 @@ exports.get_weekly_dashboard = async (req, res) => {
     }
 
     // retrive data from food plan ingredient records table along with its referenced table
-    const SQLquery = `SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_type, fpir.food_plan_recipe_id,
-            fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.quantity, fpir.base_unit, 
-            COALESCE(up.custom_price, i.default_price) as base_price, i.cup_weight, i.cup_unit
-        FROM food_plan_ingredient_records fpir
-            JOIN food_plan_weeks fpw ON fpw.food_plan_week_id = fpir.food_plan_week_id AND fpw.is_active = 1
-            JOIN food_plan_days fpd ON fpd.food_plan_day_id = fpir.food_plan_day_id AND fpd.is_active = 1
-            JOIN food_plan_meals fpm ON fpm.food_plan_meal_id = fpir.food_plan_meal_id AND fpm.is_active = 1
-            JOIN recipes r ON r.recipe_id = fpir.recipe_id AND r.is_active = 1
-            JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1 
-            LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?`;
+    // const SQLquery = `SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_type, fpir.food_plan_recipe_id,
+    //         fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.quantity, fpir.base_unit,
+    //         COALESCE(up.custom_price, i.default_price) as base_price, i.cup_weight, i.cup_unit
+    //     FROM food_plan_ingredient_records fpir
+    //         JOIN food_plan_weeks fpw ON fpw.food_plan_week_id = fpir.food_plan_week_id AND fpw.is_active = 1
+    //         JOIN food_plan_days fpd ON fpd.food_plan_day_id = fpir.food_plan_day_id AND fpd.is_active = 1
+    //         JOIN food_plan_meals fpm ON fpm.food_plan_meal_id = fpir.food_plan_meal_id AND fpm.is_active = 1
+    //         JOIN recipes r ON r.recipe_id = fpir.recipe_id AND r.is_active = 1
+    //         JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1
+    //         LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
+    //     WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?`;
 
-    const sqlQuery = `
-      SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_id, m.name AS meal_type, fpir.food_plan_recipe_id,
-            fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.ingredient_source, fpir.quantity, fpir.base_unit, 
-            COALESCE(up.custom_price, i.default_price) as base_price, i.cup_weight, i.cup_unit
-      FROM food_plan_ingredient_records fpir
-            JOIN food_plan_weeks fpw ON fpw.food_plan_week_id = fpir.food_plan_week_id AND fpw.is_active = 1
-            JOIN food_plan_days fpd ON fpd.food_plan_day_id = fpir.food_plan_day_id AND fpd.is_active = 1
-            JOIN food_plan_meals fpm ON fpm.food_plan_meal_id = fpir.food_plan_meal_id AND fpm.is_active = 1
-            JOIN meals m ON fpm.meal_id = m.meal_id AND m.is_active = 1
-            JOIN recipes r ON r.recipe_id = fpir.recipe_id AND r.is_active = 1
-            JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1 
-            LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
-      WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?
-    `;
-    const [dashData] = await db.query(SQLquery, [user.id, foodPlanId, foodPlanWeekId]);
-    if (dashData.length === 0) {
-      return res.status(500).json({
-        success: false,
-        message: "no data found for dashboard",
-      });
-    }
+    // const sqlQuery = `
+    //   SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_id, m.name AS meal_type, fpir.food_plan_recipe_id,
+    //         fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.ingredient_source, fpir.quantity, fpir.base_unit,
+    //         COALESCE(up.custom_price, i.default_price) as base_price, i.cup_weight, i.cup_unit
+    //   FROM food_plan_ingredient_records fpir
+    //         JOIN food_plan_weeks fpw ON fpw.food_plan_week_id = fpir.food_plan_week_id AND fpw.is_active = 1
+    //         JOIN food_plan_days fpd ON fpd.food_plan_day_id = fpir.food_plan_day_id AND fpd.is_active = 1
+    //         JOIN food_plan_meals fpm ON fpm.food_plan_meal_id = fpir.food_plan_meal_id AND fpm.is_active = 1
+    //         JOIN meals m ON fpm.meal_id = m.meal_id AND m.is_active = 1
+    //         JOIN recipes r ON r.recipe_id = fpir.recipe_id AND r.is_active = 1
+    //         JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1
+    //         LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
+    //   WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?
+    // `;
+    // const [dashData] = await db.query(SQLquery, [user.id, foodPlanId, foodPlanWeekId]);
+    // if (dashData.length === 0) {
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "no data found for dashboard",
+    //   });
+    // }
 
-    for (data of dashData[0]) {
-      data.base_price = Number(parseFloat(data.base_price).toFixed(2));
-      data.quantity = Number(parseFloat(data.quantity).toFixed(8));
-    }
+    // for (data of dashData[0]) {
+    //   data.base_price = Number(parseFloat(data.base_price).toFixed(2));
+    //   data.quantity = Number(parseFloat(data.quantity).toFixed(8));
+    // }
 
-    finalData.dashData = dashData;
+    // finalData.dashData = dashData;
 
     // get all aggregate values
-    const [aggResult] = await db.query(
-      `SELECT COUNT(DISTINCT fpir.food_plan_meal_id)  AS total_meals, 
-            COUNT(DISTINCT fpir.food_plan_recipe_id)  AS total_items,
-            COUNT(DISTINCT fpir.recipe_id) AS total_recipes, 
-            COUNT(DISTINCT fpir.ingredient_id) AS total_ingredients,
-            ROUND(SUM(fpir.quantity * COALESCE(up.custom_price, i.default_price)), 2) AS cost
+    const agg_query = `SELECT  COUNT(DISTINCT fpir.food_plan_meal_id) AS total_meals, 
+          COUNT(DISTINCT fpir.food_plan_recipe_id)  AS total_items,
+          COUNT(DISTINCT fpir.recipe_id) AS total_recipes, 
+          COUNT(DISTINCT fpir.ingredient_id) AS total_ingredients ,
+          ROUND(SUM(CASE 
+	        		WHEN fpir.ingredient_source = 'main' THEN 
+        				fpir.quantity * COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate)
+        			WHEN fpir.ingredient_source = 'user' THEN
+	        			CASE 
+                  WHEN ui.country_id = u.country_id THEN
+                      ui.display_price 
+                  WHEN ui.country_id != u.country_id THEN
+                      ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+			          END
+            ELSE 0
+            END),2) AS total_cost
         FROM food_plan_ingredient_records fpir
-            JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1 
-            LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.user_id = ? AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?`,
-      [user.id, foodPlanId, foodPlanWeekId],
-    );
+        	JOIN food_plans fp ON fp.food_plan_id = fpir.food_plan_id
+        	JOIN users u ON u.user_id = fp.user_id
+          JOIN countries ctry ON ctry.country_id = u.country_id AND ctry.is_active = 1
+          JOIN currencies crncy ON crncy.currency_id = ctry.currency_id AND crncy.is_active = 1
+          LEFT JOIN ingredients i ON i.ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'main' AND i.is_active = 1
+          LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'user' AND i.is_active = 1
+          LEFT JOIN countries ictry ON ictry.country_id = ui.country_id AND ictry.is_active = 1
+          LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
+          LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u.country_id AND ip.is_active = 1
+          LEFT JOIN user_prices up ON up.ingredient_id = i.ingredient_id AND up.country_id = u.country_id AND up.user_id = ? AND up.is_active = 1
+        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?`;
+
+    const [aggResult] = await db.query(agg_query, [user.id, foodPlanId, foodPlanWeekId]);
     if (aggResult.length === 0) {
       return res.status(500).json({
         success: false,
@@ -380,29 +398,59 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
     const aggData = aggResult[0];
-    if (aggData.cost) {
-      aggData.cost = Number(parseFloat(aggData.cost));
+    if (aggData.total_cost) {
+      aggData.total_cost = Number(parseFloat(aggData.total_cost));
     }
     finalData.aggData = aggData;
 
     // ingredients and its cost
-    const [ingList] = await db.query(
-      `SELECT  i.name,  SUM(fpir.quantity) AS quantity, COALESCE(up.custom_price, i.default_price) as ingredient_cost, fpir.base_unit, 
-            ROUND(SUM(fpir.quantity * COALESCE(up.custom_price, i.default_price)), 2) AS cost,  
-            COUNT(DISTINCT fpir.food_plan_recipe_id) AS total_dishes, 
-            COUNT(DISTINCT fpir.recipe_id) AS total_recipes, i.cup_weight, i.cup_unit  
-        FROM food_plan_ingredient_records fpir
-            JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1
-            JOIN food_plans fp  ON fp.food_plan_id = fpir.food_plan_id AND fp.is_active = 1
-            LEFT JOIN user_prices up  ON up.user_id = ?
-                AND up.ingredient_id = fpir.ingredient_id
-                AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
-        GROUP BY  i.ingredient_id, i.name, fpir.base_unit, ingredient_cost, i.cup_weight, i.cup_unit 
-        ORDER BY quantity DESC`,
-      [user.id, foodPlanId, foodPlanWeekId],
-    );
-    const ingredientCostList = ingList[0];
+    const ings_query = `SELECT  i.name, 
+                          fpir.ingredient_source AS ing_src,
+                          SUM(fpir.quantity) AS quantity, 
+                          CASE 
+                            WHEN fpir.ingredient_source = 'main' THEN 
+                              ROUND(COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate),2)
+                            WHEN fpir.ingredient_source = 'user' THEN
+                                  CASE 
+                                      WHEN ui.country_id = u.country_id THEN
+                                          ui.display_price 
+                                      WHEN ui.country_id != u.country_id THEN
+                                          ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+                                END
+                          END AS ing_price,
+                          fpir.base_unit,
+                            ROUND(SUM(fpir.quantity * CASE 
+                                        WHEN fpir.ingredient_source = 'main' THEN 
+                                          ROUND(COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate),2)
+                                        WHEN fpir.ingredient_source = 'user' THEN
+                                              CASE 
+                                                  WHEN ui.country_id = u.country_id THEN
+                                                      ui.display_price 
+                                                  WHEN ui.country_id != u.country_id THEN
+                                                      ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+                                            END
+                                        END), 2) AS cost,
+                            COUNT(DISTINCT fpir.food_plan_recipe_id) AS total_dishes,
+                            COUNT(DISTINCT fpir.recipe_id) AS total_recipes, 
+                            i.cup_weight, 
+                            i.cup_unit
+                        FROM food_plan_ingredient_records fpir
+                          JOIN food_plans fp  ON fp.food_plan_id = fpir.food_plan_id AND fp.is_active = 1
+                          JOIN users u ON u.user_id = fp.user_id AND u.is_active = 1
+                          JOIN countries cntry ON cntry.country_id = u.country_id AND cntry.is_active = 1
+                          JOIN currencies crncy ON crncy.currency_id = cntry.currency_id AND crncy.is_active = 1
+                            LEFT JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'main' AND i.is_active = 1
+                            LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'user' AND ui.is_active = 1  
+                            LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u.country_id AND ip.is_active = 1
+                            LEFT JOIN countries ictry ON ictry.country_id = ui.country_id AND ictry.is_active = 1
+                            LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
+                            LEFT JOIN user_prices up  ON up.ingredient_id = fpir.ingredient_id AND up.country_id = u.country_id AND up.user_id = ? AND up.is_active = 1
+                        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
+                        GROUP BY  i.ingredient_id, i.name, ing_src, ing_price, fpir.base_unit, i.cup_weight, i.cup_unit
+                        ORDER BY quantity DESC`;
+
+    const [ingList] = await db.query(ings_query, [user.id, foodPlanId, foodPlanWeekId]);
+    const ingredientCostList = ingList;
     if (ingredientCostList.length === 0) {
       return res.status(500).json({
         success: false,
@@ -412,27 +460,48 @@ exports.get_weekly_dashboard = async (req, res) => {
     for (const ing of ingredientCostList) {
       ing.cost = Number(ing.cost);
       ing.quantity = Number(ing.quantity);
-      ing.ingredient_cost = Number(ing.ingredient_cost);
+      ing.ing_price = Number(ing.ing_price);
+      ing.total_dishes = Number(ing.total_dishes);
+      ing.total_recipes = Number(ing.total_recipes);
       if (ing?.cup_weight) {
         ing.cup_weight = Number(ing.cup_weight);
       }
-      ing.easy_quantity = getEasyQuantityText(ing);
+      // ing.easy_quantity = getEasyQuantityText(ing);
     }
     finalData.ingredientCostList = ingredientCostList;
 
     // recipes and its cost
-    const [recpList] = await db.query(
-      `SELECT distinct(fpir.recipe_id) , r.name, ROUND(SUM(fpir.quantity * COALESCE(up.custom_price, i.default_price)), 2) as recipe_cost
-        FROM food_plan_ingredient_records fpir
-            JOIN recipes r ON fpir.recipe_id = r.recipe_id AND r.is_active =1
-            JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1
-            LEFT JOIN user_prices up  ON up.user_id = ? AND up.ingredient_id = fpir.ingredient_id AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
-        GROUP BY fpir.food_plan_recipe_id, fpir.recipe_id
-        ORDER BY recipe_cost DESC`,
-      [user.id, foodPlanId, foodPlanWeekId],
-    );
-    const recipeCostList = recpList[0];
+    const recps_query = `SELECT distinct(fpir.recipe_id) , 
+                            r.name, 
+                            ROUND(SUM(fpir.quantity *  CASE 
+                                          WHEN fpir.ingredient_source = 'main' THEN 
+                                            ROUND(COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate),2)
+                                          WHEN fpir.ingredient_source = 'user' THEN
+                                                CASE 
+                                                    WHEN ui.country_id = u.country_id THEN
+                                                        ui.display_price 
+                                                    WHEN ui.country_id != u.country_id THEN
+                                                        ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+                                              END
+                                          END), 2) as recipe_cost
+                          FROM food_plan_ingredient_records fpir
+                            JOIN food_plans fp  ON fp.food_plan_id = fpir.food_plan_id AND fp.is_active = 1
+                            JOIN users u ON u.user_id = fp.user_id AND u.is_active = 1
+                            JOIN countries cntry ON cntry.country_id = u.country_id AND cntry.is_active = 1
+                            JOIN currencies crncy ON crncy.currency_id = cntry.currency_id AND crncy.is_active = 1
+                              JOIN recipes r ON fpir.recipe_id = r.recipe_id AND r.is_active =1
+                              LEFT JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'main' AND i.is_active = 1
+                              LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'user' AND ui.is_active = 1  
+                              LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u.country_id AND ip.is_active = 1
+                              LEFT JOIN user_prices up  ON up.ingredient_id = fpir.ingredient_id AND up.country_id = u.country_id AND up.user_id = ? AND up.is_active = 1
+                              LEFT JOIN countries ictry ON ictry.country_id = ui.country_id AND ictry.is_active = 1
+                              LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
+                          WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
+                          GROUP BY fpir.food_plan_recipe_id, fpir.recipe_id
+                          ORDER BY recipe_cost DESC`;
+
+    const [recpList] = await db.query(recps_query, [user.id, foodPlanId, foodPlanWeekId]);
+    const recipeCostList = recpList;
     if (recipeCostList.length === 0) {
       return res.status(500).json({
         success: false,
@@ -440,23 +509,43 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
     for (const recipe of recipeCostList) {
+      recipe.recipe_id = Number(recipe.recipe_id);
       recipe.recipe_cost = Number(recipe.recipe_cost);
     }
     finalData.recipeCostList = recipeCostList;
 
     // meals and its cost
-    const [mealList] = await db.query(
-      `SELECT fpm.meal_type , ROUND(SUM(fpir.quantity * COALESCE(up.custom_price, i.default_price)), 2) as meal_cost
-        FROM food_plan_ingredient_records fpir
-            JOIN food_plan_meals fpm ON fpir.food_plan_meal_id = fpm.food_plan_meal_id AND fpm.is_active =1
-            JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1
-            LEFT JOIN user_prices up  ON up.user_id = ? AND up.ingredient_id = fpir.ingredient_id AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
-        GROUP BY fpm.meal_type
-        ORDER BY meal_cost DESC`,
-      [user.id, foodPlanId, foodPlanWeekId],
-    );
-    const mealCostList = mealList[0];
+    const meals_query = `SELECT fpm.meal_id, 
+                          fpm.meal_type , 
+                          ROUND(SUM(fpir.quantity *  CASE 
+                                        WHEN fpir.ingredient_source = 'main' THEN 
+                                          ROUND(COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate),2)
+                                        WHEN fpir.ingredient_source = 'user' THEN
+                                              CASE 
+                                                  WHEN ui.country_id = u.country_id THEN
+                                                      ui.display_price 
+                                                  WHEN ui.country_id != u.country_id THEN
+                                                      ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+                                            END
+                                        END), 2) as meal_cost
+                        FROM food_plan_ingredient_records fpir
+                            JOIN food_plan_meals fpm ON fpir.food_plan_meal_id = fpm.food_plan_meal_id AND fpm.is_active =1
+                            JOIN food_plans fp  ON fp.food_plan_id = fpir.food_plan_id AND fp.is_active = 1
+                          JOIN users u ON u.user_id = fp.user_id AND u.is_active = 1
+                          JOIN countries cntry ON cntry.country_id = u.country_id AND cntry.is_active = 1
+                          JOIN currencies crncy ON crncy.currency_id = cntry.currency_id AND crncy.is_active = 1
+                            JOIN recipes r ON fpir.recipe_id = r.recipe_id AND r.is_active =1
+                            LEFT JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'main' AND i.is_active = 1
+                            LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'user' AND ui.is_active = 1  
+                            LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u.country_id AND ip.is_active = 1
+                            LEFT JOIN user_prices up  ON up.ingredient_id = fpir.ingredient_id AND up.country_id = u.country_id AND up.user_id = ? AND up.is_active = 1
+                            LEFT JOIN countries ictry ON ictry.country_id = ui.country_id AND ictry.is_active = 1
+                            LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
+                        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
+                        GROUP BY fpm.meal_id, fpm.meal_type
+                        ORDER BY meal_cost DESC`;
+    const [mealList] = await db.query(meals_query, [user.id, foodPlanId, foodPlanWeekId]);
+    const mealCostList = mealList;
     if (mealCostList.length === 0) {
       return res.status(500).json({
         success: false,
@@ -469,17 +558,36 @@ exports.get_weekly_dashboard = async (req, res) => {
     finalData.mealCostList = mealCostList;
 
     // day and its cost
-    const [dayList] = await db.query(
-      `SELECT fpd.day_no, ROUND(SUM(fpir.quantity * COALESCE(up.custom_price, i.default_price)), 2) as day_cost
-        FROM food_plan_ingredient_records fpir
-            JOIN food_plan_days fpd ON fpir.food_plan_day_id = fpd.food_plan_day_id AND fpd.is_active =1
-            JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND i.is_active = 1
-            LEFT JOIN user_prices up  ON up.user_id = ? AND up.ingredient_id = fpir.ingredient_id AND up.is_active = 1
-        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
-        GROUP BY fpd.day_no
-        ORDER BY fpd.day_no`,
-      [user.id, foodPlanId, foodPlanWeekId],
-    );
+    const days_query = `SELECT fpd.day_no, 
+                          ROUND(SUM(fpir.quantity * CASE 
+                                        WHEN fpir.ingredient_source = 'main' THEN 
+                                          ROUND(COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate),2)
+                                        WHEN fpir.ingredient_source = 'user' THEN
+                                              CASE 
+                                                  WHEN ui.country_id = u.country_id THEN
+                                                      ui.display_price 
+                                                  WHEN ui.country_id != u.country_id THEN
+                                                      ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+                                            END
+                                        END), 2) as day_cost
+                        FROM food_plan_ingredient_records fpir
+                            JOIN food_plan_days fpd ON fpir.food_plan_day_id = fpd.food_plan_day_id AND fpd.is_active =1
+                            JOIN food_plan_meals fpm ON fpir.food_plan_meal_id = fpm.food_plan_meal_id AND fpm.is_active =1
+                            JOIN food_plans fp  ON fp.food_plan_id = fpir.food_plan_id AND fp.is_active = 1
+                          JOIN users u ON u.user_id = fp.user_id AND u.is_active = 1
+                          JOIN countries cntry ON cntry.country_id = u.country_id AND cntry.is_active = 1
+                          JOIN currencies crncy ON crncy.currency_id = cntry.currency_id AND crncy.is_active = 1
+                            JOIN recipes r ON fpir.recipe_id = r.recipe_id AND r.is_active =1
+                            LEFT JOIN ingredients i  ON i.ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'main' AND i.is_active = 1
+                            LEFT JOIN user_ingredients ui ON ui.user_ingredient_id = fpir.ingredient_id AND fpir.ingredient_source = 'user' AND ui.is_active = 1  
+                            LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = u.country_id AND ip.is_active = 1
+                            LEFT JOIN user_prices up  ON up.ingredient_id = fpir.ingredient_id AND up.country_id = u.country_id AND up.user_id = ? AND up.is_active = 1
+                            LEFT JOIN countries ictry ON ictry.country_id = ui.country_id AND ictry.is_active = 1
+                            LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
+                        WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
+                        GROUP BY fpd.day_no
+                        ORDER BY fpd.day_no`;
+    const [dayList] = await db.query(days_query, [user.id, foodPlanId, foodPlanWeekId]);
     const dayCostList = dayList[0];
     if (dayCostList.length === 0) {
       return res.status(500).json({
@@ -487,15 +595,15 @@ exports.get_weekly_dashboard = async (req, res) => {
         message: `error while finding day cost list data.`,
       });
     }
-    for (const day of dayCostList) {
-      day.day_cost = Number(day.day_cost);
-    }
-    dayCostList = fillMissingDays(dayCostList);
+
+    dayCostList.day_cost = Number(dayCostList.day_cost);
+
+    // dayCostList = fillMissingDays(dayCostList);
     finalData.dayCostList = dayCostList;
 
     // create dictonary to show food plan of whole even empty days or meals
-    const weeklyData = fillMissingMeals(dashData);
-    finalData.weeklyData = weeklyData;
+    // const weeklyData = fillMissingMeals(dashData);
+    // finalData.weeklyData = weeklyData;
 
     // FINAL response
     res.json({
