@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const { cupVolume } = require("./constantValues");
 
 // Function to fill missing days (1–7)
 function fillMissingDays(data, start = 1, end = 7) {
@@ -211,21 +212,68 @@ async function setWeeklyDashboard(fp_id, fpw_id) {
 // get easy text quantity
 function getEasyQuantityText(data) {
   const baseUnit = data.base_unit;
-  const quantity = data.quantity;
+  const quantity = Number(data.quantity) || 0;
 
   // KG CASE
   if (baseUnit === "kg") {
-    if (data.cup_unit === "g" && data.cup_weight) {
+    // anything more than a kg will be shown in 'kilograms' only.
+    if (quantity >= 0.5 && quantity < 1) {
+      return `${Math.ceil(quantity * 1000)} grams`;
+    }
+    if (quantity == 1) {
+      return `1 kilogram`;
+    }
+
+    if (quantity > 1) {
+      return `${Math.ceil(quantity * 100) / 100} kilograms`;
+    }
+
+    // if quantity less than 0.5 and has cup weight else default display of kg and grams
+    if (data.cup_unit === "g" && Number(data.cup_weight)) {
       const easyNumber = (quantity * 1000) / data.cup_weight;
       const wholeNo = Math.floor(easyNumber);
       const deciNo = easyNumber - wholeNo;
 
-      if (quantity > 1) {
-        return `${Math.ceil(quantity * 100) / 100} kilograms`;
-      }
-
       if (deciNo === 0) {
-        return wholeNo === 1 ? `${wholeNo} cup` : `${wholeNo} cups`;
+        return wholeNo !== 0
+          ? wholeNo === 1
+            ? `${wholeNo} cup`
+            : `${wholeNo} cups`
+          : `nothing to buy`;
+      } else if (deciNo < 0.020833) {
+        return wholeNo > 0 ? `approx ${wholeNo} cups` : `approx 1 tsp`;
+      } else if (deciNo == 0.02083) {
+        return wholeNo > 0 ? `${wholeNo} cup and a teaspoon` : `1 tsp`;
+      } else if (deciNo < 0.041666) {
+        return wholeNo > 0 ? `approx ${wholeNo} cups and 2 teaspoons` : `approx 2 tsps`;
+      } else if (deciNo == 0.041666) {
+        return wholeNo > 0 ? `${wholeNo} cups and 2 teaspoons` : `2 tsps`;
+      } else if (deciNo < 0.0625) {
+        return wholeNo > 0 ? `approx ${wholeNo} 1/4 cups` : `approx 1 tbsp or 3 tsps`;
+      } else if (deciNo == 0.0625) {
+        return wholeNo > 0 ? `${wholeNo} 1/4 cups` : `1 tbsp or 3 tsps`;
+      } else if (deciNo < 0.125) {
+        return wholeNo > 0 ? `approx ${wholeNo} 1/4 cups` : `approx 2 tbsp or 6 tsps`;
+      } else if (deciNo == 0.125) {
+        return wholeNo > 0 ? `${wholeNo} 1/4 cups` : `2 tbsp or 6 tsps`;
+      } else if (deciNo < 0.1875) {
+        return wholeNo > 0 ? `approx ${wholeNo} 1/4 cups` : `approx 3 tbsp or 9 tsps`;
+      } else if (deciNo == 0.1875) {
+        return wholeNo > 0 ? `${wholeNo} 1/4 cups` : `3 tbsp or 9 tsps`;
+      } else if (deciNo < 0.25) {
+        return wholeNo > 0 ? `approx ${wholeNo} 1/4 cups` : `approx 1/4 cup`;
+      } else if (deciNo == 0.25) {
+        return wholeNo > 0 ? `${wholeNo} 1/4 cups` : `4 tbsp or 1/4 cup`;
+      } else if (deciNo < 0.5) {
+        return wholeNo > 0 ? `approx ${wholeNo} 1/2 cups` : `approx 1/2 cup`;
+      } else if (deciNo == 0.5) {
+        return wholeNo > 0 ? `${wholeNo} 1/2 cups` : `8 tbsp or 1/2 cup`;
+      } else if (deciNo < 0.75) {
+        return wholeNo > 0 ? `approx ${wholeNo} 3/4 cups` : `approx 3/4 cup`;
+      } else if (deciNo == 0.75) {
+        return wholeNo > 0 ? `${wholeNo} 3/4 cups` : `12 tbsp or 3/4 cup`;
+      } else if (deciNo <= 0.99) {
+        return wholeNo > 0 ? `approx ${wholeNo + 1} cups` : `1 cup`;
       }
 
       // Example condition conversion
@@ -249,11 +297,81 @@ function getEasyQuantityText(data) {
 
   // LITRE CASE
   else if (baseUnit === "l") {
-    if (quantity > 1) {
+    if (quantity >= 1) {
       return `${Math.ceil(quantity * 100) / 100} Litres`;
-    }
+    } else {
+      const ingInMl = Math.ceil(quantity * 1000) + "ml";
+      const cups = Math.ceil(quantity * 1000) / cupVolume;
+      const wholeCups = Math.floor(cups);
+      const fraction = quantity - wholeCups;
 
-    // similar conversion logic...
+      let result;
+
+      // easy reading for liquid between 1 cup and 1 litre
+      if (wholeCups > 0) {
+        if (fraction === 0) {
+          return `${ingInMl} or ${wholeCups} ${wholeCups === 1 ? "cup" : "cups"}`;
+        } else if (fraction < 0.25) {
+          return `${ingInMl} or approx ${wholeCups} and 1/4 cups`;
+        } else if (fraction == 0.25) {
+          return `${ingInMl} or ${wholeCups} and 1/4 cups`;
+        } else if (fraction < 0.5) {
+          return `${ingInMl} or approx ${wholeCups} and 1/2 cups`;
+        } else if (fraction == 0.5) {
+          return `${ingInMl} or ${wholeCups} and 1/2 cups`;
+        } else if (fraction <= 0.75) {
+          return `${ingInMl} or approx ${wholeCups} and 3/4 cups`;
+        } else if (fraction == 0.75) {
+          return `${ingInMl} or ${wholeCups} and 3/4 cups`;
+        } else {
+          return `${ingInMl} or approx ${wholeCups + 1} cups`;
+        }
+      } else {
+        // easy reading for liquid betwen 1ml -250ml(1 cup)
+        const ing_qty = Math.ceil(quantity * 1000);
+        if (ing_qty < 5) {
+          return `${ingInMl} or approx 1 tsp`;
+        } else if (ing_qty == 5) {
+          return `${ingInMl} or  1 tsp`;
+        } else if (ing_qty < 10) {
+          return `${ingInMl} or approx 2 tsps`;
+        } else if (ing_qty == 10) {
+          return `${ingInMl} or  2 tsps`;
+        } else if (ing_qty < 15) {
+          return `${ingInMl} or approx 3 tsps`;
+        } else if (ing_qty == 15) {
+          return `${ingInMl} or approx 1 tbsp`;
+        } else if (ing_qty < 30) {
+          return `${ingInMl} or approx 2 tbsps`;
+        } else if (ing_qty == 30) {
+          return `${ingInMl} or  2 tbsps`;
+        } else if (ing_qty < 45) {
+          return `${ingInMl} or approx 3 tsps`;
+        } else if (ing_qty == 45) {
+          return `${ingInMl} or  3 tsps`;
+        } else if (ing_qty < 60) {
+          return `${ingInMl} or approx 4 tbsps`;
+        } else if (ing_qty == 60) {
+          return `${ingInMl} or  1/4 cup`;
+        } else if (ing_qty < 90) {
+          return `${ingInMl} or more than 1/4 cup`;
+        } else if (ing_qty < 120) {
+          return `${ingInMl} or approx 1/2 cup`;
+        } else if (ing_qty == 120) {
+          return `${ingInMl} or  1/2 cup`;
+        } else if (ing_qty < 150) {
+          return `${ingInMl} or more than 1/2 cup`;
+        } else if (ing_qty < 180) {
+          return `${ingInMl} or approx 3/4 cup`;
+        } else if (ing_qty == 180) {
+          return `${ingInMl} or 3/4 cup`;
+        } else if (ing_qty < 210) {
+          return `${ingInMl} or more than 3/4 cup`;
+        } else if (ing_qty < 240) {
+          return `${ingInMl} or approx 1 cup`;
+        }
+      }
+    }
   }
 
   // PIECE / BUNCH
@@ -263,9 +381,59 @@ function getEasyQuantityText(data) {
 
     if (deciNo === 0) {
       if (baseUnit === "pc") {
-        return wholeNo === 1 ? `${wholeNo} ${data.name}` : `${wholeNo} ${data.name}s`;
+        return wholeNo > 0
+          ? wholeNo === 1
+            ? `${wholeNo} ${data.name}`
+            : `${wholeNo} ${data.name}s`
+          : "nothing to buy";
       } else {
-        return wholeNo === 1 ? `${wholeNo} bunch` : `${wholeNo} bunches`;
+        return wholeNo > 0
+          ? wholeNo === 1
+            ? `${wholeNo} bunch`
+            : `${wholeNo} bunches`
+          : "nothing to buy";
+      }
+    } else if (deciNo < 0.25) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 1/4 ${data.name}s` : `approx 1/4 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 1/4 bunches` : `approx 1/4 bunch`;
+      }
+    } else if (deciNo == 0.25) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `${wholeNo} and 1/4 ${data.name}s` : `1/4 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `${wholeNo} and 1/4 bunches` : `1/4 bunch`;
+      }
+    } else if (deciNo < 0.5) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 1/2 ${data.name}s` : `approx 1/2 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 1/2 bunches` : `approx 1/2 bunch`;
+      }
+    } else if (deciNo == 0.5) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `${wholeNo} and 1/2 ${data.name}s` : `1/2 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `${wholeNo} and 1/2 bunches` : `1/2 bunch`;
+      }
+    } else if (deciNo < 0.75) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 3/4 ${data.name}s` : `approx 3/4 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 3/4 bunches` : `approx 3/4 bunch`;
+      }
+    } else if (deciNo == 0.75) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `${wholeNo} and 3/4 ${data.name}s` : `3/4 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `${wholeNo} and 3/4 bunches` : `3/4 bunch`;
+      }
+    } else if (deciNo <= 0.99) {
+      if (baseUnit === "pc") {
+        return wholeNo > 0 ? `approx ${wholeNo + 1} ${data.name}s` : `approx 1 ${data.name}`;
+      } else if (baseUnit === "bunch") {
+        return wholeNo > 0 ? `approx ${wholeNo} and 1/4 bunches` : `approx 1/4 bunch`;
       }
     }
 
@@ -275,4 +443,4 @@ function getEasyQuantityText(data) {
   return "nothing";
 }
 
-exports.modules = { fillMissingDays, fillMissingMeals, getEasyQuantityText };
+module.exports = { fillMissingDays, fillMissingMeals, getEasyQuantityText };

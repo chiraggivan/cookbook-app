@@ -119,7 +119,7 @@ function ViewFoodPlan() {
 
   // console.log("foodplanData is :", foodplanData);
   // console.log("dayData is :", dayData);
-  console.log("food plan id is :", foodplanId);
+  // console.log("food plan id is :", foodplanId);
   // console.log("isLoading is :", isLoading);
   // console.log("hasFoodPlan is :", hasFoodPlan);
 

@@ -5,6 +5,7 @@ const {
   fillMissingMeals,
   getEasyQuantityText,
 } = require("../../utils/weeklyDashboardUtils");
+// const {} = require("../../utils/weeklyDashboardUtils.js")
 
 // save food plan week's record in food_plan_ingredient_records table for dashboard
 exports.set_daily_dashboard = async (req, res) => {
@@ -196,12 +197,14 @@ exports.get_weekly_dashboard = async (req, res) => {
     const foodPlanWeekId = FPWresult[0].food_plan_week_id;
     // console.log("ffoodPlanWeekId :", foodPlanWeekId);
 
+    // ---------------------------------------- temp break point ---------------------------------------------
     // // BREAK POINT
     // return res.json({
     //   success: true,
     //   message: `Most of the things checked and ready to recreate the whole table data `,
     // });
 
+    // ---------------------------------------- db transaction begins --------------------------------------------
     // NEED to undeerstand PROPERLY. ALSO write the description about it
 
     const conn = await db.getConnection();
@@ -466,7 +469,7 @@ exports.get_weekly_dashboard = async (req, res) => {
       if (ing?.cup_weight) {
         ing.cup_weight = Number(ing.cup_weight);
       }
-      // ing.easy_quantity = getEasyQuantityText(ing);
+      ing.easy_quantity = getEasyQuantityText(ing);
     }
     finalData.ingredientCostList = ingredientCostList;
 
@@ -588,7 +591,7 @@ exports.get_weekly_dashboard = async (req, res) => {
                         GROUP BY fpd.day_no
                         ORDER BY fpd.day_no`;
     const [dayList] = await db.query(days_query, [user.id, foodPlanId, foodPlanWeekId]);
-    const dayCostList = dayList[0];
+    const dayCostList = dayList;
     if (dayCostList.length === 0) {
       return res.status(500).json({
         success: false,
@@ -596,10 +599,9 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
 
-    dayCostList.day_cost = Number(dayCostList.day_cost);
-
-    // dayCostList = fillMissingDays(dayCostList);
-    finalData.dayCostList = dayCostList;
+    // covert string value of day_cost to number before fillMissingDays data
+    dayCostList.forEach((i) => (i.day_cost = Number(i.day_cost)));
+    finalData.dayCostList = fillMissingDays(dayCostList);
 
     // create dictonary to show food plan of whole even empty days or meals
     // const weeklyData = fillMissingMeals(dashData);
