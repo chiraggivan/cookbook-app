@@ -3,56 +3,70 @@ const { cupVolume } = require("./constantValues");
 
 // Function to fill missing days (1–7)
 function fillMissingDays(data, start = 1, end = 7) {
-  // Create a map: day_no to object
+  // Create a map: name to object
   const dayMap = {};
   data.forEach((d) => {
-    dayMap[d.day_no] = d;
+    dayMap[d.day_no] = { name: dayIs(d.day_no).slice(0, 3), cost: d.cost };
   });
 
   const result = [];
 
   for (let day = start; day <= end; day++) {
     // If day exists → use it, else insert default
-    result.push(dayMap[day] || { day_no: day, day_cost: 0 });
+    result.push(dayMap[day] || { name: day, cost: 0 });
   }
   return result;
 }
 
 // Function to structure weekly data with meals
-function fillMissingMeals(data) {
+async function fillMissingMeals(data) {
   // Deep copy to avoid mutation
   const food_plan = JSON.parse(JSON.stringify(data));
 
   const days = [1, 2, 3, 4, 5, 6, 7];
-  const meals = ["breakfast", "lunch", "dinner"];
+
+  // get all active meal ids and their names
+  const mealId_query = `select meal_id, name, display_order FROM meals WHERE is_active = 1 ORDER BY display_order`;
+  const [mealResult] = await db.query(mealId_query, []);
+  const mealIds = mealResult.map((i) => {
+    return i.meal_id;
+  });
 
   const weeklyData = [];
 
   for (const d of days) {
     const day = {
+      name: d,
       name: dayIs(d),
       meals: [],
     };
 
     // Filter data for this day
-    const day_data = food_plan.filter((row) => row.day_no === d);
+    const day_data = food_plan.filter((row) => row.name === d);
 
     // Calculate total day cost
-    let day_cost = 0;
+    let cost = 0;
     for (const row of day_data) {
-      day_cost += (row.quantity || 0) * (row.base_price || 0);
+      cost += (row.quantity || 0) * (row.base_price || 0);
     }
 
-    day.cost = day_cost;
+    day.cost = cost;
+    // console.log("day  is: ", day);
 
     // Loop meals
-    for (const m of meals) {
+    for (const m of mealIds) {
       const meal = {
-        name: m,
+        name: mealResult
+          .map((i) => {
+            if (i.meal_id === m) {
+              return i.name;
+            }
+          })
+          .find((i) => i !== undefined),
         recipes: [],
       };
 
-      const meal_data = day_data.filter((y) => y.meal_type === m);
+      const meal_data = day_data.filter((y) => y.meal_id === m);
 
       // Calculate meal cost
       let meal_cost = 0;
@@ -62,16 +76,19 @@ function fillMissingMeals(data) {
 
       meal.cost = meal_cost;
 
-      // Get unique recipes
-      const recipes = [];
+      // Get all recipes of the above meal data. Due to ingredients, this will have
+      // multiple rows with same recipe_id and recipe_name
+      const recipeIds = [];
       for (const r of meal_data) {
-        const recipe_name = r.recipe_name;
-        if (recipe_name && !recipes.includes(recipe_name)) {
-          recipes.push(recipe_name);
+        if (r.recipe_id && !recipeIds.includes(r.recipe_id)) {
+          const recipe = {
+            recipe_id: r.recipe_id,
+            recipe_name: r.recipe_name,
+          };
+          recipeIds.push(r.recipe_id);
+          meal.recipes.push(recipe);
         }
       }
-
-      meal.recipes = recipes;
       day.meals.push(meal);
     }
 

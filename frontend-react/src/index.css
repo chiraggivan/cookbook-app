@@ -32,3 +32,30 @@ body {
   --top-bar-height: 4rem;
   --left-side-bar: 12rem;
 }
+
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari */
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
+  -ms-overflow-style: auto; /* Internet Explorer */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px; /* Chrome, Edge, Safari */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
