@@ -13,7 +13,7 @@ function fillMissingDays(data, start = 1, end = 7) {
 
   for (let day = start; day <= end; day++) {
     // If day exists → use it, else insert default
-    result.push(dayMap[day] || { name: day, cost: 0 });
+    result.push(dayMap[day] || { name: dayIs(day).slice(0, 3), cost: 0 });
   }
   return result;
 }
@@ -42,7 +42,7 @@ async function fillMissingMeals(data) {
     };
 
     // Filter data for this day
-    const day_data = food_plan.filter((row) => row.name === d);
+    const day_data = food_plan.filter((row) => row.day_no === d);
 
     // Calculate total day cost
     let cost = 0;
@@ -50,7 +50,7 @@ async function fillMissingMeals(data) {
       cost += (row.quantity || 0) * (row.base_price || 0);
     }
 
-    day.cost = cost;
+    day.cost = Number(cost.toFixed(2));
     // console.log("day  is: ", day);
 
     // Loop meals
@@ -74,7 +74,7 @@ async function fillMissingMeals(data) {
         meal_cost += (row.quantity || 0) * (row.base_price || 0);
       }
 
-      meal.cost = meal_cost;
+      meal.cost = Number(meal_cost.toFixed(2));
 
       // Get all recipes of the above meal data. Due to ingredients, this will have
       // multiple rows with same recipe_id and recipe_name

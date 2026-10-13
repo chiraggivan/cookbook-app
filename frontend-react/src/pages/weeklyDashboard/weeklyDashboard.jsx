@@ -2,22 +2,40 @@ import { Spinner } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import api from "../../api/axios";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList,
+  Pie,
+  PieChart,
+  Legend,
+  Sector,
+} from "recharts";
 
 function WeeklyDashboard() {
   const params = useParams();
   const weekNo = Number(params.weekNo);
   const planId = Number(params.planId);
-  const [aggData, setAggData] = useState();
-  const [recipeData, setRecipeData] = useState();
-  const [mealData, setMealData] = useState();
-  const [ingData, setIngData] = useState();
-  const [dayData, setDayData] = useState();
-  const [weeklyData, setWeeklyData] = useState();
-  const [dashData, setDashData] = useState();
+  const [aggData, setAggData] = useState({});
+  const [recipeData, setRecipeData] = useState([]);
+  const [mealData, setMealData] = useState([]);
+  const [ingData, setIngData] = useState([]);
+  const [dayData, setDayData] = useState([]);
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [dashData, setDashData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user"));
   const currencySymbol = user.currency_symbol;
+
+  const [totalMeals, setTotalMeals] = useState(0);
+  const isScrnBlwMd = window.innerWidth < 768; // used for converting Mon to M
+  const isScrnBlwLg = window.innerWidth < 1024; // used for converting Monday to Mon
+
+  const COLOURS = ["#68ba52", "#facc15", "#60a5fa", "#d44f24"]; // different coolours for pie chart
 
   const method = "get";
   const url = `/weeklyDashboard/api/getWeeklyDashboard/${weekNo}/${planId}`;
@@ -46,6 +64,11 @@ function WeeklyDashboard() {
     }
   }, []);
 
+  // update totalMeals based on mealData
+  useEffect(() => {
+    setTotalMeals(mealData.length);
+  }, [mealData]);
+
   // ------------------------------------------- loading screen ---------------------------------------------------
   if (isLoading) {
     return (
@@ -67,12 +90,14 @@ function WeeklyDashboard() {
   // console.log("recipeCostList :", recipeData);
   // console.log("ingredientCostList :", ingData);
   // console.log("weeklyData :", weeklyData);
+  // console.log("isScrnBlwMd :", isScrnBlwMd);
+  // console.log("totalMeals :", totalMeals);
 
   return (
     <>
       <div className="flex flex-col max-w-5xl mx-auto bg-gray-50">
         {/* Heading of Dashboard */}
-        <div className="mt-5 ml-2 text-3xl font-bold text-gray-800">Dashboard</div>
+        <div className="mt-2 ml-2 text-3xl font-bold text-gray-800">Dashboard</div>
         {/* aggregate details */}
         {aggData && (
           <div className="flex gap-2 mx-2 text-xs md:text-sm text-gray-800">
@@ -115,9 +140,11 @@ function WeeklyDashboard() {
         )}
 
         {/* ingredient lists & recipes list */}
-        <div className="flex flex-col m-2 gap-2 md:gap-1 md:flex-row">
+        <div className="flex flex-col mx-2 gap-2 md:gap-1 md:flex-row">
+          {/* ingredient list */}
           <div className="flex md:flex-6 bg-white pb-1 rounded-md">
             <div className="flex flex-col w-full">
+              {/* Div header */}
               <div className="flex items-center justify-center text-center my-3 font-bold">
                 Ingredients list ({ingData?.length || 0})
               </div>
@@ -126,10 +153,10 @@ function WeeklyDashboard() {
                 <div className="p-1 flex flex-1 bg-gray-100 items-center rounded-tl-md">#</div>
                 <div className="p-1 flex flex-3 bg-gray-100 items-center">Name</div>
                 <div className="p-1 flex flex-5 bg-gray-100 items-center">Quantity</div>
-                <div className="p-1 flex flex-2 bg-gray-100 items-center text-center">
+                <div className="p-1 flex flex-2 bg-gray-100 items-center text-center justify-end">
                   Cost ({currencySymbol})
                 </div>
-                <div className="p-1 flex flex-3 bg-gray-100 items-center text-center rounded-tr-md">
+                <div className="p-1 flex flex-3 bg-gray-100 items-center text-center rounded-tr-md justify-end">
                   Priced At ({currencySymbol})
                 </div>
               </div>
@@ -151,7 +178,7 @@ function WeeklyDashboard() {
                       <div className="mx-1 py-1 flex flex-2 items-center justify-end">
                         {i.cost.toFixed(2)}
                       </div>
-                      <div className="mx-1 py-1 flex flex-3 items-center">
+                      <div className="mx-1 py-1 flex flex-3 items-center justify-end">
                         {i.ing_price}/{i.base_unit}
                       </div>
                     </div>
@@ -159,6 +186,8 @@ function WeeklyDashboard() {
               </div>
             </div>
           </div>
+
+          {/* recipes list */}
           <div className="flex mt-5 md:mt-0 md:flex-4 bg-white rounded-md">
             <div className="flex flex-col w-full">
               <div className="flex items-center justify-center text-center my-3 font-bold">
@@ -173,7 +202,7 @@ function WeeklyDashboard() {
                 </div>
               </div>
               {/* table content */}
-              <div className="max-h-100 overflow-y-auto scrollbar-none md:scrollbar-thin">
+              <div className="max-h-60 overflow-y-auto scrollbar-none md:scrollbar-thin">
                 {recipeData &&
                   recipeData.map((i, index) => (
                     <div
@@ -195,30 +224,225 @@ function WeeklyDashboard() {
             </div>
           </div>
         </div>
-        {/* charts for meals price and day price */}
-        <div className="flex flex-col m-2 gap-2 md:gap-1 md:flex-row">
-          {/* meal chart div */}
-          <div className="flex md:flex-7 bg-white pb-1 rounded-md">
-            <div className="flex flex-col w-full">
-              {/* meal chart Heading */}
-              <div className="flex items-center justify-center text-center my-3 font-bold">
-                Meal Cost Breakdown
+
+        {/* Dashboard for weekly data and  charts for meals price and day price */}
+        <div className="flex flex-col-reverse my-2 mx-2 gap-2 md:gap-1 md:flex-row">
+          {/* weekly meals data */}
+          <div className="flex md:flex-7 md:h-70 bg-white pb-1 rounded-md">
+            <div className="flex flex-col w-full h-full">
+              {/* header */}
+              <div className="flex p-1 w-full text-center items-center justify-center font-bold">
+                Week Details
               </div>
-              <div className=" w-full h-60">
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={dayData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="cost" fill="#68ba52">
-                      <LabelList dataKey="cost" position="top" />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+
+              {/* table for week details */}
+              <div className="flex-1 bg-white overflow-y-auto scrollbar-none">
+                {weeklyData &&
+                  weeklyData.map((i, index) => {
+                    return (
+                      <div
+                        key={index}
+                        className="flex my-1 "
+                        style={{ height: 25 * i.meals.length }}
+                      >
+                        {/* day cloumn */}
+                        <div className="flex flex-1 items-center justify-center text-center rounded-l-md bg-blue-800 text-white">
+                          {isScrnBlwLg ? i.name.slice(0, 3) : i.name}
+                        </div>
+
+                        {/* meal column */}
+                        <div className="flex flex-col flex-1 pl-1 text-xs border-y border-gray-700">
+                          {i.meals.map((m, index) => {
+                            return (
+                              <>
+                                <div key={index} className="mt-0.5 flex-1 whitespace-nowrap">
+                                  {m.name} {m.recipes.length > 0 ? `(${m.recipes.length})` : ""}
+                                </div>
+                                {index < i.meals.length - 1 ? (
+                                  <div className="border-b border-gray-300 w-full"></div>
+                                ) : (
+                                  ""
+                                )}
+                              </>
+                            );
+                          })}
+                          <div className=""></div>
+                        </div>
+
+                        {/* recipe column */}
+                        <div className="flex flex-col flex-6 md:flex-4 border-y border-gray-700 min-w-0">
+                          {i.meals.map((m, index) => {
+                            return (
+                              // first creating div for meal type
+                              <>
+                                <div key={index} className="mt-0.5 flex-1 min-w-0 ">
+                                  {/* second - create div as flex for row to have all recipe in same line for one meal*/}
+                                  <div className="flex w-full overflow-x-auto scrollbar-none h-full items-center">
+                                    {m.recipes.length > 0 ? (
+                                      m.recipes.map((r, index) => {
+                                        return (
+                                          <div className="shrink-0 whitespace-nowrap text-xs bg-green-100 rounded-full px-1 mx-1">
+                                            {r.recipe_name}
+                                          </div>
+                                        );
+                                      })
+                                    ) : (
+                                      <div className="flex w-full shrink-0 whitespace-nowrap text-xs rounded-full px-1 mx-1 items-center justify-center">
+                                        -
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {index < i.meals.length - 1 ? (
+                                  <div className="border-b border-gray-300 w-full"></div>
+                                ) : (
+                                  ""
+                                )}
+                              </>
+                            );
+                          })}
+                        </div>
+
+                        {/* meal cost colum */}
+                        <div className="flex flex-col flex-1 text-xs border-y border-r rounded-r border-gray-700">
+                          {i.meals.map((m, index) => {
+                            return (
+                              <>
+                                <div
+                                  key={index}
+                                  className=" mt-0.5 pr-1 flex flex-1 justify-end min-w-16"
+                                  style={{ paddingRight: m.cost === 0 ? "30px" : "4px" }}
+                                >
+                                  {m.cost > 0 ? `${currencySymbol} ${m.cost.toFixed(2)}` : "-"}
+                                </div>
+                                {index < i.meals.length - 1 ? (
+                                  <div className="border-b border-gray-300 w-full"></div>
+                                ) : (
+                                  ""
+                                )}
+                              </>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           </div>
-          <div className="flex md:flex-3 bg-white pb-1 rounded-md"></div>
+
+          {/* meals and days chart sections */}
+          <div className="flex md:flex-3 h-140 md:h-70 ">
+            <div className="flex flex-col gap-2 h-full w-full">
+              {/* meals chart section*/}
+              <div className="flex flex-1 flex-col w-full bg-white pb-1 rounded-md">
+                {/* meals chart Heading */}
+                <div className="flex items-center justify-center text-center my-1 font-bold">
+                  Meal Cost Breakdown
+                </div>
+                {/* meals chart */}
+                <div className="flex-1 w-full ">
+                  {mealData && (
+                    <ResponsiveContainer className="w-full h-full text-xs">
+                      {/* <ResponsiveContainer width="100%" height="100%"> */}
+                      <PieChart>
+                        <Pie
+                          data={mealData}
+                          dataKey="meal_cost"
+                          nameKey="meal_type"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius="90%"
+                          labelLine={(props) => {
+                            const { points } = props;
+                            const [start, end] = points;
+
+                            const factor = 0.9; // 50% of the original line length
+                            const x = start.x + (end.x - start.x) * factor;
+                            const y = start.y; // + (end.y - start.y) * factor;
+
+                            return (
+                              <path
+                                d={`M ${start.x},${start.y} L ${x},${y}`}
+                                stroke="#999"
+                                fill="none"
+                              />
+                            );
+                          }}
+                          label={(props) => {
+                            const { cx, cy, midAngle, outerRadius, name, value } = props;
+                            const RADIAN = Math.PI / 180;
+                            const x = cx + (outerRadius + 24) * Math.cos(-midAngle * RADIAN);
+                            const y = cy + (outerRadius + 2) * Math.sin(-midAngle * RADIAN);
+
+                            return (
+                              <text
+                                x={x}
+                                y={y}
+                                textAnchor={x > cx ? "start" : "end"}
+                                dominantBaseline="central"
+                                fontSize={11}
+                              >
+                                {`${value}`}
+                              </text>
+                            );
+                          }}
+                          // label
+                          shape={(props) => (
+                            <Sector {...props} fill={COLOURS[props.index % COLOURS.length]} />
+                          )}
+                        ></Pie>
+                        <Tooltip />
+                        <Legend
+                          content={({ payload }) => (
+                            <div className="flex flex-wrap justify-center gap-3">
+                              {payload.map((entry, index) => (
+                                <div key={entry.value} className="flex items-center gap-1 text-xs">
+                                  <span
+                                    className="inline-block w-3 h-3 rounded-sm"
+                                    style={{ backgroundColor: COLOURS[index % COLOURS.length] }}
+                                  />
+                                  {entry.value}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+
+              {/* days chart section*/}
+              <div className="flex flex-1 flex-col w-full bg-white pb-1 rounded-md">
+                {/* days chart Heading */}
+                <div className="flex items-center justify-center text-center my-1 font-bold">
+                  Day Cost Breakdown
+                </div>
+                {/* days chart */}
+                <div className="flex-1 w-full ">
+                  <ResponsiveContainer className="w-full h-full text-xs">
+                    <BarChart data={dayData}>
+                      <XAxis
+                        dataKey="name"
+                        tickFormatter={(name) => (isScrnBlwMd ? name : name.slice(0, 1))}
+                      />
+                      <YAxis domain={[0, (max) => Math.ceil(max * 1.18)]} />
+                      <Tooltip />
+                      <Bar dataKey="cost" fill="#68ba52">
+                        <LabelList
+                          dataKey="cost"
+                          position="top"
+                          formatter={(value) => Math.ceil(Number(value))}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div className=""></div>
         <div className=""></div>

@@ -156,7 +156,6 @@ exports.set_daily_dashboard = async (req, res) => {
 //  data for dashboard
 exports.get_weekly_dashboard = async (req, res) => {
   try {
-    console.log("time at request :", new Date());
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const weekNo = Number(req.params.weekNo) || null;
     const foodPlanId = Number(req.params.planId) || null;
@@ -180,7 +179,6 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
 
-    console.log("time before db connect :", new Date());
     // ----------------------------------------------- connect to db and verify data -----------------------------------
     // get food_plan_week_id for user with week no and food plan id in food_plan_weeks table
     const [FPWresult] = await db.query(
@@ -206,7 +204,6 @@ exports.get_weekly_dashboard = async (req, res) => {
     //   message: `Most of the things checked and ready to recreate the whole table data `,
     // });
 
-    console.log("time before deleting data and inserting again :", new Date());
     // ---------------------------------------- db transaction begins --------------------------------------------
     // CURRENTLY this process is first DELETING the old records with respect to the selected week's record from
     // FOOD_PLAN_INGREDIENT_RECORDS table and then recreating(INSERT) the record by fetching the fresh data of `food plans`
@@ -327,7 +324,6 @@ exports.get_weekly_dashboard = async (req, res) => {
       conn.release();
     }
 
-    console.log("time after deleting data and inserting again :", new Date());
     //------------------ retrive data from food plan ingredient records table along with its referenced table --------------------------
     const sqlQuery = `SELECT fpir.food_plan_week_id, fpw.week_no, fpir.food_plan_day_id, fpd.day_no, fpir.food_plan_meal_id, fpm.meal_id, m.name AS meal_type, fpir.food_plan_recipe_id,
         fpir.recipe_id, r.name as recipe_name, fpir.ingredient_id, i.name as ingredient_name, fpir.ingredient_source, fpir.quantity, fpir.base_unit,
@@ -361,9 +357,9 @@ exports.get_weekly_dashboard = async (req, res) => {
         LEFT JOIN countries ictry ON ictry.country_id = ui.country_id AND ictry.is_active = 1
         LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
       WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ?`;
-    console.log("time before calling db.query for dashData  :", new Date());
+
     const [dashData] = await db.query(sqlQuery, [user.id, foodPlanId, foodPlanWeekId]);
-    console.log("time immediate after fetching from db for dashData :", new Date());
+
     if (dashData.length === 0) {
       return res.status(500).json({
         success: false,
@@ -371,7 +367,6 @@ exports.get_weekly_dashboard = async (req, res) => {
       });
     }
 
-    console.log("time after dashData.length check :", new Date());
     // convert float-string values to Number and
     dashData.forEach((item) => {
       item.base_price = Number(parseFloat(item.base_price).toFixed(2));
@@ -380,10 +375,9 @@ exports.get_weekly_dashboard = async (req, res) => {
         item.cup_weight = Number(item.cup_weight);
       }
     });
-    console.log("time after converting float-string to Number :", new Date());
+
     finalData.dashData = dashData;
 
-    console.log("time after dashData :", new Date());
     //----------------------------- get all aggregate values -------------------------------
     const agg_query = `SELECT  COUNT(DISTINCT fpir.food_plan_meal_id) AS total_meals, 
           COUNT(DISTINCT fpir.food_plan_recipe_id)  AS total_items,
@@ -427,7 +421,6 @@ exports.get_weekly_dashboard = async (req, res) => {
     }
     finalData.aggData = aggData;
 
-    console.log("time after aggData :", new Date());
     //------------------------------- ingredients and its cost ---------------------------
     const ings_query = `SELECT  i.name, 
                           fpir.ingredient_source AS ing_src,
@@ -495,7 +488,6 @@ exports.get_weekly_dashboard = async (req, res) => {
     }
     finalData.ingredientCostList = ingredientCostList;
 
-    console.log("time after ingData :", new Date());
     //------------------------------- recipes and its cost ----------------------------------
     const recps_query = `SELECT distinct(fpir.recipe_id) , 
                             r.name, 
@@ -540,7 +532,6 @@ exports.get_weekly_dashboard = async (req, res) => {
     }
     finalData.recipeCostList = recipeCostList;
 
-    console.log("time after recipeData :", new Date());
     //------------------------------- meals and its cost -----------------------------------
     const meals_query = `SELECT fpm.meal_id, 
                           fpm.meal_type , 
@@ -584,7 +575,6 @@ exports.get_weekly_dashboard = async (req, res) => {
     }
     finalData.mealCostList = mealCostList;
 
-    console.log("time after mealData :", new Date());
     //--------------------------------- day and its cost ---------------------------------
     const days_query = `SELECT fpd.day_no, 
                           ROUND(SUM(fpir.quantity * CASE 
@@ -628,12 +618,11 @@ exports.get_weekly_dashboard = async (req, res) => {
     dayCostList.forEach((i) => (i.cost = Number(i.cost)));
     finalData.dayCostList = fillMissingDays(dayCostList);
 
-    console.log("time after dayData :", new Date());
     //----------- create dictonary to show food plan of whole even empty days or meals----------
     finalData.weeklyData = await fillMissingMeals(dashData);
 
     //-------------------------------- FINAL response ---------------------------------------
-    console.log("time before response :", new Date());
+
     res.json({
       success: true,
       message: `fetched data`,
