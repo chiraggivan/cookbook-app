@@ -427,6 +427,29 @@ exports.get_weekly_dashboard = async (req, res) => {
                           SUM(fpir.quantity) AS quantity, 
                           CASE 
                             WHEN fpir.ingredient_source = 'main' THEN 
+                              COALESCE(up.display_quantity, ip.display_quantity, i.display_quantity)
+                            WHEN fpir.ingredient_source = 'user' THEN                                  
+                              ui.display_quantity                                      
+                          END AS display_quantity,
+                          CASE 
+                            WHEN fpir.ingredient_source = 'main' THEN 
+                              COALESCE(up.display_unit, ip.display_unit, i.display_unit)
+                            WHEN fpir.ingredient_source = 'user' THEN                                  
+                              ui.display_unit                                      
+                          END AS display_unit,
+                          CASE 
+                            WHEN fpir.ingredient_source = 'main' THEN 
+                              ROUND(COALESCE(up.display_price, ip.display_price, i.display_price * crncy.gbp_conversion_rate),2)
+                            WHEN fpir.ingredient_source = 'user' THEN
+                                  CASE 
+                                      WHEN ui.country_id = u.country_id THEN
+                                          ui.display_price 
+                                      WHEN ui.country_id != u.country_id THEN
+                                          ui.display_price/icrncy.gbp_conversion_rate * crncy.gbp_conversion_rate
+                                END
+                          END AS display_price,
+                          CASE 
+                            WHEN fpir.ingredient_source = 'main' THEN 
                               ROUND(COALESCE(up.custom_price, ip.default_price, i.default_price * crncy.gbp_conversion_rate),2)
                             WHEN fpir.ingredient_source = 'user' THEN
                                   CASE 
@@ -464,7 +487,7 @@ exports.get_weekly_dashboard = async (req, res) => {
                             LEFT JOIN currencies icrncy ON icrncy.currency_id = ictry.currency_id and icrncy.is_active = 1
                             LEFT JOIN user_prices up  ON up.ingredient_id = fpir.ingredient_id AND up.country_id = u.country_id AND up.user_id = ? AND up.is_active = 1
                         WHERE fpir.food_plan_id = ? AND fpir.food_plan_week_id = ? AND fpir.is_active = 1
-                        GROUP BY  i.ingredient_id, i.name, ing_src, ing_price, fpir.base_unit, i.cup_weight, i.cup_unit
+                        GROUP BY  i.ingredient_id, i.name, ing_src, display_quantity, display_unit, display_price, ing_price, fpir.base_unit, i.cup_weight, i.cup_unit
                         ORDER BY quantity DESC`;
 
     const [ingList] = await db.query(ings_query, [user.id, foodPlanId, foodPlanWeekId]);
@@ -481,6 +504,8 @@ exports.get_weekly_dashboard = async (req, res) => {
       ing.ing_price = Number(ing.ing_price);
       ing.total_dishes = Number(ing.total_dishes);
       ing.total_recipes = Number(ing.total_recipes);
+      ing.display_quantity = Number(ing.display_quantity);
+      ing.display_price = Number(ing.display_price);
       if (ing?.cup_weight) {
         ing.cup_weight = Number(ing.cup_weight);
       }
