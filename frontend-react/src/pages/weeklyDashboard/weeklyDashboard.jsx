@@ -176,10 +176,20 @@ function WeeklyDashboard() {
                       <div className="mr-1 py-1 flex flex-3 items-center">{i.name}</div>
                       <div className="mx-1 py-1 flex flex-5 items-center">{i.easy_quantity}</div>
                       <div className="mx-1 py-1 flex flex-2 items-center justify-end">
-                        {i.cost.toFixed(2)}
+                        {i.cost > 100
+                          ? Math.ceil(i.cost)
+                          : i.cost - Math.floor(i.cost)
+                            ? i.cost.toFixed(2)
+                            : i.cost}
                       </div>
                       <div className="mx-1 py-1 flex flex-3 items-center justify-end">
-                        {i.ing_price}/{i.base_unit}
+                        {i.display_price > 100
+                          ? Math.ceil(i.display_price)
+                          : i.display_price - Math.floor(i.display_price)
+                            ? i.display_price.toFixed(2)
+                            : i.display_price}
+                        /{i.display_quantity === 1 ? "" : i.display_quantity}
+                        {i.display_unit === "l" ? "litre" : i.display_unit}
                       </div>
                     </div>
                   ))}
@@ -229,7 +239,7 @@ function WeeklyDashboard() {
         {/* Dashboard for weekly data and  charts for meals price and day price */}
         <div className="flex flex-col-reverse my-2 mx-2 gap-2 md:gap-1 md:flex-row">
           {/* weekly meals data */}
-          <div className="flex md:flex-7 md:h-70 bg-white pb-1 rounded-md">
+          <div className="flex md:flex-7 md:h-70 bg-white pb-1 rounded-md min-w-50">
             <div className="flex flex-col w-full h-full">
               {/* header */}
               <div className="flex p-1 w-full text-center items-center justify-center font-bold">
@@ -237,7 +247,7 @@ function WeeklyDashboard() {
               </div>
 
               {/* table for week details */}
-              <div className="flex-1 bg-white overflow-y-auto scrollbar-none">
+              <div className="flex-1 bg-white overflow-y-auto scrollbar-none ">
                 {weeklyData &&
                   weeklyData.map((i, windex) => {
                     return (
@@ -247,7 +257,7 @@ function WeeklyDashboard() {
                         style={{ height: 25 * i.meals.length }}
                       >
                         {/* day cloumn */}
-                        <div className="flex flex-1 items-center justify-center text-center rounded-l-md bg-blue-800 text-white">
+                        <div className="flex flex-1 min-w-15 items-center justify-center text-center rounded-l-md bg-gray-600 text-white">
                           {isScrnBlwLg ? i.name.slice(0, 3) : i.name}
                         </div>
 
@@ -271,7 +281,7 @@ function WeeklyDashboard() {
                         </div>
 
                         {/* recipe column */}
-                        <div className="flex flex-col flex-6 md:flex-4 border-y border-gray-700 min-w-0">
+                        <div className="flex flex-col flex-6 md:flex-4 border-y border-gray-700 min-w-20">
                           {i.meals.map((m, mrindex) => {
                             return (
                               // first creating div for meal type

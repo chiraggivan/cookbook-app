@@ -32,8 +32,8 @@ function ViewFoodPlan() {
 
   //   ----------------------------------------- fetch food plan data via API from backend ----------------------------------
   useEffect(() => {
+    setIsLoading(true);
     const fetchData = async () => {
-      setIsLoading(true);
       try {
         // check if user has food_plan
         const response = await api.get(`/foodplan/api/check-user`);
