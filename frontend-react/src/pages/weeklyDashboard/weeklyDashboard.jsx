@@ -121,7 +121,7 @@ function WeeklyDashboard() {
             <div className="flex flex-1 my-2 p-2 bg-gray-200 rounded-md  items-center justify-center text-center">
               <div className="flex flex-col">
                 <div>
-                  <span className="hidden md:inline">Total </span> Meals
+                  <span className="hidden md:inline">Total </span> Ingrdients
                 </div>
                 <div className="font-bold">{aggData?.total_ingredients}</div>
               </div>
