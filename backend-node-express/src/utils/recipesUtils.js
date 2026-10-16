@@ -180,6 +180,15 @@ function validateRecipeIngredient(data) {
         return "Invalid ingredient id";
       }
 
+      console.log("ing.ingredient_style :", ing.ingredient_style);
+      // // ---- limit check the ingredient_style value
+      const ingredientStyle = ing.ingredient_style;
+      if (ingredientStyle !== null && ingredientStyle !== undefined) {
+        if (ingredientStyle.length > 20) {
+          return "Invalid ingredient style. Should be less than 20 characters";
+        }
+      }
+
       // ---- validate ingredient_source within [main user]
       const ingredientSource = ing.ingredient_source;
       if (

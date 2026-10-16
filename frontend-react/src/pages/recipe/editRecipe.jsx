@@ -223,7 +223,7 @@ function EditRecipe() {
   // ------------------------------------ get the recipe data via API from backend -----------------------------------------
   useEffect(() => {
     const method = "get";
-    const url = `$/recipe/api/${id}`;
+    const url = `/recipe/api/${id}`;
     const body = null;
 
     const fetchData = async () => {

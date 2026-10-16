@@ -41,10 +41,10 @@ exports.search_ingredients = async (req, res) => {
         ui.display_quantity, 
         'user' as ingredient_source
         FROM user_ingredients ui
-            JOIN countries cntry ON cntry.country_id =  ui.country_id 
-            JOIN currencies crncy ON crncy.currency_id = cntry.currency_id 
-            JOIN countries cntry2 ON cntry2.country_id =  ?
-            JOIN currencies crncy2 ON crncy2.currency_id = cntry2.currency_id
+            JOIN countries cntry ON cntry.country_id =  ui.country_id AND cntry.is_active = 1
+            JOIN currencies crncy ON crncy.currency_id = cntry.currency_id AND crncy.is_active = 1
+            JOIN countries cntry2 ON cntry2.country_id =  ? AND cntry2.is_active = 1
+            JOIN currencies crncy2 ON crncy2.currency_id = cntry2.currency_id AND crncy2.is_active = 1
         WHERE ui.submitted_by = ? AND LOWER(ui.name) LIKE ? AND  ui.is_active = 1
         UNION ALL
         SELECT i.ingredient_id, i.name, i.form,
@@ -55,8 +55,8 @@ exports.search_ingredients = async (req, res) => {
         FROM ingredients i 
           LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = ? AND ip.is_active = 1
           LEFT JOIN user_prices up ON i.ingredient_id = up.ingredient_id AND up.user_id = ? AND up.country_id = 76 AND up.is_active = 1
-          LEFT JOIN countries cntry ON cntry.country_id = ?
-          LEFT JOIN currencies crncy ON crncy.currency_id = cntry.currency_id 
+          LEFT JOIN countries cntry ON cntry.country_id = ? AND cntry.is_active = 1
+          LEFT JOIN currencies crncy ON crncy.currency_id = cntry.currency_id  AND crncy.is_active = 1
         WHERE LOWER(i.name) LIKE ?
           AND (i.approval_status = 'approved')
           AND i.is_active = 1
@@ -126,7 +126,7 @@ exports.get_ingredient_units = async (req, res) => {
 
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-  console.log("user in create recipe is:", user);
+  // console.log("user in create recipe is:", user);
   const country_id = user.country_id; // required to be saved in user_price or user_ingredient tables for any updates of ing values
 
   // check if data is available
@@ -136,6 +136,13 @@ exports.create_recipe = async (req, res) => {
       message: "Data not sent with the body.",
     });
   }
+
+  // // testing
+  // return res.json({
+  //   success: true,
+  //   message: "data resent to front end",
+  //   data: req.body,
+  // });
 
   try {
     const data = normalizeRecipeIngredientData(req.body);
@@ -156,13 +163,6 @@ exports.create_recipe = async (req, res) => {
     const imageURL = typeof data.imageURL === "string" ? data.imageURL.trim() || null : null;
     const components = data.components;
     const steps = data.steps;
-
-    // console.log("data is :", data);
-    // return res.json({
-    //   success: true,
-    //   message: "reached here without issue",
-    //   data: data,
-    // });
 
     // ------------------validation of every field of data done, now cross check db -------------------------------
 
@@ -295,11 +295,12 @@ exports.create_recipe = async (req, res) => {
         // Insert into recipe_ingredients
         for (const ingredient of component.ingredients) {
           const [riResult] = await conn.query(
-            `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, ingredient_source, quantity, unit_id, is_active, display_order, component_id)
-            VALUES (?, ?, ?, ?, ?, TRUE, ?,?)`,
+            `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, ingredient_style, ingredient_source, quantity, unit_id, is_active, display_order, component_id)
+            VALUES (?, ?, ?, ?, ?, ?, 1, ?,?)`,
             [
               recipeId,
               ingredient.ingredient_id,
+              ingredient.ingredient_style,
               ingredient.ingredient_source,
               ingredient.quantity,
               ingredient.unit,

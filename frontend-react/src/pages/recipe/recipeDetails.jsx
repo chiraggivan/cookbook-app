@@ -16,15 +16,19 @@ import {
   DropdownItem,
   Spinner,
 } from "flowbite-react";
+
 import { SlOptionsVertical } from "react-icons/sl";
 import { HiTrash, HiClipboardList, HiShare, HiPrinter, HiInformationCircle } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
-import { MdOutlineEditNote } from "react-icons/md";
+import { MdModeEditOutline, MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
+import { BsFillHandThumbsUpFill } from "react-icons/bs";
+import { FaLock } from "react-icons/fa6";
 
 import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
-import { BsFillHandThumbsUpFill } from "react-icons/bs";
+import EditBaseValuesModal from "../../components/editBaseValuesModal";
+import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -38,7 +42,7 @@ function RecipeDetails() {
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
-  const [isRecipeOwner, setIsRecipeOwner] = useState(null);
+  const [isRecipeOwner, setIsRecipeOwner] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
@@ -46,6 +50,7 @@ function RecipeDetails() {
   const [alertMsg, setAlertMsg] = useState("");
   const [switch1, setSwitch1] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState("");
+  const [changePrice, setChangePrice] = useState(false);
 
   const navigate = useNavigate();
   const recipeRows = [];
@@ -58,6 +63,17 @@ function RecipeDetails() {
 
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
+
+  // variable for base price change
+  const [isEditBaseValuesOpen, setIsEditBaseValuesOpen] = useState(false);
+  const [quantityValue, setQuantityValue] = useState(0);
+  const [unitValue, setUnitValue] = useState("");
+  const [baseUnits, setBaseUnits] = useState([]);
+  const [priceValue, setPriceValue] = useState(0);
+  const [compUid, setCompUid] = useState(null);
+  const [ingUid, setIngUid] = useState(null);
+  const [ingName, setIngName] = useState(null);
+  // const [isLoading, setIsLoading] = useState(false);
 
   //----------------------------------------- Redirect effect --------------------------------------------------
   useEffect(() => {
@@ -83,6 +99,10 @@ function RecipeDetails() {
           // call api to get recipe details
           const res = await api[method](url);
           const tempRecipe = res?.data?.data;
+          // add base units to change base price
+          tempRecipe.ingredients.forEach(
+            (item) => (item.base_units = getBaseUnits(item.unit, item.measuring_units)),
+          );
 
           // save the new recipe details in recipeDetails Context variable if user's recipe
           // if (tempRecipe?.recipe?.user_id === user.user_id) {
@@ -259,6 +279,36 @@ function RecipeDetails() {
     }
   };
 
+  // ----------------------------------------- function for getting base units ----------------------------------------
+  const getBaseUnits = (unit, measuringUnits) => {
+    const baseUnitsToShow = [];
+    const lookup = {};
+    measuringUnits.forEach((i) => (lookup[i.unit_name] = i.unit_name));
+
+    // // --------------------------------------------------- for weight units ----------------------------------
+    if (weightUnits.includes(unit)) {
+      // const baseUnitsToShow = [];
+      weightUnits.forEach((i) => {
+        if (lookup[i]) {
+          baseUnitsToShow.push(lookup[i]);
+        }
+      });
+      return baseUnitsToShow;
+    }
+    // // ----------------------------------------- for volume units ----------------------------------
+    else if (volumeUnits.includes(unit)) {
+      // const baseUnitsToShow = [];
+      volumeUnits.forEach((i) => {
+        if (lookup[i]) {
+          baseUnitsToShow.push(lookup[i]);
+        }
+      });
+      return baseUnitsToShow;
+    } else {
+      return [unit];
+    }
+  };
+
   // ------------------------------ Loading screen ---------------------------------
   if (isLoading) {
     return (
@@ -327,26 +377,74 @@ function RecipeDetails() {
         recipeRows.push(
           <div
             className={
-              index % 2 === 0 ? "flex w-full text-md " : "flex w-full text-md bg-app-table-row"
+              index % 2 === 0
+                ? "flex w-full text-sm md:text-lg "
+                : "flex w-full text-sm md:text-lg bg-app-table-row"
             }
             key={i.ingredient_display_order}
           >
             <div className="flex w-full">
+              {/* ing qnty */}
               <div className="min-w-10 text-end pl-1 pt-1 ">{i.quantity}</div>
+
+              {/* unit name */}
               <div className="min-w-10 pl-1 pt-1">{i.unit_name}</div>
-              <div className="flex-1 pl-1 pt-1">
-                {i.ingredient_source === "main"
-                  ? i.form
-                    ? capitaliseWords(i.name) + " (" + i.form + ")"
-                    : capitaliseWords(i.name)
-                  : capitaliseWords(i.name) + "*"}
-              </div>
+
+              {/* ing name */}
+              {i.ingredient_source === "main" ? (
+                <div className="flex flex-1 pl-1 pt-1">
+                  {capitaliseWords(i.name)}
+                  {i.form !== "" && ` (${i.form})`}{" "}
+                  {i.ingredient_style !== null && i.ingredient_style !== "" && (
+                    <div className="flex flex-1 pl-1 pt-1 text-xs md:text-sm italic">
+                      {" "}
+                      {i.ingredient_style}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-1 pl-1 pt-1">
+                  {capitaliseWords(i.name)}*
+                  {i.ingredient_style !== null && i.ingredient_style !== "" && (
+                    <span className="flex flex-1 pl-1 pt-1 text-xs md:text-sm italic">
+                      {" "}
+                      {i.ingredient_style}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* edit base price */}
+              {changePrice && (i.ingredient_source === "main" || isRecipeOwner) && (
+                <div className="flex items-end pb-1 ">
+                  <div
+                    className="bg-gray-700 text-white p-0.5 rounded-sm"
+                    onClick={() => {
+                      setQuantityValue(i.base_quantity);
+                      setUnitValue(i.unit);
+                      setPriceValue(i.cost);
+                      setIsEditBaseValuesOpen(true);
+                    }}
+                  >
+                    <MdModeEditOutline />
+                  </div>
+                </div>
+              )}
+
+              {/* price column for ing and base price */}
               <div className="flex flex-col items-end">
                 <div className="px-2 ">
-                  {currencySymbol} {Number(i.price.toFixed(3))}
+                  {currencySymbol}{" "}
+                  {i.price > 100
+                    ? Math.ceil(i.price)
+                    : i.price > 1
+                      ? i.price.toFixed(2)
+                      : i.price.toFixed(3)}
                 </div>
                 <div className=" text-end px-2 text-sm text-gray-500  pb-1">
-                  {currencySymbol} {Number(i.cost.toFixed(2))}/ {i.base_quantity} {i.unit}
+                  {currencySymbol} {Number(i.cost > 100 ? Math.ceil(i.cost) : i.cost.toFixed(2))}/
+                  {Number(i.base_quantity) === 1 ? "" : i.base_quantity}
+                  {i.unit === "l" ? "litre" : i.unit}
                 </div>
               </div>
             </div>
@@ -524,7 +622,7 @@ function RecipeDetails() {
 
                 {/* cost of recipe */}
                 <div className="flex items-end text-3xl">
-                  {currencySymbol} {totalCost}
+                  {currencySymbol} {totalCost.toFixed(2)}
                 </div>
               </div>
 
@@ -658,6 +756,26 @@ function RecipeDetails() {
           >
             {/* Ingredients */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
+              {/* change price button */}
+              {/* <div className="flex justify-end pr-2 text-sm">
+                <div
+                  className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                  onClick={() => setChangePrice(!changePrice)}
+                >
+                  {changePrice ? (
+                    <div className="flex">
+                      <span className="flex items-center pr-1.5">
+                        <FaLock />
+                      </span>{" "}
+                      Lock Price
+                    </div>
+                  ) : (
+                    "Change Price"
+                  )}
+                </div>
+              </div> */}
+
+              {/* ingredients list */}
               <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
             </TabItem>
 
@@ -761,6 +879,7 @@ function RecipeDetails() {
         </div>
       </div>
 
+      {/* Delete Modal */}
       {isConfirmModalOpen && (
         <ConfirmDeleteModal
           isOpen={isConfirmModalOpen}
@@ -773,6 +892,8 @@ function RecipeDetails() {
           cancelText={"Cancel"}
         />
       )}
+
+      {/* Create Dish Modal */}
       {isDishModalOpen && (
         <DishesModal
           isOpen={isDishModalOpen}
@@ -790,6 +911,31 @@ function RecipeDetails() {
           onChange={setSelectedMeal}
         />
       )}
+
+      {/* Change base price of ingredient modal */}
+      {isEditBaseValuesOpen && (
+        <EditBaseValuesModal
+          isOpen={isEditBaseValuesOpen}
+          onClose={() => setIsEditBaseValuesOpen(false)}
+          onConfirm={(compUid, ingUid, updateQuantity, updateUnit, updatePrice) =>
+            updateBaseValues(compUid, ingUid, updateQuantity, updateUnit, updatePrice)
+          }
+          title={""}
+          message={`Bought Price of : ${capitaliseWords(ingName)}`}
+          cancelText={"Cancel"}
+          OKtext={"Update"}
+          OKtextIcon={HiClipboardList}
+          quantityValue={quantityValue}
+          unitValue={unitValue}
+          baseUnits={baseUnits}
+          priceValue={priceValue}
+          compUid={compUid}
+          ingUid={ingUid}
+          currencySymbol={currencySymbol}
+        />
+      )}
+
+      {/* alert window */}
       {isAlert && (
         <Alert color="failure" icon={HiInformationCircle} onDismiss={() => setIsAlert(false)}>
           {alertMsg}

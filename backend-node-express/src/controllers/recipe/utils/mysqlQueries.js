@@ -7,6 +7,7 @@ export const readRecipeDetailsQ = `
             COALESCE(i.ingredient_id, ui.user_ingredient_id) as ingredient_id,
             COALESCE(i.name, ui.name) as name,
             COALESCE(i.form, '') as form,
+            ri.ingredient_style,
             ri.recipe_ingredient_id,
             ri.quantity,
             ri.ingredient_source,

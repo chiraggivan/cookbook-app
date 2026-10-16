@@ -3,6 +3,7 @@ import { HiOutlineExclamationCircle } from "react-icons/hi";
 import Input from "./input";
 import DropdownArray from "./dropdownArray";
 import { useEffect, useState } from "react";
+import { FaBalanceScaleRight } from "react-icons/fa";
 
 export default function EditBaseValuesModal({
   isOpen,
@@ -60,7 +61,7 @@ export default function EditBaseValuesModal({
       <ModalHeader />
       <ModalBody>
         <div className="text-center">
-          {/* <HiOutlineExclamationCircle className="mx-auto mb-4 h-18 w-18 text-red-600" /> */}
+          <FaBalanceScaleRight className="mx-auto mb-4 h-18 w-18 text-gray-700" />
           <div className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">{message}</div>
           {/* 1st row of modal */}
           <div className="flex justify-between space-x-5">

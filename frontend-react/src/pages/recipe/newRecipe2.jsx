@@ -17,7 +17,7 @@ import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
 import TopBar from "../../components/topBar";
-import { TextInput, Button, Progress, Tabs, TabItem } from "flowbite-react";
+import { TextInput, Button, Progress, Tabs, TabItem, Spinner } from "flowbite-react";
 import { GiAvocado, GiHotMeal } from "react-icons/gi";
 import { HiClipboardList, HiTrash } from "react-icons/hi";
 import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
@@ -44,6 +44,7 @@ function NewRecipe() {
     ingredientId: "",
     ingredientSource: "",
     name: "",
+    style: null,
     form: "",
     quantity: "",
     unit: "",
@@ -107,6 +108,7 @@ function NewRecipe() {
   const [priceValue, setPriceValue] = useState(0);
   const [compUid, setCompUid] = useState(null);
   const [ingUid, setIngUid] = useState(null);
+  const [ingName, setIngName] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // call useAuth hook to check if token is available in localstorage
@@ -355,6 +357,7 @@ function NewRecipe() {
                       ? {
                           ...ingredient,
                           name: ing.name,
+                          style: ing.style,
                           form: ing.form,
                           displayQuantity: ing.display_quantity,
                           displayUnit: ing.display_unit,
@@ -723,6 +726,27 @@ function NewRecipe() {
     );
   };
 
+  //  ----------------------------- update the style for the selected ingredient ---------------------------------
+  const updateIngredientStyle = (cid, iid, val) => {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.uid === cid
+          ? {
+              ...section,
+              ingredients: section.ingredients.map((ingredient) =>
+                ingredient.uid === iid
+                  ? {
+                      ...ingredient,
+                      style: val,
+                    }
+                  : ingredient,
+              ),
+            }
+          : section,
+      ),
+    );
+  };
+
   // --------------------------- hide suggestions onBlur if ingredient not selected ------------------------------
   const hideSuggestions = (cid, iid) => {
     setSuggestedIng([]);
@@ -863,7 +887,11 @@ function NewRecipe() {
           ing.ingredient_source = i.ingredientSource ?? "";
           ing.quantity = i.quantity ?? "";
           ing.unit = i.unit ?? "";
+          ing.ingredient_style = i.style ?? null;
           // check if display values are same with ogDisplay values
+          // console.log("ing.ingredient_style :", ing.ingredient_style);
+          // console.log("is NULL :", ing.ingredient_style === null);
+          // console.log("is undefined :", ing.ingredient_style === undefined);
           if (
             i.displayPrice !== i.ogDisplayPrice ||
             i.displayQuantity !== i.ogDisplayQuantity ||
@@ -1173,8 +1201,9 @@ function NewRecipe() {
       dataToSend.components = checkData.components;
     }
 
-    // console.log("everything passed till here with no errors found. were there any errors");
+    // console.log("everything passed till here with no errors found");
     // console.log("dataToSend is:", dataToSend);
+    // setIsLoading(false);
     // return;
 
     // ---------------------------- final call to API to create recipe ---------------------------------
@@ -1188,6 +1217,7 @@ function NewRecipe() {
 
         const res = await api[method](url, body);
         // console.log("res: ", res);
+        // setIsLoading(false);
         // return;
         const newData = res?.data?.data;
         if (newData) {
@@ -1197,7 +1227,7 @@ function NewRecipe() {
         // console.log("about to navigate");
         navigate(`/recipe/${newData.recipe.recipe_id}`);
       } catch (err) {
-        console.log("err found during saving new recipe api: ", err.response.data);
+        console.log("err found during saving new recipe api: ", err.response);
         setErrorMessage(`Error while saving recipe. Try again later.`);
         setIsLoading(false);
         return;
@@ -1440,6 +1470,7 @@ function NewRecipe() {
                       <div className="flex min-w-15 items-center justify-center">Move</div>
                       <div className="flex flex-6 items-center">
                         <div className="flex flex-8 justify-center ">Name</div>
+                        {/* <div className="flex flex-3 justify-center ">Style</div> */}
                         <div className="flex flex-3 justify-center ">Qnty</div>
                         <div className="flex flex-4 justify-center ">Unit</div>
                         <div className="flex flex-3 justify-center ">Cost</div>
@@ -1665,6 +1696,21 @@ function NewRecipe() {
                                       )}
                                   </div>
 
+                                  {/* 4th column - style of ingredient (eg. finely chopped, grated, julian, slice, etc...) */}
+                                  {/* <div className="flex flex-3 p-1 min-w-7 justify-center ">
+                                    <Input
+                                      className="flex w-full p-0.5 rounded placeholder:text-gray-500 text-xs h-[93%]"
+                                      placeholder={"dice, grated,chopped,etc.."}
+                                      maxLength={15}
+                                      value={ing?.style ?? ""}
+                                      onChange={(e) => {
+                                        updateIngredientStyle(comp.uid, ing.uid, e.target.value);
+                                      }}
+                                      onBlur={(e) => {}}
+                                      error={ing?.errors?.errorStyle ?? ""}
+                                    />
+                                  </div> */}
+
                                   {/* 4th column - quantity */}
                                   <div className="flex flex-3 p-1 min-w-7 justify-center ">
                                     <Input
@@ -1755,6 +1801,7 @@ function NewRecipe() {
                                       onClick={() => {
                                         setCompUid(comp.uid);
                                         setIngUid(ing.uid);
+                                        setIngName(ing.name);
                                         setQuantityValue(ing?.displayQuantity);
                                         setUnitValue(ing?.displayUnit);
                                         setBaseUnits(ing?.baseUnits);
@@ -2056,7 +2103,7 @@ function NewRecipe() {
             updateBaseValues(compUid, ingUid, updateQuantity, updateUnit, updatePrice)
           }
           title={"Created This Dish On:"}
-          message={`Update values of ingredient bought`}
+          message={`Bought Price of : ${capitaliseWords(ingName)}`}
           cancelText={"Cancel"}
           OKtext={"Update"}
           OKtextIcon={HiClipboardList}
