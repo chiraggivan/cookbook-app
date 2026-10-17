@@ -333,48 +333,29 @@ function RecipeDetails() {
     setIsLoading(true);
     try {
       const res = await api[method](url, body);
-      console.log("res for update base values :", res);
-      const newPrice = Number(res?.data?.new_price.toFixed(2));
+      // get conversion factor list & custom price (for 1 unit of base unit) for changing same multiple times in same recipe
+      const convFactList = res?.data?.conversionList;
+      const custom_price = res?.data?.custom_price;
 
-      const x = foundRecipeDetails.ingredients.map((i) => {
+      // updae the current page to updated price of ingredient
+      foundRecipeDetails.ingredients = foundRecipeDetails.ingredients.map((i) => {
         return i.ingredient_id === ingId && i.ingredient_source === ingSource
           ? {
               ...i,
               cost: Number(updatePrice),
               base_quantity: Number(updateQuantity),
               unit: updateUnit,
-              price: newPrice,
+              price: i.quantity * custom_price * Number(convFactList[i.unit_name]),
             }
           : i;
       });
-      console.log("the new ingredient list is :", x);
     } catch (error) {
       console.log("Error while update base values :", error);
     } finally {
       setIsLoading(false);
     }
 
-    // setSections((prev) =>
-    //   prev.map((section) =>
-    //     section.uid === compUid
-    //       ? {
-    //           ...section,
-    //           ingredients: section.ingredients.map((ingredient) =>
-    //             ingredient.uid === ingUid
-    //               ? {
-    //                   ...ingredient,
-    //                   displayUnit: updateUnit,
-    //                   displayQuantity: Number(updateQuantity),
-    //                   displayPrice: Number(updatePrice),
-    //                 }
-    //               : ingredient,
-    //           ),
-    //         }
-    //       : section,
-    //   ),
-    // );
-
-    // setIsEditBaseValuesOpen(false);
+    setIsEditBaseValuesOpen(false);
   };
 
   // ------------------------------ Loading screen ---------------------------------
@@ -831,7 +812,7 @@ function RecipeDetails() {
             {/* Ingredients */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
               {/* change price button */}
-              {/* <div className="flex justify-end pr-2 text-sm">
+              <div className="flex justify-end pr-2 text-sm">
                 <div
                   className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
                   onClick={() => setChangePrice(!changePrice)}
@@ -847,7 +828,7 @@ function RecipeDetails() {
                     "Change Price"
                   )}
                 </div>
-              </div> */}
+              </div>
 
               {/* ingredients list */}
               <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>

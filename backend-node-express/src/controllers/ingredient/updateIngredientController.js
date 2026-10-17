@@ -196,9 +196,7 @@ exports.udpate_ing_base_values = async (req, res) => {
         message: "Data not sent with the body.",
       });
     }
-    // console.log(`ing id : ${ingId} `);
-    // console.log("user is: ", user);
-    // console.log("body is: ", req.body);
+
     // ----------------- normalise and validate the data --------------------
     const data = normaliseIngredientBaseValueData(req.body);
     const error = validateIngredientBaseValueData(data);
@@ -210,6 +208,7 @@ exports.udpate_ing_base_values = async (req, res) => {
       });
     }
 
+    // initialise variables for data from the body
     const display_quantity = Number(data.display_quantity);
     const display_unit = data.display_unit;
     const display_price = Number(data.display_price);
@@ -217,7 +216,7 @@ exports.udpate_ing_base_values = async (req, res) => {
     const unit_id = Number(data.ing_used_unitId);
     const ingQuantity = Number(data.ing_used_qty);
 
-    // console.log("data is ", data);
+    // find ing's base unit and its id and conversion factor from the unit_names and unit_conversions TABLE
     const unitQuery = `
       SELECT un.unit_id, un.code, uc.conversion_factor
       FROM unit_names un 
@@ -228,25 +227,28 @@ exports.udpate_ing_base_values = async (req, res) => {
 
     try {
       const [unitResult] = await db.query(unitQuery, [display_unit, ingId]);
-      // found base unit and save in base_unit. calculate custom_price with the help of conversion factor
+
+      // found base unit. calculate custom_price with the help of conversion factor
       const base_unit = unitResult[0].code;
       const con_fact = unitResult[0].conversion_factor;
       const custom_price = display_price / (display_quantity * con_fact);
 
-      const [convResult] = await db.query(
-        `SELECT conversion_factor FROM units WHERE unit_id = ? AND is_active = 1 `,
-        [unit_id],
-      );
+      // get the list of all the units of same ingredient to be sent to frontend for any other row with same ingredient to be changed
+      const unitListQuery = `SELECT unit_name, conversion_factor FROM units WHERE ingredient_source = ? AND ingredient_id = ?`;
+      const [unitListResult] = await db.query(unitListQuery, [ing_source, ingId]);
 
-      console.log("convResult :", convResult);
-      const new_price = custom_price * ingQuantity * convResult[0].conversion_factor;
-      console.log("new price is:", new_price);
+      // change the result to {g : 0.001, ........}
+      const conversionList = {};
+      for (const i of unitListResult) {
+        conversionList[i.unit_name] = Number(i.conversion_factor);
+      }
 
       // BREAK POINT
       return res.json({
         success: true,
         message: "Break point test",
-        new_price,
+        custom_price,
+        conversionList,
       });
       // ----------------------------------------------
       const conn = db.getConnection();
@@ -278,6 +280,14 @@ exports.udpate_ing_base_values = async (req, res) => {
           display_unit,
           display_price,
         ]);
+
+        // FINAL response to front end
+        res.json({
+          success: true,
+          message: "Base price of ingredient updated successfully",
+          custom_price,
+          conversionList,
+        });
       } catch (error) {
         await conn.rollback();
         console.log(
