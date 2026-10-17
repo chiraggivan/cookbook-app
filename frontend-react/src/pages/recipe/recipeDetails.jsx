@@ -33,7 +33,11 @@ import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 function RecipeDetails() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
+  const userCountryId = user.country_id;
+  const userCurrencyId = user.currency_id;
+  const userCountryName = user.country_name;
   const currencySymbol = user.currency_symbol;
+
   // const { state } = useLocation(); // ---> used while updating recipeDetails (not required now)
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -73,6 +77,10 @@ function RecipeDetails() {
   const [compUid, setCompUid] = useState(null);
   const [ingUid, setIngUid] = useState(null);
   const [ingName, setIngName] = useState(null);
+  const [ingId, setIngId] = useState(null);
+  const [ingSource, setIngSource] = useState(null);
+  const [recpIngUnitId, setRecpIngUnitId] = useState(null);
+  const [recpIngQty, setRecpIngQty] = useState(null);
   // const [isLoading, setIsLoading] = useState(false);
 
   //----------------------------------------- Redirect effect --------------------------------------------------
@@ -309,6 +317,66 @@ function RecipeDetails() {
     }
   };
 
+  // -------------------- update the base values of ingredient thru modal for small screen -----------------------
+  const updateBaseValues = async (compUid, ingUid, updateQuantity, updateUnit, updatePrice) => {
+    const method = "put";
+    const url = `/ingredient/api/edit/baseValues/${ingId}`;
+    const body = {
+      ing_used_qty: recpIngQty,
+      ing_used_unitId: recpIngUnitId,
+      ingredient_source: ingSource,
+      display_quantity: Number(updateQuantity),
+      display_unit: updateUnit,
+      display_price: Number(updatePrice),
+    };
+    // console.log("body in updateBaseValue func is :", body);
+    setIsLoading(true);
+    try {
+      const res = await api[method](url, body);
+      console.log("res for update base values :", res);
+      const newPrice = Number(res?.data?.new_price.toFixed(2));
+
+      const x = foundRecipeDetails.ingredients.map((i) => {
+        return i.ingredient_id === ingId && i.ingredient_source === ingSource
+          ? {
+              ...i,
+              cost: Number(updatePrice),
+              base_quantity: Number(updateQuantity),
+              unit: updateUnit,
+              price: newPrice,
+            }
+          : i;
+      });
+      console.log("the new ingredient list is :", x);
+    } catch (error) {
+      console.log("Error while update base values :", error);
+    } finally {
+      setIsLoading(false);
+    }
+
+    // setSections((prev) =>
+    //   prev.map((section) =>
+    //     section.uid === compUid
+    //       ? {
+    //           ...section,
+    //           ingredients: section.ingredients.map((ingredient) =>
+    //             ingredient.uid === ingUid
+    //               ? {
+    //                   ...ingredient,
+    //                   displayUnit: updateUnit,
+    //                   displayQuantity: Number(updateQuantity),
+    //                   displayPrice: Number(updatePrice),
+    //                 }
+    //               : ingredient,
+    //           ),
+    //         }
+    //       : section,
+    //   ),
+    // );
+
+    // setIsEditBaseValuesOpen(false);
+  };
+
   // ------------------------------ Loading screen ---------------------------------
   if (isLoading) {
     return (
@@ -418,11 +486,17 @@ function RecipeDetails() {
               {changePrice && (i.ingredient_source === "main" || isRecipeOwner) && (
                 <div className="flex items-end pb-1 ">
                   <div
-                    className="bg-gray-700 text-white p-0.5 rounded-sm"
+                    className="bg-gray-700 text-white p-0.5 rounded-sm hover:cursor-pointer hover:bg-gray-900 hover:scale-125 transition duration-300"
                     onClick={() => {
+                      setIngId(i.ingredient_id);
+                      setIngSource(i.ingredient_source);
+                      setIngName(i.name);
                       setQuantityValue(i.base_quantity);
                       setUnitValue(i.unit);
                       setPriceValue(i.cost);
+                      setBaseUnits(i.base_units);
+                      setRecpIngQty(i.quantity);
+                      setRecpIngUnitId(i.unit_id);
                       setIsEditBaseValuesOpen(true);
                     }}
                   >
@@ -475,7 +549,7 @@ function RecipeDetails() {
   }
 
   // console.log("HiTrash :", HiTrash);
-  // console.log("foundRecipeDetails is :", foundRecipeDetails);
+  console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);
@@ -921,7 +995,7 @@ function RecipeDetails() {
             updateBaseValues(compUid, ingUid, updateQuantity, updateUnit, updatePrice)
           }
           title={""}
-          message={`Bought Price of : ${capitaliseWords(ingName)}`}
+          message={`Purchase Price of : ${capitaliseWords(ingName)}`}
           cancelText={"Cancel"}
           OKtext={"Update"}
           OKtextIcon={HiClipboardList}

@@ -19,6 +19,7 @@ router.get("/deleted_ingredients", authToken, readIngredientController.get_all_d
 // Update api for ingredients
 router.get("/search/editIngredients", authToken, updateIngredientController.search_ingredients);
 router.put("/edit/:ingId", authToken, updateIngredientController.update_ingredient);
+router.put("/edit/baseValues/:ingId", authToken, updateIngredientController.udpate_ing_base_values);
 
 // Delete api for ingredients
 router.delete("/delete/:ingId", authToken, deleteIngredientController.delete_ingredient);

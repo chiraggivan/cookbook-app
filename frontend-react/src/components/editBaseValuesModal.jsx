@@ -25,14 +25,14 @@ export default function EditBaseValuesModal({
   const [updateQuantity, setUpdateQuantity] = useState(quantityValue);
   const [updateUnit, setUpdateUnit] = useState(unitValue);
   const [updatePrice, setUpdatePrice] = useState(priceValue);
-  const [disableButton, setDisbleButton] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
 
   // ----------------------- verify data before activating update button -----------------------------
   useEffect(() => {
     if (!Number(updatePrice) || !Number(updateQuantity) || !updateUnit) {
-      setDisbleButton(true);
+      setDisableButton(true);
     } else {
-      setDisbleButton(false);
+      setDisableButton(false);
     }
   }, [updatePrice, updateQuantity, updateUnit]);
 
@@ -61,8 +61,12 @@ export default function EditBaseValuesModal({
       <ModalHeader />
       <ModalBody>
         <div className="text-center">
+          {/* Icon at the top */}
           <FaBalanceScaleRight className="mx-auto mb-4 h-18 w-18 text-gray-700" />
+
+          {/* Central Message */}
           <div className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">{message}</div>
+
           {/* 1st row of modal */}
           <div className="flex justify-between space-x-5">
             {/* Quantity */}
@@ -115,7 +119,9 @@ export default function EditBaseValuesModal({
             <div className="flex flex-1"></div>
           </div>
 
+          {/* Buttons row */}
           <div className="flex justify-center mt-5 gap-4">
+            {/* Ok Button */}
             <Button
               className={`${disableButton ? "bg-blue-300" : "bg-blue-900 hover:cursor-pointer"}`}
               color="dark"
@@ -125,6 +131,8 @@ export default function EditBaseValuesModal({
               <OKtextIcon className=" h-5 w-5 mr-2" />
               {OKtext}
             </Button>
+
+            {/* Cancel Button */}
             <Button color="alternative" onClick={onClose}>
               {cancelText}
             </Button>

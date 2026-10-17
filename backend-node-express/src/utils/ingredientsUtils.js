@@ -32,7 +32,7 @@ function normaliseIngredientData(data) {
   return cleaned;
 }
 
-// ----------------------------- validate ingredient ---------------------------
+// ----------------------------- validate ingredient data ---------------------------
 function validateIngredient(data, operation) {
   //print(data)
 
@@ -138,4 +138,98 @@ function validateIngredient(data, operation) {
   return null;
 }
 
-module.exports = { normaliseIngredientData, validateIngredient };
+// ----------------------------- normalize ingredient's base value data ---------------------------
+function normaliseIngredientBaseValueData(data) {
+  const cleaned = {};
+
+  // String fields: trim, collapse multiple spaces, convert to lowercase
+  const fields = [
+    "ingredient_source",
+    "display_quantity",
+    "display_price",
+    "display_unit",
+    "ing_used_qty",
+    "ing_used_unitId",
+  ];
+  // ingredient_dict = data[0]
+
+  for (const field of fields) {
+    const value = data[field];
+
+    if (typeof value === "string") {
+      // Remove leading/trailing spaces, collapse internal spaces, convert to lowercase
+      cleaned[field] = value.trim().replace(/\s+/g, " ").toLowerCase();
+    } else if (typeof value === "number") {
+      cleaned[field] = value; // keep as-is if int or float
+    } else {
+      cleaned[field] = null;
+    }
+  }
+
+  return cleaned;
+}
+
+// ----------------------------- validate ingredient's base value data ---------------------------
+function validateIngredientBaseValueData(data) {
+  // console.log("data : ", data);
+
+  // --- ingredient_source ---
+  const ingredient_source = data.ingredient_source;
+  if (!ingredient_source || !["user", "main"].includes(ingredient_source)) {
+    return `Invalid ingredient source. Should be one of user or main.`;
+  }
+
+  // --- display_quantity ---
+  const display_quantity = data.display_quantity;
+  if (
+    !display_quantity ||
+    typeof display_quantity !== "number" ||
+    0 > display_quantity ||
+    display_quantity > 10000000
+  ) {
+    return `Invalid display_quantity: (${display_quantity}) must be a number > 0 and less than 10000000 `;
+  }
+
+  // --- display_unit ---
+  const display_unit = data.display_unit;
+  if (
+    !display_unit ||
+    typeof display_unit !== "string" ||
+    !["kg", "g", "oz", "lbs", "l", "ml", "fl.oz", "pint", "pc", "bunch"].includes(display_unit)
+  ) {
+    return `Invalid display_unit: (${display_unit}) must be a non-empty string and within ('kg','g','oz','lbs','l','ml','fl.oz','pint','pc','bunch') `;
+  }
+
+  // --- display_price ---
+  const display_price = data.display_price;
+  if (
+    !display_price ||
+    typeof display_price !== "number" ||
+    0 > display_price ||
+    display_price > 1000000
+  ) {
+    return `Invalid display_price: (${display_price}) must be a number > 0 and less than 1000000 `;
+  }
+
+  // --- ing_used_qty ---
+  const quantity = data.ing_used_qty;
+  if (!quantity || typeof quantity !== "number" || 0 > quantity) {
+    return `Invalid quantity: (${quantity}) must be a number > 0`;
+  }
+
+  // --- ing_used_unitId ---
+  const unit_id = data.ing_used_unitId;
+  if (!unit_id || typeof unit_id !== "number" || 0 > unit_id) {
+    return `Invalid unit_id: (${unit_id}) must be a number > 0`;
+  }
+
+  // return none if validation doesnt throw any error
+  return null;
+}
+
+module.exports = {
+  normaliseIngredientData,
+  validateIngredient,
+  normaliseIngredientBaseValueData,
+  validateIngredientBaseValueData,
+};
