@@ -812,7 +812,7 @@ function RecipeDetails() {
             {/* Ingredients */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
               {/* change price button */}
-              <div className="flex justify-end pr-2 text-sm">
+              {/* <div className="flex justify-end pr-2 text-sm">
                 <div
                   className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
                   onClick={() => setChangePrice(!changePrice)}
@@ -828,7 +828,7 @@ function RecipeDetails() {
                     "Change Price"
                   )}
                 </div>
-              </div>
+              </div> */}
 
               {/* ingredients list */}
               <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
