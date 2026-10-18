@@ -81,7 +81,7 @@ function RecipeDetails() {
   const [ingSource, setIngSource] = useState(null);
   const [recpIngUnitId, setRecpIngUnitId] = useState(null);
   const [recpIngQty, setRecpIngQty] = useState(null);
-  // const [isLoading, setIsLoading] = useState(false);
+  const [isMiniLoading, setIsMiniLoading] = useState(false);
 
   //----------------------------------------- Redirect effect --------------------------------------------------
   useEffect(() => {
@@ -329,8 +329,8 @@ function RecipeDetails() {
       display_unit: updateUnit,
       display_price: Number(updatePrice),
     };
-    // console.log("body in updateBaseValue func is :", body);
-    setIsLoading(true);
+
+    setIsMiniLoading(true);
     try {
       const res = await api[method](url, body);
       // get conversion factor list & custom price (for 1 unit of base unit) for changing same multiple times in same recipe
@@ -338,7 +338,7 @@ function RecipeDetails() {
       const custom_price = res?.data?.custom_price;
 
       // updae the current page to updated price of ingredient
-      foundRecipeDetails.ingredients = foundRecipeDetails.ingredients.map((i) => {
+      const updatedIngrediientsData = foundRecipeDetails.ingredients.map((i) => {
         return i.ingredient_id === ingId && i.ingredient_source === ingSource
           ? {
               ...i,
@@ -349,10 +349,15 @@ function RecipeDetails() {
             }
           : i;
       });
+
+      console.log("Before state update");
+      setFoundRecipeDetails((prev) => ({ ...prev, ingredients: updatedIngrediientsData }));
+      console.log("After state update");
     } catch (error) {
       console.log("Error while update base values :", error);
+      window.alert(`Error While updating Base price of ${ingName}`);
     } finally {
-      setIsLoading(false);
+      setIsMiniLoading(false);
     }
 
     setIsEditBaseValuesOpen(false);
@@ -811,24 +816,36 @@ function RecipeDetails() {
           >
             {/* Ingredients */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
-              {/* change price button */}
-              {/* <div className="flex justify-end pr-2 text-sm">
-                <div
-                  className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
-                  onClick={() => setChangePrice(!changePrice)}
-                >
-                  {changePrice ? (
-                    <div className="flex">
-                      <span className="flex items-center pr-1.5">
-                        <FaLock />
-                      </span>{" "}
-                      Lock Price
-                    </div>
-                  ) : (
-                    "Change Price"
-                  )}
+              {/* change price button and mini loading screen when base price is being changed*/}
+              {isMiniLoading && (
+                <div className="flex w-full h-8 items-center justify-center">
+                  <Spinner
+                    theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                    color="default"
+                    aria-label="Loading"
+                    size="xl"
+                  />
                 </div>
-              </div> */}
+              )}
+              {!isMiniLoading && (
+                <div className="flex justify-end pr-2 text-sm h-8">
+                  <div
+                    className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                    onClick={() => setChangePrice(!changePrice)}
+                  >
+                    {changePrice ? (
+                      <div className="flex">
+                        <span className="flex items-center pr-1.5">
+                          <FaLock />
+                        </span>{" "}
+                        Lock Price
+                      </div>
+                    ) : (
+                      "Change Price"
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* ingredients list */}
               <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>

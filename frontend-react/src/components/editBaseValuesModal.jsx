@@ -123,6 +123,7 @@ export default function EditBaseValuesModal({
           <div className="flex justify-center mt-5 gap-4">
             {/* Ok Button */}
             <Button
+              type="button"
               className={`${disableButton ? "bg-blue-300" : "bg-blue-900 hover:cursor-pointer"}`}
               color="dark"
               disabled={disableButton}
