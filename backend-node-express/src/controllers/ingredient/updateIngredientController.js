@@ -140,6 +140,7 @@ exports.update_ingredient = async (req, res) => {
       );
       isSameData = result[0][0].message;
       await conn.commit();
+
       if (isSameData === "No changes detected") {
         res.json({
           success: true,
@@ -244,20 +245,20 @@ exports.udpate_ing_base_values = async (req, res) => {
       }
 
       // BREAK POINT
-      return res.json({
-        success: true,
-        message: "Break point test",
-        custom_price,
-        conversionList,
-      });
+      // return res.json({
+      //   success: true,
+      //   message: "Break point test",
+      //   custom_price,
+      //   conversionList,
+      // });
       // ----------------------------------------------
-      const conn = db.getConnection();
-      const [result] = await conn.beginTransaction();
+      const conn = await db.getConnection();
 
       const deleteQuery = `UPDATE user_prices SET is_active = 0 
                           WHERE user_id = ? AND ingredient_id =? AND country_id = ? AND ingredient_source = ? AND is_active = 1 `;
 
       try {
+        await conn.beginTransaction();
         const [deleteResult] = await conn.query(deleteQuery, [
           user.id,
           ingId,
@@ -269,7 +270,7 @@ exports.udpate_ing_base_values = async (req, res) => {
         const insertQuery = `INSERT INTO user_prices(user_id, ingredient_id, country_id, custom_price, quantity, base_unit, ingredient_source, display_quantity, display_unit, display_price)
                               VALUES(?,?,?,?,1,?,?,?,?,?)`;
 
-        const [insertResult] = (await conn).query(insertQuery, [
+        const [insertResult] = await conn.query(insertQuery, [
           user.id,
           ingId,
           user.country_id,
@@ -281,7 +282,9 @@ exports.udpate_ing_base_values = async (req, res) => {
           display_price,
         ]);
 
+        await conn.commit();
         // FINAL response to front end
+        console.log("Process completed successfully.");
         res.json({
           success: true,
           message: "Base price of ingredient updated successfully",
@@ -299,7 +302,7 @@ exports.udpate_ing_base_values = async (req, res) => {
           message: "Server error",
         });
       } finally {
-        await conn.release();
+        conn.release();
       }
 
       // ----------------------------------------------
