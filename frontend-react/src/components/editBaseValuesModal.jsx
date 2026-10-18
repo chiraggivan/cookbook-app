@@ -26,6 +26,10 @@ export default function EditBaseValuesModal({
   const [updateUnit, setUpdateUnit] = useState(unitValue);
   const [updatePrice, setUpdatePrice] = useState(priceValue);
   const [disableButton, setDisableButton] = useState(false);
+  const ogQuantity = quantityValue;
+  const ogUnit = unitValue;
+  const ogPrice = priceValue;
+  // const [submitBtnDisable, setSubmitBtnDisable] = useState(true);
 
   // ----------------------- verify data before activating update button -----------------------------
   useEffect(() => {
@@ -55,6 +59,21 @@ export default function EditBaseValuesModal({
       updateInputField(value);
     }
   }
+
+  // --------------- onSubmit logic ------------------
+  const handleSubmit = () => {
+    if (
+      Number(updateQuantity) !== Number(ogQuantity) ||
+      updateUnit !== ogUnit ||
+      Number(updatePrice) !== Number(ogPrice)
+    ) {
+      // console.log("changes found in values and calling api");
+      onConfirm(compUid, ingUid, updateQuantity, updateUnit, updatePrice);
+    } else {
+      // console.log("closing modal without calling the api");
+      onClose();
+    }
+  };
 
   return (
     <Modal size="md" show={isOpen} onClose={onClose} popup>
@@ -124,17 +143,17 @@ export default function EditBaseValuesModal({
             {/* Ok Button */}
             <Button
               type="button"
-              className={`${disableButton ? "bg-blue-300" : "bg-blue-900 hover:cursor-pointer"}`}
+              className={`${disableButton ? "bg-blue-300 hover:cursor-none" : "bg-blue-900 hover:cursor-pointer"}`}
               color="dark"
               disabled={disableButton}
-              onClick={() => onConfirm(compUid, ingUid, updateQuantity, updateUnit, updatePrice)}
+              onClick={handleSubmit} //() => onConfirm(compUid, ingUid, updateQuantity, updateUnit, updatePrice)}
             >
               <OKtextIcon className=" h-5 w-5 mr-2" />
               {OKtext}
             </Button>
 
             {/* Cancel Button */}
-            <Button color="alternative" onClick={onClose}>
+            <Button className="hover:cursor-pointer" color="alternative" onClick={onClose}>
               {cancelText}
             </Button>
           </div>

@@ -350,9 +350,7 @@ function RecipeDetails() {
           : i;
       });
 
-      console.log("Before state update");
       setFoundRecipeDetails((prev) => ({ ...prev, ingredients: updatedIngrediientsData }));
-      console.log("After state update");
     } catch (error) {
       console.log("Error while update base values :", error);
       window.alert(`Error While updating Base price of ${ingName}`);
@@ -893,6 +891,45 @@ function RecipeDetails() {
             >
               {/* Ingredients */}
               <TabItem active title="Ingredients" icon={GiAvocado}>
+                <div className="flex">
+                  {/* change price button and mini loading screen when base price is being changed*/}
+                  <div className="flex-1">
+                    {isMiniLoading && (
+                      <div className="flex w-full h-8 items-center justify-center">
+                        <Spinner
+                          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                          color="default"
+                          aria-label="Loading"
+                          size="xl"
+                        />
+                      </div>
+                    )}
+                    {!isMiniLoading && (
+                      <div className="flex justify-end pr-2 text-sm h-8">
+                        <div
+                          className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                          onClick={() => setChangePrice(!changePrice)}
+                        >
+                          {changePrice ? (
+                            <div className="flex">
+                              <span className="flex items-center pr-1.5">
+                                <FaLock />
+                              </span>{" "}
+                              Lock Price
+                            </div>
+                          ) : (
+                            "Change Price"
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* just to keep change price button within ingredients section  */}
+                  <div className="flex-1"></div>
+                </div>
+
+                {/* ingredients list */}
                 <div className="flex">
                   <div className="flex-1">
                     <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
