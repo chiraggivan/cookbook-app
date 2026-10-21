@@ -33,6 +33,8 @@ function Home() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
+  // const user = JSON.parse(localStorage.getItem("user"));
+  // console.log("user is:", user);
 
   const method = "get";
   const url = `${serverURL}/recipe/api/all`;
@@ -209,6 +211,7 @@ function Home() {
                 )}
               </div>
 
+              {/* info of each recipe */}
               <div className=" flex rounded-b-3xl">
                 {/* profile image of recipe creator */}
                 <div className="px-1 py-2">

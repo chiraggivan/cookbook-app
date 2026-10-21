@@ -390,7 +390,7 @@ function register() {
             {/* {pwdMsg && <h4 style={{ color: "red" }}>{pwdMsg}</h4>} */}
 
             {/* Select country section */}
-            {/* <div className="flex flex-col">
+            <div className="flex flex-col">
               <div className="flex items-center space-x-2">
                 <label className="w-1/5 text-sm text-right font-medium mb-1">Country:</label>
                 {countryList && (
@@ -410,7 +410,7 @@ function register() {
                 )}
               </div>
               <div className=""></div>
-            </div> */}
+            </div>
 
             {/* Register /Login button */}
             <div className="flex justify-between mt-10">

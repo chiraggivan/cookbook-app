@@ -533,7 +533,7 @@ function RecipeDetails() {
   }
 
   // console.log("HiTrash :", HiTrash);
-  console.log("foundRecipeDetails is :", foundRecipeDetails);
+  // console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);

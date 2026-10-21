@@ -19,11 +19,16 @@ import {
   HiUser,
 } from "react-icons/hi";
 import { BsPlusCircleDotted } from "react-icons/bs";
+import { IoMdSettings } from "react-icons/io";
+
 import {
   createTheme,
   Drawer,
   DrawerHeader,
   DrawerItems,
+  Dropdown,
+  DropdownDivider,
+  DropdownItem,
   Sidebar,
   SidebarItem,
   SidebarItemGroup,
@@ -31,9 +36,11 @@ import {
   TextInput,
 } from "flowbite-react";
 import { FaPlus } from "react-icons/fa6";
+import { MdOutlineMenuBook } from "react-icons/md";
+import { SlOptionsVertical } from "react-icons/sl";
 
 function TopBar() {
-  const user = JSON.parse(localStorage.getItem("user")) ?? "";
+  const user = JSON.parse(localStorage.getItem("user"));
   const navigate = new useNavigate();
   const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
     useContext(MyRecipeContext);
@@ -158,15 +165,17 @@ function TopBar() {
             </div>
           </div>
 
-          {/* account section */}
+          {/* Create new recipe and account section */}
           <div className="hidden md:flex items-center justify-end w-[25%] pr-1 pl-1 py-2 md:pr-4">
             <button
               onClick={() => navigate("/recipe/new")}
-              className="h-8  rounded-full  border-hidden px-3 pb-1 mr-1 cursor-pointer text-gray-800 bg-gray-200 text-xl hover:bg-gray-300 transition "
+              className="h-8  rounded-full  border-hidden px-3 pb-0 mr-1 cursor-pointer text-gray-800 bg-gray-200 text-xl hover:bg-gray-300 transition "
             >
-              + Create
+              {"+ Create"}
             </button>
-            <div className="flex mim-w-9 min-h-9 h-9 w-9 rounded-full bg-blue-300 items-center justify-center">
+
+            {/* profile image and options (account, setting, signout section) */}
+            {/* <div className="flex mim-w-9 min-h-9 h-9 w-9 rounded-full bg-blue-300 items-center justify-center">
               {user?.picture_url ? (
                 <div className="w-full h-full">
                   <img
@@ -181,7 +190,45 @@ function TopBar() {
               ) : (
                 getInitials(userName)
               )}
-            </div>
+            </div> */}
+
+            {/* profile image and options (account, setting, signout,etc......)  */}
+            <Dropdown
+              className=""
+              label=""
+              dismissOnClick={false}
+              renderTrigger={() => (
+                <div className="flex mim-w-9 min-h-9 h-9 w-9 rounded-full bg-blue-300 items-center justify-center hover:cursor-pointer">
+                  {user?.picture_url ? (
+                    <div className="w-full h-full">
+                      <img
+                        className="rounded-full h-full"
+                        src={user?.picture_url}
+                        alt={getInitials(userName)}
+                        // onError={(e) => {
+                        //   console.log("Image failed:", e.currentTarget.src);
+                        // }}
+                      />
+                    </div>
+                  ) : (
+                    getInitials(userName)
+                  )}
+                </div>
+              )}
+            >
+              <DropdownItem
+                className="flex gap-2"
+                onClick={() => {
+                  navigate("/user/settings");
+                }}
+              >
+                <IoMdSettings className="w-4 h-4" /> Settings
+              </DropdownItem>
+              <DropdownDivider />
+              <DropdownItem className="flex gap-2" onClick={handleLogout}>
+                <HiLogout className="w-4 h-4" /> Sign Out
+              </DropdownItem>
+            </Dropdown>
           </div>
         </div>
       </header>
@@ -265,7 +312,15 @@ function TopBar() {
 
                   <SidebarItemGroup>
                     <SidebarItem icon={ProfileIcon}>Account</SidebarItem>
-                    <SidebarItem icon={GiSettingsKnobs}>Setting</SidebarItem>
+                    <SidebarItem
+                      icon={GiSettingsKnobs}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/user/settings");
+                      }}
+                    >
+                      Setting
+                    </SidebarItem>
                     <SidebarItem icon={HiLogout} onClick={handleLogout}>
                       Sign out
                     </SidebarItem>

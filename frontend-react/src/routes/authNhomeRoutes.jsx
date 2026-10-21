@@ -6,6 +6,7 @@ import VerifyUserEmail from "../pages/authNhome/verfyingUserEmail";
 import ReVerifyEmail from "../pages/authNhome/reVerifyEmail";
 import ResetPassword from "../pages/authNhome/resetPassword";
 import NewPassword from "../pages/authNhome/newPassword";
+import UserSettings from "../pages/authNhome/userSettings";
 
 import MainLayout from "../components/mainLayout";
 
@@ -25,5 +26,13 @@ export const AuthNhomeRoutes = (
     <Route path="/re-verify-email" element={<ReVerifyEmail />} />
     <Route path="/forgotPassword" element={<ResetPassword />} />
     <Route path="/newPassword" element={<NewPassword />} />
+    <Route
+      path="/user/settings"
+      element={
+        <MainLayout>
+          <UserSettings />
+        </MainLayout>
+      }
+    />
   </>
 );
