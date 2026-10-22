@@ -25,6 +25,8 @@ import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 import { HiClipboardList, HiTrash } from "react-icons/hi";
 import { TbFoodsteps } from "react-icons/tb";
 import EditBaseValuesModal from "../../components/editBaseValuesModal";
+import EditIngStyleModal from "../../components/editIngStyleModal";
+import { MdModeEditOutline, MdOutlineEdit } from "react-icons/md";
 
 function EditRecipe() {
   const token = localStorage.getItem("token");
@@ -47,6 +49,7 @@ function EditRecipe() {
     ingredientSource: "",
     ingredientBy: "",
     name: "",
+    ingredientStyle: null,
     form: "",
     quantity: "",
     unitId: "",
@@ -95,6 +98,7 @@ function EditRecipe() {
   const [imgUploadSuccessMsg, setImgUploadSuccessMsg] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // variable for ing base values modal
   const [isEditBaseValuesOpen, setIsEditBaseValuesOpen] = useState(false);
   const [quantityValue, setQuantityValue] = useState(0);
   const [unitValue, setUnitValue] = useState("");
@@ -103,12 +107,17 @@ function EditRecipe() {
   const [compUid, setCompUid] = useState(null);
   const [ingUid, setIngUid] = useState(null);
 
+  // variables for ing style mode
+  const [isEditIngstyle, setIsEditIngStyle] = useState(false);
+  const [ingName, setIngName] = useState();
+  const [prepStyle, setPrepStyle] = useState();
+
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
 
   // ------------------------------------ Above, initialisation of variables done ---------------------------------------
 
-  //--------------------------------- Redirect to home if token not found --------------------------------------
+  //--------------------------------- Redirect to login if token not found --------------------------------------
   useEffect(() => {
     if (!authHookLoading && (!token || !isAuthenticated)) {
       navigate("/login");
@@ -223,8 +232,8 @@ function EditRecipe() {
   // ------------------------------------ get the recipe data via API from backend -----------------------------------------
   useEffect(() => {
     const method = "get";
-    const url = `/recipe/api/${id}`;
-    const body = null;
+    const url = `/recipe/api/details/${id}`;
+    // const body = null;
 
     const fetchData = async () => {
       try {
@@ -275,6 +284,7 @@ function EditRecipe() {
             ing.ingredientSource = i.ingredient_source;
             ing.ingredientBy = i.ingredient_by;
             ing.name = i.name;
+            ing.ingredientStyle = i.ingredient_style;
             ing.form = i.form;
             ing.quantity = Number(i.quantity);
             ing.unitId = i.unit_id;
@@ -928,6 +938,30 @@ function EditRecipe() {
     setIsEditBaseValuesOpen(false);
   };
 
+  // ------------------------------- update prep Style via modal -----------------------------------------
+  const updateIngStyle = (compUid, ingUid, newStyle) => {
+    setRecipeInfo((prev) => ({
+      ...prev,
+      components: prev.components.map((component) =>
+        component.uid === compUid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((i) =>
+                i.uid === ingUid
+                  ? {
+                      ...i,
+                      ingredientStyle: newStyle,
+                    }
+                  : i,
+              ),
+            }
+          : component,
+      ),
+    }));
+
+    setIsEditIngStyle(false);
+  };
+
   // ----------- active/deactivate "Edit recipe" button based on change in data ---------------
   useEffect(() => {
     const costLessRecipeInfo = {
@@ -1060,7 +1094,7 @@ function EditRecipe() {
       return;
     }
 
-    // // ---------------------------- check components + ingredients data ---------------------------
+    // // ---------------------------- validate components + ingredients data ---------------------------
     recipeInfo.components.forEach((comp, indexc) => {
       let ingCount = 0; //---------------> to count valid ingredients in each component
 
@@ -1180,6 +1214,7 @@ function EditRecipe() {
           })),
       }));
 
+    // console.log("newComponentsData :", newComponentsData);
     // // ------------------------ get the display order of Steps updated from recipeInfo -----------------------------
     let step_display_order = 1;
     const newStepsData = recipeInfo.steps
@@ -1199,17 +1234,35 @@ function EditRecipe() {
     // console.log("newRecipeInfo :", newRecipeInfo);
     // return;
 
-    // // get the final data that is backend compatible with the help of helper function getFinalDataForBackend
+    // // get the final data that is backend compatible with the help of helper function 'getFinalDataForBackend'
     const finalData = getFinalDataForBackend(newRecipeInfo, OgData);
+
+    // // Check the finalData, if nothing to change then go back to recipe details page
+    const changesFoundArray = [];
+    Object.keys(finalData).forEach((key) => {
+      if (finalData[key].length === 0) {
+        changesFoundArray.push(false);
+      } else {
+        changesFoundArray.push(true);
+      }
+    });
+
+    // console.log("changes found array:", changesFoundArray);
+    const foundAnyChanges = changesFoundArray.includes(true);
+    if (!foundAnyChanges) {
+      // console.log("Not found changes");
+      navigate(`/recipe/${id}`);
+      return;
+    }
+
     // console.log("finalData :", finalData);
     // console.log("About to call api to save the edit the recipe.");
     // return;
-
     // // ----------------------------------- call the bakend api to update recipe -----------------------------------
     const url = `/recipe/api/update/${id}`;
     const method = "patch";
     const body = finalData;
-    console.log("final Data is:", finalData);
+    // console.log("final Data is:", finalData);
     // return;
 
     const updateRecipe = async () => {
@@ -1458,8 +1511,9 @@ function EditRecipe() {
             aria-label="Tabs with icons"
             variant="fullWidth"
           >
-            {/* Ingredients */}
+            {/* Tabs for Ingredients and Steps */}
             <TabItem active title="Ingredients" icon={GiAvocado}>
+              {/* Ingredient List */}
               <div className="min-h-[calc(100vh-100px)]">
                 {/* button to add first heading and Total cost of recipe*/}
                 <div className="flex items-center justify-between h-10 p-1">
@@ -1498,6 +1552,8 @@ function EditRecipe() {
                       <div className="flex min-w-15 items-center justify-center">Move</div>
                       <div className="flex flex-6 items-center">
                         <div className="flex flex-8 justify-center ">Name</div>
+                        <div className="hidden sm:flex flex-3 justify-center ">Style</div>
+                        <div className="sm:hidden flex w-4"></div>
                         <div className="flex flex-3 justify-center ">Qnty</div>
                         <div className="flex flex-4 justify-center ">Unit</div>
                         <div className="flex flex-3 justify-center ">Cost</div>
@@ -1606,7 +1662,7 @@ function EditRecipe() {
                                 )}
                               </div>
 
-                              {/* col 3,4,5,6 in one div and base values for small screen */}
+                              {/* col 3,4a,4,5,6 in one div and base values for small screen */}
                               <div className="flex flex-col flex-6">
                                 <div className="flex flex-6">
                                   {/* 3rd column - ing name */}
@@ -1634,6 +1690,7 @@ function EditRecipe() {
                                                       ? {
                                                           ...i,
                                                           name: e.target.value,
+                                                          ingredientStyle: "",
                                                           form: "",
                                                           displayQuantity: "",
                                                           displayUnit: "",
@@ -1711,6 +1768,57 @@ function EditRecipe() {
                                         </div>
                                       )}
                                   </div>
+
+                                  {/* 4a th column - style of ingredient (eg. finely chopped, grated, julian, slice, etc...) */}
+                                  <div className="hidden sm:flex flex-3 p-1 min-w-7 justify-center ">
+                                    <Input
+                                      className="flex w-full p-0.5 rounded placeholder:text-gray-500 text-xs h-[93%]"
+                                      placeholder={"dice, grated,chopped,etc.."}
+                                      maxLength={18}
+                                      value={ing?.ingredientStyle ?? ""}
+                                      onChange={(e) => {
+                                        // updateIngredientStyle(comp.uid, ing.uid, e.target.value);
+                                        setRecipeInfo((prev) => ({
+                                          ...prev,
+                                          components: prev.components.map((component) =>
+                                            component.uid === comp.uid
+                                              ? {
+                                                  ...component,
+                                                  ingredients: component.ingredients.map((i) =>
+                                                    i.uid === ing.uid
+                                                      ? {
+                                                          ...i,
+                                                          ingredientStyle: e.target.value,
+                                                        }
+                                                      : i,
+                                                  ),
+                                                }
+                                              : component,
+                                          ),
+                                        }));
+                                      }}
+                                      onBlur={(e) => {}}
+                                      error={ing?.errors?.erroringredientStyle ?? ""}
+                                    />
+                                  </div>
+
+                                  {ing.name && (
+                                    <div className="flex px-1 pt-1 items-center sm:hidden">
+                                      <MdModeEditOutline
+                                        className=""
+                                        onClick={() => {
+                                          setIsEditIngStyle(true);
+                                          setIngName(ing.name);
+                                          setCompUid(comp.uid);
+                                          setIngUid(ing.uid);
+                                          setPrepStyle(ing.ingredientStyle);
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                  {!ing.name && (
+                                    <div className="flex px-1 pt-1 w-6 items-center sm:hidden"></div>
+                                  )}
 
                                   {/* 4th column - quantity */}
                                   <div className="flex flex-3 p-1 min-w-7 justify-center ">
@@ -2135,6 +2243,24 @@ function EditRecipe() {
           unitValue={unitValue}
           baseUnits={baseUnits}
           priceValue={priceValue}
+          compUid={compUid}
+          ingUid={ingUid}
+        />
+      )}
+
+      {isEditIngstyle && (
+        <EditIngStyleModal
+          isOpen={isEditIngstyle}
+          onClose={() => setIsEditIngStyle(false)}
+          onConfirm={(compUid, ingUid, newStyle) => updateIngStyle(compUid, ingUid, newStyle)}
+          title={"Title"}
+          message={`Prep Style for `}
+          cancelText={"Cancel"}
+          OKtext={"Update"}
+          OKtextIcon={HiClipboardList}
+          placeholder={"(Optional) julienne, minced, chopped, mashed, etc.."}
+          ingName={ingName}
+          prepStyle={prepStyle}
           compUid={compUid}
           ingUid={ingUid}
         />

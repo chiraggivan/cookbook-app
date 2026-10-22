@@ -24,6 +24,7 @@ import { MdModeEditOutline, MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
 import { BsFillHandThumbsUpFill } from "react-icons/bs";
 import { FaLock } from "react-icons/fa6";
+import { GoNorthStar } from "react-icons/go";
 
 import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
@@ -46,7 +47,7 @@ function RecipeDetails() {
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
-  const [isRecipeOwner, setIsRecipeOwner] = useState(false);
+  const [isRecipeOwner, setIsRecipeOwner] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
@@ -92,7 +93,7 @@ function RecipeDetails() {
 
   // ---------- fetch the data by giving url, method and body(if required) -------------------------------------
   const method = "get";
-  const url = `/recipe/api/${id}`;
+  const url = `/recipe/api/details/${id}`;
   const body = null;
 
   const recipeFound = undefined; // recipeDetails?.find((d) => d.recipe.recipe_id === Number(id));
@@ -448,7 +449,7 @@ function RecipeDetails() {
                   {capitaliseWords(i.name)}
                   {i.form !== "" && ` (${i.form})`}{" "}
                   {i.ingredient_style !== null && i.ingredient_style !== "" && (
-                    <div className="flex flex-1 pl-1 pt-1 text-xs md:text-sm italic">
+                    <div className="flex flex-1 pl-2 pt-0.75 md:pt-1.25 text-xs md:text-sm italic">
                       {" "}
                       {i.ingredient_style}
                     </div>
@@ -456,9 +457,10 @@ function RecipeDetails() {
                 </div>
               ) : (
                 <div className="flex flex-1 pl-1 pt-1">
-                  {capitaliseWords(i.name)}*
+                  {capitaliseWords(i.name)}
+                  <GoNorthStar className="px-0.5 " />
                   {i.ingredient_style !== null && i.ingredient_style !== "" && (
-                    <span className="flex flex-1 pl-1 pt-1 text-xs md:text-sm italic">
+                    <span className="flex flex-1 pl-2 pt-0.75 md:pt-1.25 text-xs md:text-sm italic">
                       {" "}
                       {i.ingredient_style}
                     </span>
@@ -551,7 +553,7 @@ function RecipeDetails() {
       routes with the help of MainLayout component */}
       <div className="flex flex-col mt-(--top-bar-height) md:ml-(--left-side-bar)">
         <div className="flex flex-col mt-1 w-full max-w-5xl lg:mx-auto">
-          {/* Recipe Name header & recipe by */}
+          {/* Recipe Name header & recipe by OR option button */}
           <div className="flex flex-col relative">
             <div
               className={
@@ -581,17 +583,13 @@ function RecipeDetails() {
 
             {/* show triple option for delete recipe for owner */}
             {isRecipeOwner === true && (
-              <div className="absolute right-2 top-0 scale-125 hover:bg-amber-100 p-2 rounded-full transition duration-300">
-                {
-                  // top-1/2 -translate-y-1/2
-                }
-
+              <div className="absolute right-2 top-0 scale-125  rounded-full transition duration-300">
                 <Dropdown
                   label=""
                   dismissOnClick={false}
                   renderTrigger={() => (
-                    <span>
-                      <SlOptionsVertical />
+                    <span className="flex w-full h-full items-center justify-center p-2 hover:bg-amber-100 rounded-full">
+                      <SlOptionsVertical className="" />
                     </span>
                   )}
                 >

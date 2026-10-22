@@ -261,10 +261,6 @@ function Home() {
 
                 {/* option button */}
                 <div className="flex w-10 h-8 mt-2 mr-2 min-w-8 hover:bg-gray-300 rounded-full transition duration-300">
-                  {
-                    // top-1/2 -translate-y-1/2
-                  }
-
                   <Dropdown
                     className=""
                     label=""

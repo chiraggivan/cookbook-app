@@ -38,7 +38,7 @@ router.post(
 router.get("/all", authenticateToken, readRecipeController.get_recipes);
 router.get("/user/:q", authenticateToken, readRecipeController.get_user_recipes);
 router.get("/my", authenticateToken, readRecipeController.get_my_recipes);
-router.get("/:q", authenticateToken, readRecipeController.get_recipe_details);
+router.get("/details/:q", authenticateToken, readRecipeController.get_recipe_details);
 router.get("/last-record/:recipeId", authenticateToken, readRecipeController.get_last_record);
 
 // api for update recipe

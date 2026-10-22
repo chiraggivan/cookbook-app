@@ -23,6 +23,7 @@ import { HiClipboardList, HiTrash } from "react-icons/hi";
 import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 import { TbFoodsteps } from "react-icons/tb";
 import EditBaseValuesModal from "../../components/editBaseValuesModal";
+import { MdModeEditOutline } from "react-icons/md";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -1470,7 +1471,8 @@ function NewRecipe() {
                       <div className="flex min-w-15 items-center justify-center">Move</div>
                       <div className="flex flex-6 items-center">
                         <div className="flex flex-8 justify-center ">Name</div>
-                        {/* <div className="flex flex-3 justify-center ">Style</div> */}
+                        <div className="hidden sm:flex flex-3 justify-center ">Style</div>
+                        <div className="sm:hidden flex w-4"></div>
                         <div className="flex flex-3 justify-center ">Qnty</div>
                         <div className="flex flex-4 justify-center ">Unit</div>
                         <div className="flex flex-3 justify-center ">Cost</div>
@@ -1697,7 +1699,7 @@ function NewRecipe() {
                                   </div>
 
                                   {/* 4th column - style of ingredient (eg. finely chopped, grated, julian, slice, etc...) */}
-                                  {/* <div className="flex flex-3 p-1 min-w-7 justify-center ">
+                                  <div className="hidden sm:flex flex-3 p-1 min-w-7 justify-center ">
                                     <Input
                                       className="flex w-full p-0.5 rounded placeholder:text-gray-500 text-xs h-[93%]"
                                       placeholder={"dice, grated,chopped,etc.."}
@@ -1709,7 +1711,16 @@ function NewRecipe() {
                                       onBlur={(e) => {}}
                                       error={ing?.errors?.errorStyle ?? ""}
                                     />
-                                  </div> */}
+                                  </div>
+
+                                  {ing.name && (
+                                    <div className="flex px-1 pt-1 items-center sm:hidden">
+                                      <MdModeEditOutline />
+                                    </div>
+                                  )}
+                                  {!ing.name && (
+                                    <div className="flex px-1 pt-1 w-6 items-center sm:hidden"></div>
+                                  )}
 
                                   {/* 4th column - quantity */}
                                   <div className="flex flex-3 p-1 min-w-7 justify-center ">

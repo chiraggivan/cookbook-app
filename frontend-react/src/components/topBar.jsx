@@ -311,9 +311,9 @@ function TopBar() {
                   </SidebarItemGroup>
 
                   <SidebarItemGroup>
-                    <SidebarItem icon={ProfileIcon}>Account</SidebarItem>
+                    {/* <SidebarItem icon={ProfileIcon}>Account</SidebarItem> */}
                     <SidebarItem
-                      icon={GiSettingsKnobs}
+                      icon={IoMdSettings}
                       onClick={() => {
                         setIsOpen(false);
                         navigate("/user/settings");

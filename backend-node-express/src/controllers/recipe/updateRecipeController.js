@@ -272,17 +272,6 @@ exports.update_recipe = async (req, res) => {
 
     // ------------------validation of every field of data done, now cross check db -------------------------------
 
-    // Validate user_id exists
-    const [userRows] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
-    if (userRows.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: `User not found`,
-      });
-    }
-
     // Validate if recipe exists and belongs to user
     const [recipeRows] = await db.query(
       `SELECT name, portion_size FROM recipes WHERE user_id = ? AND recipe_id = ? AND is_active = 1`,
@@ -568,10 +557,12 @@ exports.update_recipe = async (req, res) => {
 
     // Validate add_ingredients and update_ingredients
     const updateIngredients = data.update_ingredients || [];
+
     const ingredientOperations = [
       { action: "add", ingredients: addIngredients || [] },
       { action: "update", ingredients: updateIngredients || [] },
     ];
+    // console.log("data.update_ingredients :", data.update_ingredients);
     for (const { action, ingredients } of ingredientOperations) {
       for (const ing of ingredients) {
         let oldIngId = null;
@@ -802,7 +793,7 @@ exports.update_recipe = async (req, res) => {
         }
       }
     }
-
+    // console.log("data.update_ingredients :", data.update_ingredients);
     // ------------------------------------ below validating steps data -------------------------------------------------
 
     // Validate remove_steps against the database
@@ -943,6 +934,7 @@ exports.update_recipe = async (req, res) => {
     //   message: "validation done. final one",
     //   data,
     // });
+
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
@@ -1117,6 +1109,7 @@ exports.update_recipe = async (req, res) => {
         for (const ing of ingredients) {
           // Find recipe_component_id from component_display_order to
           // store as component_id in new ingredient for new component
+
           const componentQuery = `
             SELECT recipe_component_id FROM recipe_components 
             WHERE recipe_id = ? AND display_order = ? AND is_active = 1 
@@ -1151,13 +1144,15 @@ exports.update_recipe = async (req, res) => {
           `;
             const checkValues = [recipeId, ing.ingredient_id, ing.ingredient_source];
             const [result] = await conn.query(checkQuery, checkValues);
+
             if (result.length > 0) {
               const riId = result[0].recipe_ingredient_id;
 
               // Reuse inactive ingredient by activating it
               const updateQuery = `
                 UPDATE recipe_ingredients 
-                SET quantity = ?, 
+                SET ingredient_style = ?,
+                quantity = ?, 
                 unit_id = ?, 
                 display_order = ?, 
                 component_id = ?, 
@@ -1166,6 +1161,7 @@ exports.update_recipe = async (req, res) => {
                 WHERE recipe_ingredient_id = ?
               `;
               const updateValues = [
+                ing.ingredient_style,
                 ing.quantity,
                 ing.unit_id,
                 ing.ingredient_display_order,
@@ -1186,12 +1182,13 @@ exports.update_recipe = async (req, res) => {
               // Insert new ingredient
               const insertQuery = `
                 INSERT INTO recipe_ingredients 
-                (recipe_id, ingredient_id, ingredient_source, quantity, unit_id, component_id, display_order, is_active)
-                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)
+                (recipe_id, ingredient_id, ingredient_style, ingredient_source, quantity, unit_id, component_id, display_order, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)
               `;
               const insertValues = [
                 recipeId,
                 ing.ingredient_id,
+                ing.ingredient_style,
                 ing.ingredient_source,
                 ing.quantity,
                 ing.unit_id,
@@ -1212,6 +1209,7 @@ exports.update_recipe = async (req, res) => {
             const updateQuery = `
             UPDATE recipe_ingredients 
             SET ingredient_id = ?, 
+            ingredient_style = ?,
             ingredient_source = ?, 
             quantity = ?, 
             unit_id = ?, 
@@ -1221,6 +1219,7 @@ exports.update_recipe = async (req, res) => {
           `;
             const updateValues = [
               ing.ingredient_id,
+              ing.ingredient_style,
               ing.ingredient_source,
               ing.quantity,
               ing.unit_id,

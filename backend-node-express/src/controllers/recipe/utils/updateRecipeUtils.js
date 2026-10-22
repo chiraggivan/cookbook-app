@@ -105,6 +105,7 @@ function normalizeRecipeIngredientDataForUpdate(data) {
   const updateIngredientFields = [
     "recipe_ingredient_id",
     "ingredient_id",
+    "ingredient_style",
     "ingredient_source",
     "quantity",
     "unit_id",
@@ -124,6 +125,11 @@ function normalizeRecipeIngredientDataForUpdate(data) {
       updateIngredientFields.forEach((field) => {
         const value = upIng[field];
 
+        if (field === "ingredient_style" && value === null) {
+          cleanedUpIng[field] = value;
+          return;
+        }
+
         if (value === null || value === undefined) {
           return;
         } else if (typeof value === "string") {
@@ -141,6 +147,7 @@ function normalizeRecipeIngredientDataForUpdate(data) {
   // Check and normalize add_ingredients
   const addIngredientFields = [
     "ingredient_id",
+    "ingredient_style",
     "ingredient_source",
     "quantity",
     "unit_id",
@@ -440,6 +447,14 @@ function validateRecipeIngredientForUpdate(data) {
         if (ingredientId !== null && ingredientId !== undefined) {
           if (!ingredientId || !Number.isInteger(ingredientId) || ingredientId <= 0) {
             return `Invalid ingredient id '${ingredientId}': must be int > 0`;
+          }
+        }
+
+        // ingredient_style
+        const ingredientStyle = ing.ingredient_style;
+        if (ingredientStyle !== null && ingredientStyle !== undefined) {
+          if (ingredientStyle.length >= 18) {
+            return `Invalid ingredient style '${ingredientStyle}': must be int < 19`;
           }
         }
 

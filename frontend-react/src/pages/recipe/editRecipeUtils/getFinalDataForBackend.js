@@ -5,8 +5,23 @@ export function getFinalDataForBackend(recipeInfo, OgData) {
   const OgRecipe = OgData.recipe || {};
   const components = recipeInfo.components || [];
   const OgComponents = OgData.components || [];
+  // ingredients and making sure for empty value("" or "   ") of style to be converted to null before sending
   const ingredients = components.flatMap((comp) => comp.ingredients) || [];
+  ingredients.forEach((i) => {
+    if (i.ingredientStyle?.trim() === "") {
+      i.ingredientStyle = null;
+    }
+  });
   const OgIngredients = OgComponents.flatMap((comp) => comp.ingredients) || [];
+  OgIngredients.forEach((i) => {
+    if (i.ingredientStyle?.trim() === "") {
+      i.ingredientStyle = null;
+    }
+  });
+
+  // console.log("ingredients :", ingredients);
+  // console.log("OgIngredients :", OgIngredients);
+
   const steps = recipeInfo.steps || [];
   const OgSteps = OgData.steps || [];
 
@@ -27,9 +42,7 @@ export function getFinalDataForBackend(recipeInfo, OgData) {
   finalDataToSent.update_components = [];
   finalDataToSent.remove_components = [];
 
-  // console.log("ingredients :", ingredients);
-  // console.log("OgIngredients :", OgIngredients);
-
+  // return "test";
   // -------------------------------------------------  Components ---------------------------------------------------------------
   // get add_components and update_components values by comparing OgData and newData(recipeInfo)
   components.forEach((comp) => {
@@ -107,11 +120,19 @@ export function getFinalDataForBackend(recipeInfo, OgData) {
         updtIng.ingredient_id = ing.ingredientId;
         updtIng.ingredient_source = ing.ingredientSource;
       }
+      //  check ingredient style
+      if (ing.ingredientStyle !== OgIng.ingredientStyle) {
+        updtIng.recipe_ingredient_id = ing.recipeIngredientId;
+        updtIng.ingredient_style = ing.ingredientStyle;
+      }
+
       //  check ingredient_source --> NOT required as dont have direct access, it should show with the change in ingredientID
-      // if (ing.ingredientSource !== OgIng.ingredientSource) {
-      //   updtIng.recipe_ingredient_id = ing.recipeIngredientId;
-      //   updtIng.ingredient_source = ing.ingredientSource;
-      // }
+      if (ing.ingredientSource !== OgIng.ingredientSource) {
+        updtIng.recipe_ingredient_id = ing.recipeIngredientId;
+        updtIng.ingredient_source = ing.ingredientSource;
+        updtIng.ingredient_id = ing.ingredientId;
+      }
+
       //  check quantity
       if (ing.quantity !== OgIng.quantity) {
         updtIng.recipe_ingredient_id = ing.recipeIngredientId;
@@ -137,9 +158,10 @@ export function getFinalDataForBackend(recipeInfo, OgData) {
         finalDataToSent.update_ingredients.push(updtIng);
       }
     } else {
-      // ----------------------------- add_ingredients logic
+      // ----------------------------- add_ingredients logic(as recipeIngredientId not available in row) --------------------------
       const addIng = {};
       addIng.ingredient_id = ing.ingredientId;
+      addIng.ingredient_style = ing.ingredientStyle;
       addIng.ingredient_source = ing.ingredientSource;
       addIng.quantity = ing.quantity;
       addIng.unit_id = ing.unitId;
