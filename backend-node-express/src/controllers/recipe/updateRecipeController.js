@@ -182,6 +182,15 @@ exports.update_privacy = async (req, res) => {
 
 // update recipe image
 exports.update_recipe_image = async (req, res) => {
+  // if DEMO account then return immediately
+  if (req.user.role === "demo") {
+    return res.json({
+      success: false,
+      message: "Demo account. Cannot make any changes!!!",
+      role: "demo",
+    });
+  }
+
   // console.log("USER:", req.user);
   console.log("FILE:", req.file);
 
@@ -242,6 +251,24 @@ exports.update_recipe = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const recipeId = Number(req.params.recipeId);
+
+    // console.log("user is :", user);
+
+    // if DEMO account then return immediately
+    if (user.role === "demo") {
+      return res.json({
+        success: false,
+        message: "Demo account. Cannot make any changes!!!",
+        role: "demo",
+      });
+    }
+
+    // // BREAK POINT
+    // return res.json({
+    //   success: false,
+    //   message: "forced breakpoint",
+    //   role: "demo",
+    // });
 
     // console.log("body : ", req.body);
     if (!req.body) {
@@ -1517,7 +1544,7 @@ exports.update_recipe = async (req, res) => {
     // console.log("got the new updated recipe details and about to  send via response");
 
     // response the data----------------------- X X X --------------------------------------------------
-    res.json({
+    return res.json({
       success: updatedRecipeDetails.success,
       message: updatedRecipeDetails.message,
       data: updatedRecipeDetails.data,

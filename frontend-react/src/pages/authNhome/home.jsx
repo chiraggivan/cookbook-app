@@ -33,8 +33,8 @@ function Home() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
-  // const user = JSON.parse(localStorage.getItem("user"));
-  // console.log("user is:", user);
+  const user = JSON.parse(localStorage.getItem("user"));
+  console.log("user is:", user);
 
   const method = "get";
   const url = `${serverURL}/recipe/api/all`;

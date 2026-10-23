@@ -1271,6 +1271,11 @@ function EditRecipe() {
         // call api
         const res = await api[method](url, body);
         // console.log("response is :", res);
+        // TEMP alert message for demo account
+        if (res?.data?.success === false && res?.data?.role === "demo") {
+          window.alert(res?.data?.message);
+          return;
+        }
         const x = res.data.data;
         setRecipeDetails((prev) =>
           prev.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),

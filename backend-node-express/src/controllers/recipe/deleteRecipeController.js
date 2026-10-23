@@ -5,6 +5,15 @@ exports.delete_recipe = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
 
+    // if DEMO account then return immediately
+    if (user.role === "demo") {
+      return res.json({
+        success: false,
+        message: "Demo account. Cannot make any changes!!!",
+        role: "demo",
+      });
+    }
+
     const recipeId = Number(req.params.recipeId);
 
     if (!recipeId || recipeId < 1 || !Number.isInteger(recipeId)) {

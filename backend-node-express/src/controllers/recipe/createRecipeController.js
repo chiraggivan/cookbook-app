@@ -127,6 +127,16 @@ exports.get_ingredient_units = async (req, res) => {
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
   // console.log("user in create recipe is:", user);
+
+  // if DEMO account then return immediately
+  if (user.role === "demo") {
+    return res.json({
+      success: false,
+      message: "Demo account. Cannot make any changes!!!",
+      role: "demo",
+    });
+  }
+
   const country_id = user.country_id; // required to be saved in user_price or user_ingredient tables for any updates of ing values
 
   // check if data is available
@@ -386,6 +396,15 @@ exports.create_recipe = async (req, res) => {
 exports.add_recipe_image = async (req, res) => {
   // console.log("USER:", req.user);
   // console.log("FILE:", req.file);
+
+  // if DEMO account then return immediately
+  if (user.role === "demo") {
+    return res.json({
+      success: false,
+      message: "Demo account. Cannot make any changes!!!",
+      role: "demo",
+    });
+  }
 
   // check if file is received here in controller
   if (!req.file) {
