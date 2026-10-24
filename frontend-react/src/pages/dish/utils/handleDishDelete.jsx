@@ -19,6 +19,7 @@ export async function HandleDishDelete({ id, token, navigate }) {
     } else {
       // alert("Alert from handleDishDelete", res?.data?.message);
       console.log("Error during HandleDishDelete :", res);
+
       return;
     }
   } catch (err) {

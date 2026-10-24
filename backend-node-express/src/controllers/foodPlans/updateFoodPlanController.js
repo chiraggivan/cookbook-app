@@ -452,6 +452,15 @@ exports.update_day_food_plan = async (req, res) => {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
     const data = req.body;
 
+    // if DEMO account then return immediately
+    if (user.role === "demo") {
+      return res.status(403).json({
+        success: false,
+        message: "Demo account. Cannot update Day Food Planner!!!",
+        role: "demo",
+      });
+    }
+
     const foodPlanId = data?.food_plan_id;
     if (!foodPlanId) {
       res.json({

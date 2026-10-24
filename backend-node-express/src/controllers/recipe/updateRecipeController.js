@@ -183,10 +183,11 @@ exports.update_privacy = async (req, res) => {
 // update recipe image
 exports.update_recipe_image = async (req, res) => {
   // if DEMO account then return immediately
-  if (req.user.role === "demo") {
-    return res.json({
+  const user = req.user;
+  if (user.role === "demo") {
+    return res.status(403).json({
       success: false,
-      message: "Demo account. Cannot make any changes!!!",
+      message: "Demo account. No images are saved!!!",
       role: "demo",
     });
   }
@@ -256,7 +257,7 @@ exports.update_recipe = async (req, res) => {
 
     // if DEMO account then return immediately
     if (user.role === "demo") {
-      return res.json({
+      return res.status(403).json({
         success: false,
         message: "Demo account. Cannot make any changes!!!",
         role: "demo",

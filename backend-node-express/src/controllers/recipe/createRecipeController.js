@@ -124,15 +124,17 @@ exports.get_ingredient_units = async (req, res) => {
   }
 };
 
+// create new recipe
 exports.create_recipe = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
   // console.log("user in create recipe is:", user);
 
   // if DEMO account then return immediately
+  // const user = req.user;
   if (user.role === "demo") {
-    return res.json({
+    return res.status(403).json({
       success: false,
-      message: "Demo account. Cannot make any changes!!!",
+      message: "Demo account. New recipe cant be saved!!!",
       role: "demo",
     });
   }
@@ -393,15 +395,14 @@ exports.create_recipe = async (req, res) => {
   }
 };
 
+// Add image during create recipe
 exports.add_recipe_image = async (req, res) => {
-  // console.log("USER:", req.user);
-  // console.log("FILE:", req.file);
-
   // if DEMO account then return immediately
+  const user = req.user;
   if (user.role === "demo") {
-    return res.json({
+    return res.status(403).json({
       success: false,
-      message: "Demo account. Cannot make any changes!!!",
+      message: "Demo account. No images are saved!!!",
       role: "demo",
     });
   }

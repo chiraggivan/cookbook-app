@@ -28,20 +28,19 @@ function DishDetails() {
   const handleDelete = async (e, id, token, navigate) => {
     e.preventDefault();
 
-    // if (
-    //   window.confirm(
-    //     `Are you sure you want to delete this recipe - ${foundDish?.dish.recipe_name}, prepared on ${foundDish?.dish.preparation_date}`,
-    //   )
-    // ) {
     try {
       await HandleDishDelete({ id, token, navigate });
       return;
     } catch (err) {
       console.log("catch block Failed to delete item", err);
+      // WINDOW ALERT Condition for Demo account
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        window.alert(err.response.data?.message || "forbidden to do this.");
+        return;
+      }
       // console.log(err.response?.foundDish?.message);
       // alert(err.response?.foundDish?.message);
     }
-    // }
   };
 
   // ------------------------------------ Redirect effect -----------------------------------------------------

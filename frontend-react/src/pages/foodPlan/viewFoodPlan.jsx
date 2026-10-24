@@ -108,8 +108,13 @@ function ViewFoodPlan() {
         const response = await api[method](url);
         setFoodplanData(response.data?.data);
         setFoodplanId(response.data?.data.food_plan_id);
-      } catch (error) {
-        console.log("Error while saving edited dayplan data in viewFoodPlan page:", error.response);
+      } catch (err) {
+        console.log("Error while saving edited dayplan data in viewFoodPlan page:", err.response);
+        // WINDOW ALERT Condition for Demo account
+        if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+          window.alert(err.response.data?.message || "forbidden to do this.");
+          return;
+        }
       } finally {
         setIsLoading(false);
       }

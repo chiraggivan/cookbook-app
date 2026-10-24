@@ -3,6 +3,15 @@ const db = require("../../config/database");
 exports.delete_dish = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+    // if DEMO account then return immediately
+    if (user.role === "demo") {
+      return res.status(403).json({
+        success: false,
+        message: "Demo account. Cannot delete dish.",
+        role: "demo",
+      });
+    }
+
     const dishId = Number(req.params.dishId);
     if (!dishId || dishId < 1 || !Number.isInteger(dishId)) {
       return res.status(404).json({

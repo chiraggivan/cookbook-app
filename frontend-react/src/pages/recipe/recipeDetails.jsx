@@ -188,15 +188,9 @@ function RecipeDetails() {
     }
   };
 
-  //----------------------------------- delete button function -------------------------------------------------
+  //----------------------------------- delete recipe button function -------------------------------------------------
   const handleDelete = async (e) => {
     e.preventDefault();
-
-    // if (
-    //   window.confirm(
-    //     `Are you sure you want to delete this recipe - ${foundRecipeDetails?.recipe.name}`,
-    //   )
-    // ) {
     const deleteurl = `/recipe/api/delete/${id}`;
     try {
       const res = await api.delete(deleteurl);
@@ -218,13 +212,15 @@ function RecipeDetails() {
         return;
       }
     } catch (err) {
-      // console.log(err.response?.data?.message);
+      console.log("Error while deleting recipe :", err.response?.data?.message);
+      // WINDOW ALERT Condition for Demo account
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        window.alert(err.response.data?.message || "forbidden to do this.");
+        return;
+      }
       alert(err.response?.data?.message);
       return;
     }
-    // } else {
-    //   console.log("cancelled");
-    // }
   };
 
   // ------------------------------------- create DISH button function  ----------------------------------------
@@ -280,7 +276,26 @@ function RecipeDetails() {
       setSuccessAlert(true);
       return;
     } catch (err) {
-      // console.log("response message for dish created button:", err.response);
+      console.log("Error for dish created button:", err.response);
+      // WINDOW ALERT Condition for Demo account
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        window.alert(
+          err.response?.data?.message +
+            " This section will be temporarily updated for viewing, but the changes won't be saved. Refreshing the page will restore the previous values." ||
+            "forbidden to do this.",
+        );
+        setFoundRecipeDetails((prev) => ({
+          ...prev,
+          recipe: {
+            ...prev.recipe,
+            last_prepared_date: additionalData.date,
+            meal: mealObject.name,
+          },
+        }));
+        setIsDishModalOpen(false);
+        setSuccessAlert(true);
+        return;
+      }
       // console.log(err.response?.data?.message);
       setIsAlert(true);
       setAlertMsg(err.response?.data?.message);
@@ -318,7 +333,7 @@ function RecipeDetails() {
     }
   };
 
-  // -------------------- update the base values of ingredient thru modal for small screen -----------------------
+  // -------------------- update the base values of ingredient thru modal -----------------------
   const updateBaseValues = async (compUid, ingUid, updateQuantity, updateUnit, updatePrice) => {
     const method = "put";
     const url = `/ingredient/api/edit/baseValues/${ingId}`;
@@ -338,7 +353,7 @@ function RecipeDetails() {
       const convFactList = res?.data?.conversionList;
       const custom_price = res?.data?.custom_price;
 
-      // updae the current page to updated price of ingredient
+      // update the current page to updated price of ingredient
       const updatedIngrediientsData = foundRecipeDetails.ingredients.map((i) => {
         return i.ingredient_id === ingId && i.ingredient_source === ingSource
           ? {
@@ -352,8 +367,34 @@ function RecipeDetails() {
       });
 
       setFoundRecipeDetails((prev) => ({ ...prev, ingredients: updatedIngrediientsData }));
-    } catch (error) {
-      console.log("Error while update base values :", error);
+    } catch (err) {
+      console.log("Error while update base values :", err);
+      // WINDOW ALERT Condition for Demo account ///////////////////////////////////////
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        const convFactList = err.response?.data?.conversionList;
+        const custom_price = err.response?.data?.custom_price;
+        // update the current page to updated price of ingredient
+        const updatedIngrediientsData = foundRecipeDetails.ingredients.map((i) => {
+          return i.ingredient_id === ingId && i.ingredient_source === ingSource
+            ? {
+                ...i,
+                cost: Number(updatePrice),
+                base_quantity: Number(updateQuantity),
+                unit: updateUnit,
+                price: i.quantity * custom_price * Number(convFactList[i.unit_name]),
+              }
+            : i;
+        });
+        setFoundRecipeDetails((prev) => ({ ...prev, ingredients: updatedIngrediientsData }));
+        setIsEditBaseValuesOpen(false);
+        window.alert(
+          err.response.data?.message +
+            " This section will be temporarily updated for viewing, but the changes won't be saved. Refreshing the page will restore the previous values." ||
+            "forbidden to do this.",
+        );
+        return;
+      }
+      ///////////////////////////////////////////////////////////////////////////////////
       window.alert(`Error While updating Base price of ${ingName}`);
     } finally {
       setIsMiniLoading(false);

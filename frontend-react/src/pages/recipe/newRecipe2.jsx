@@ -130,7 +130,7 @@ function NewRecipe() {
     fileInputRef.current?.click();
   };
 
-  // -------------------------------------------- Handle image Cange  --------------------------------------------
+  // -------------------------------------------- Handle image Change  --------------------------------------------
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     // console.log("file is :", file);
@@ -172,6 +172,13 @@ function NewRecipe() {
         setImgUploadSuccessMsg("Image uploaded successfully");
       } catch (err) {
         console.log("Error in New recipe - while sending image file:", err.response);
+        // WINDOW ALERT Condition for Demo account
+        if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+          setUploadProgress(0);
+          setImgUploadSuccessMsg("Failed to upload image.");
+          window.alert(err.response.data?.message || "forbidden to do this.");
+          return;
+        }
         setPreviewImage(null);
       }
     };
@@ -1229,6 +1236,11 @@ function NewRecipe() {
         navigate(`/recipe/${newData.recipe.recipe_id}`);
       } catch (err) {
         console.log("err found during saving new recipe api: ", err.response);
+        // WINDOW ALERT Condition for Demo account
+        if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+          window.alert(err.response.data?.message || "forbidden to do this.");
+          return;
+        }
         setErrorMessage(`Error while saving recipe. Try again later.`);
         setIsLoading(false);
         return;

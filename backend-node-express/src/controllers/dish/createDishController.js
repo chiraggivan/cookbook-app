@@ -5,6 +5,15 @@ exports.create_dish = async (req, res) => {
   const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
   // const data = req.body;
 
+  // if DEMO account then return immediately
+  if (user.role === "demo") {
+    return res.status(403).json({
+      success: false,
+      message: "Demo account. Cannot create dish.",
+      role: "demo",
+    });
+  }
+
   if (!req.body) {
     return res.status(500).json({
       success: false,

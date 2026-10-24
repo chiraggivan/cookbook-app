@@ -4,6 +4,16 @@ const db = require("../../config/database");
 exports.delete_user_ingredient = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
+
+    // if DEMO account then return immediately
+    if (user.role === "demo") {
+      return res.status(403).json({
+        success: false,
+        message: "Demo account. Cannot delete ingredient!!!",
+        role: "demo",
+      });
+    }
+
     const ingId = Number(req.params.ingId);
     // validate ingId
     if (!ingId || ingId < 1 || !Number.isInteger(ingId)) {

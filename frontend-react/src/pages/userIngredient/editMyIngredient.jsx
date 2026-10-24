@@ -242,6 +242,11 @@ function EditIngredient() {
       navigate("/myIngredients");
     } catch (err) {
       console.log("Error found in EditMyIngredient while updating :", err.response);
+      // WINDOW ALERT Condition for Demo account
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        window.alert(err.response.data?.message || "forbidden to do this.");
+        return;
+      }
       setErrorMessage(err.response?.data.message);
     }
   };
@@ -268,7 +273,12 @@ function EditIngredient() {
         return;
       }
     } catch (err) {
-      console.log(err.response?.data?.message);
+      console.log("Error while deleting my Ingredient :", err);
+      // WINDOW ALERT Condition for Demo account
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        window.alert(err.response.data?.message || "forbidden to do this.");
+        return;
+      }
       alert(err.response?.data?.message);
       return;
     }

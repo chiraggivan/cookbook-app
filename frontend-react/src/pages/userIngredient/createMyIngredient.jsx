@@ -196,6 +196,11 @@ function AddIngredient() {
       navigate("/myIngredients");
     } catch (err) {
       console.log("Error found in createMyIngredient while creating :", err.response);
+      // WINDOW ALERT Condition for Demo account
+      if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+        window.alert(err.response.data?.message || "forbidden to do this.");
+        return;
+      }
       setErrorMessage(err.response?.data.message);
     }
   };

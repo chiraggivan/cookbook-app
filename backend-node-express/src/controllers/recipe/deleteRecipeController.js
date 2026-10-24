@@ -7,13 +7,19 @@ exports.delete_recipe = async (req, res) => {
 
     // if DEMO account then return immediately
     if (user.role === "demo") {
-      return res.json({
+      return res.status(403).json({
         success: false,
-        message: "Demo account. Cannot make any changes!!!",
+        message: "Demo account. Cannot delete this recipe!!!",
         role: "demo",
       });
     }
 
+    // // BREAK POINT
+    // return res.status(403).json({
+    //   success: false,
+    //   message: "forced breakpoint",
+    //   role: "demo",
+    // });
     const recipeId = Number(req.params.recipeId);
 
     if (!recipeId || recipeId < 1 || !Number.isInteger(recipeId)) {

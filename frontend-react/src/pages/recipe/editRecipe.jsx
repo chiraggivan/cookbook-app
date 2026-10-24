@@ -191,6 +191,13 @@ function EditRecipe() {
         // setImageURL(res?.data?.file?.path);
       } catch (err) {
         console.log("Error in edit recipe- while sending image file:", err.response);
+        // WINDOW ALERT Condition for Demo account
+        if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+          setUploadProgress(0);
+          setImgUploadSuccessMsg("Failed to upload image.");
+          window.alert(err.response.data?.message || "forbidden to do this.");
+          return;
+        }
         setPreviewImage(null);
       }
     };
@@ -1271,11 +1278,6 @@ function EditRecipe() {
         // call api
         const res = await api[method](url, body);
         // console.log("response is :", res);
-        // TEMP alert message for demo account
-        if (res?.data?.success === false && res?.data?.role === "demo") {
-          window.alert(res?.data?.message);
-          return;
-        }
         const x = res.data.data;
         setRecipeDetails((prev) =>
           prev.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
@@ -1294,8 +1296,13 @@ function EditRecipe() {
         );
         navigate(`/recipe/${id}`);
       } catch (err) {
-        window.alert(`Error while  finalData recipe update with database`);
         console.log("error while updating finalData with axios is :", err.response.data.message);
+        // WINDOW ALERT Condition for Demo account
+        if (err.response?.status === 403 && err.response?.data?.role === "demo") {
+          window.alert(err.response.data?.message || "forbidden to do this.");
+          return;
+        }
+        window.alert(`Error while updating recipe. Retry later`);
       } finally {
         setIsLoading(false);
       }

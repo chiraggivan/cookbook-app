@@ -209,7 +209,7 @@ exports.udpate_ing_base_values = async (req, res) => {
       });
     }
 
-    // initialise variables for data from the body
+    // ------------ initialise variables for data from the body ---------------
     const display_quantity = Number(data.display_quantity);
     const display_unit = data.display_unit;
     const display_price = Number(data.display_price);
@@ -244,6 +244,16 @@ exports.udpate_ing_base_values = async (req, res) => {
         conversionList[i.unit_name] = Number(i.conversion_factor);
       }
 
+      // if DEMO account then return immediately
+      if (user.role === "demo") {
+        return res.status(403).json({
+          success: false,
+          message: "Demo account. Cannot update Day Food Planner!!!",
+          role: "demo",
+          conversionList,
+          custom_price,
+        });
+      }
       // BREAK POINT
       // return res.json({
       //   success: true,
@@ -251,7 +261,7 @@ exports.udpate_ing_base_values = async (req, res) => {
       //   custom_price,
       //   conversionList,
       // });
-      // ----------------------------------------------
+      // ------------------------------------ start with DB updation ------------------------------
       const conn = await db.getConnection();
 
       const deleteQuery = `UPDATE user_prices SET is_active = 0 
