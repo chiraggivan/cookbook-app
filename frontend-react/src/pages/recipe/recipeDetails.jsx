@@ -30,6 +30,7 @@ import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 import EditBaseValuesModal from "../../components/editBaseValuesModal";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
+import NotFoundPage from "../../components/notFoundPage";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -42,7 +43,7 @@ function RecipeDetails() {
   // const { state } = useLocation(); // ---> used while updating recipeDetails (not required now)
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isNotFound, setIsNotFound] = useState(false);
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [isLoading, setIsLoading] = useState(true);
@@ -50,11 +51,11 @@ function RecipeDetails() {
   const [isRecipeOwner, setIsRecipeOwner] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState("");
   const [isAlert, setIsAlert] = useState(false);
   const [successAlert, setSuccessAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
-  const [switch1, setSwitch1] = useState(false);
-  const [selectedMeal, setSelectedMeal] = useState("");
+
   const [changePrice, setChangePrice] = useState(false);
 
   const navigate = useNavigate();
@@ -66,7 +67,6 @@ function RecipeDetails() {
     },
   };
 
-  const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
 
   // variable for base price change
@@ -121,7 +121,10 @@ function RecipeDetails() {
           setFoundRecipeDetails(tempRecipe);
         } catch (err) {
           console.log("error while fetching reicpe details with axios is :", err.response);
-          // window.alert("Something went wrong while fetching recipe. Please try again later.");
+          if (err.response?.status === 404) {
+            setIsNotFound(true);
+            return;
+          }
         } finally {
           setIsLoading(false);
         }
@@ -593,325 +596,252 @@ function RecipeDetails() {
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
       <div className="flex flex-col mt-(--top-bar-height) md:ml-(--left-side-bar)">
-        <div className="flex flex-col mt-1 w-full max-w-5xl lg:mx-auto">
-          {/* Recipe Name header & recipe by OR option button */}
-          <div className="flex flex-col relative">
-            <div
-              className={
-                isRecipeOwner
-                  ? `flex pl-2 pr-12 max-w-sm font-extrabold text-xl 
+        {isNotFound ? (
+          <NotFoundPage />
+        ) : (
+          <div className="flex flex-col mt-1 w-full max-w-5xl lg:mx-auto">
+            {/* Recipe Name header & recipe by OR option button */}
+            <div className="flex flex-col relative">
+              <div
+                className={
+                  isRecipeOwner
+                    ? `flex pl-2 pr-12 max-w-sm font-extrabold text-xl 
                               md:text-2xl md:max-w-lg
                               lg:text-3xl lg:max-w-xl`
-                  : `flex pl-2 pr-6 pb-6 max-w-sm font-extrabold text-xl 
+                    : `flex pl-2 pr-6 pb-6 max-w-sm font-extrabold text-xl 
                               md:text-2xl md:max-w-lg
                               lg:text-3xl lg:max-w-xl`
-              }
-            >
-              {capitaliseWords(foundRecipeDetails?.recipe.name)}
+                }
+              >
+                {capitaliseWords(foundRecipeDetails?.recipe.name)}
+              </div>
+
+              {/* Show recipe owner details if different from user */}
+              {isRecipeOwner === false && (
+                <div className="absolute flex space-x-1 right-3 bottom-0 hover:cursor-pointer">
+                  <div className="font-semibold">-</div>
+                  <p onClick={() => navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`)}>
+                    {foundRecipeDetails?.recipe.username ??
+                      foundRecipeDetails?.recipe.dislay_name ??
+                      foundRecipeDetails?.recipe.email}
+                  </p>
+                </div>
+              )}
+
+              {/* show triple option for delete recipe for owner */}
+              {isRecipeOwner === true && (
+                <div className="absolute right-2 top-0 scale-125  rounded-full transition duration-300">
+                  <Dropdown
+                    label=""
+                    dismissOnClick={false}
+                    renderTrigger={() => (
+                      <span className="flex w-full h-full items-center justify-center p-2 hover:bg-amber-100 rounded-full">
+                        <SlOptionsVertical className="" />
+                      </span>
+                    )}
+                  >
+                    <DropdownItem
+                      className="flex gap-2"
+                      onClick={() => navigate(`/recipe/edit/${id}`)}
+                    >
+                      <MdOutlineEditNote className="w-4 h-4" /> Edit
+                    </DropdownItem>
+                    <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
+                      <HiPrinter className="w-4 h-4" /> Print
+                    </DropdownItem>
+                    <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
+                      <HiShare className="w-4 h-4" /> Share
+                    </DropdownItem>
+                    <DropdownItem
+                      className="flex gap-2 text-sm text-app-danger"
+                      onClick={() => setIsConfirmModalOpen(true)}
+                    >
+                      <HiTrash className=" w-4 h-4" />
+                      Delete
+                    </DropdownItem>
+                  </Dropdown>
+                </div>
+              )}
             </div>
 
-            {/* Show recipe owner details if different from user */}
-            {isRecipeOwner === false && (
-              <div className="absolute flex space-x-1 right-3 bottom-0 hover:cursor-pointer">
-                <div className="font-semibold">-</div>
-                <p onClick={() => navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`)}>
-                  {foundRecipeDetails?.recipe.username ??
-                    foundRecipeDetails?.recipe.dislay_name ??
-                    foundRecipeDetails?.recipe.email}
-                </p>
-              </div>
-            )}
-
-            {/* show triple option for delete recipe for owner */}
-            {isRecipeOwner === true && (
-              <div className="absolute right-2 top-0 scale-125  rounded-full transition duration-300">
-                <Dropdown
-                  label=""
-                  dismissOnClick={false}
-                  renderTrigger={() => (
-                    <span className="flex w-full h-full items-center justify-center p-2 hover:bg-amber-100 rounded-full">
-                      <SlOptionsVertical className="" />
-                    </span>
-                  )}
-                >
-                  <DropdownItem
-                    className="flex gap-2"
-                    onClick={() => navigate(`/recipe/edit/${id}`)}
-                  >
-                    <MdOutlineEditNote className="w-4 h-4" /> Edit
-                  </DropdownItem>
-                  <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
-                    <HiPrinter className="w-4 h-4" /> Print
-                  </DropdownItem>
-                  <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
-                    <HiShare className="w-4 h-4" /> Share
-                  </DropdownItem>
-                  <DropdownItem
-                    className="flex gap-2 text-sm text-app-danger"
-                    onClick={() => setIsConfirmModalOpen(true)}
-                  >
-                    <HiTrash className=" w-4 h-4" />
-                    Delete
-                  </DropdownItem>
-                </Dropdown>
-              </div>
-            )}
-          </div>
-
-          {/* Recipe Details and image */}
-          <div className="flex  flex-col-reverse mt-4 lg:max-h-60 lg:flex-row lg:w-full  lg:justify-between">
-            {/* recipe details */}
-            <div className="flex flex-col w-full justify-center lg:max-w-lg">
-              {/* portion-size, privacy and cost */}
-              <div className="flex w-full justify-between px-2">
-                {/* portion size and privacy if owner */}
-                <div className="flex flex-col space-y-2">
-                  {/* Portion size field */}
-                  <div className="flex space-x-2 mt-2">
-                    <div className="font-semibold">Portion:</div>
-                    <div> {foundRecipeDetails?.recipe.portion_size}</div>
-                  </div>
-
-                  {/* toggle switch for private recipe */}
-                  {isRecipeOwner === true && (
-                    <div className="flex">
-                      <div>
-                        {!changePrvcyLoading && (
-                          <Toggle
-                            title="Private"
-                            checked={
-                              foundRecipeDetails?.recipe.privacy === "private" ? true : false
-                            }
-                            onText="Private"
-                            offText="Private"
-                            onChange={(e) => {
-                              setChangePrvcyLoading(true);
-                              setFoundRecipeDetails((prev) => ({
-                                ...prev,
-                                recipe: {
-                                  ...prev.recipe,
-                                  privacy: prev.recipe.privacy === "private" ? "public" : "private",
-                                },
-                              }));
-                              // setRecipeDetails((prev) =>
-                              //   prev.map((item) =>
-                              //     item.recipe.recipe_id === Number(id)
-                              //       ? {
-                              //           ...item,
-                              //           recipe: {
-                              //             ...item.recipe,
-                              //             privacy: e.target.checked ? "private" : "public",
-                              //           },
-                              //         }
-                              //       : item,
-                              //   ),
-                              // );
-                              changePrivacy(e.target.checked ? "private" : "public");
-                              setChangePrvcyLoading(false);
-                            }}
-                          />
-                        )}
-                        {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-                      </div>
+            {/* Recipe Details and image */}
+            <div className="flex  flex-col-reverse mt-4 lg:max-h-60 lg:flex-row lg:w-full  lg:justify-between">
+              {/* recipe details */}
+              <div className="flex flex-col w-full justify-center lg:max-w-lg">
+                {/* portion-size, privacy and cost */}
+                <div className="flex w-full justify-between px-2">
+                  {/* portion size and privacy if owner */}
+                  <div className="flex flex-col space-y-2">
+                    {/* Portion size field */}
+                    <div className="flex space-x-2 mt-2">
+                      <div className="font-semibold">Portion:</div>
+                      <div> {foundRecipeDetails?.recipe.portion_size}</div>
                     </div>
-                  )}
+
+                    {/* toggle switch for private recipe */}
+                    {isRecipeOwner === true && (
+                      <div className="flex">
+                        <div>
+                          {!changePrvcyLoading && (
+                            <Toggle
+                              title="Private"
+                              checked={
+                                foundRecipeDetails?.recipe.privacy === "private" ? true : false
+                              }
+                              onText="Private"
+                              offText="Private"
+                              onChange={(e) => {
+                                setChangePrvcyLoading(true);
+                                setFoundRecipeDetails((prev) => ({
+                                  ...prev,
+                                  recipe: {
+                                    ...prev.recipe,
+                                    privacy:
+                                      prev.recipe.privacy === "private" ? "public" : "private",
+                                  },
+                                }));
+                                // setRecipeDetails((prev) =>
+                                //   prev.map((item) =>
+                                //     item.recipe.recipe_id === Number(id)
+                                //       ? {
+                                //           ...item,
+                                //           recipe: {
+                                //             ...item.recipe,
+                                //             privacy: e.target.checked ? "private" : "public",
+                                //           },
+                                //         }
+                                //       : item,
+                                //   ),
+                                // );
+                                changePrivacy(e.target.checked ? "private" : "public");
+                                setChangePrvcyLoading(false);
+                              }}
+                            />
+                          )}
+                          {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* cost of recipe */}
+                  <div className="flex items-end text-3xl">
+                    {currencySymbol} {totalCost.toFixed(2)}
+                  </div>
                 </div>
 
-                {/* cost of recipe */}
-                <div className="flex items-end text-3xl">
-                  {currencySymbol} {totalCost.toFixed(2)}
-                </div>
-              </div>
-
-              {/* if Owner - Last prepared & create dish*/}
-              {isRecipeOwner && (
-                <div className="flex justify-between mt-2 px-2">
-                  <div className="flex flex-col space-x-2">
-                    <div className="font-semibold">Last Prepared:</div>
-                    <p>
-                      {(foundRecipeDetails?.recipe.last_prepared_date &&
-                        formattedDate(foundRecipeDetails?.recipe.last_prepared_date) +
-                          " for " +
-                          foundRecipeDetails?.recipe.meal) ||
-                        "No record of past"}
-                    </p>
-                  </div>
-                  {/* Create dish button */}
-                  <div className="hidden md:block">
-                    <Button
-                      className="cursor-pointer"
-                      color="dark"
-                      onClick={() => setIsDishModalOpen(true)}
-                    >
-                      <HiClipboardList className="mr-2 w-5 h-5" />
-                      create dish
-                    </Button>
-                  </div>
-                  <div className="block md:hidden ">
-                    <div
-                      className="flex w-17 h-17 rounded-full bg-gray-400 items-center justify-center
-                                  border border-gray-600 hover:bg-gray-500"
-                    >
+                {/* if Owner - Last prepared & create dish*/}
+                {isRecipeOwner && (
+                  <div className="flex justify-between mt-2 px-2">
+                    <div className="flex flex-col space-x-2">
+                      <div className="font-semibold">Last Prepared:</div>
+                      <p>
+                        {(foundRecipeDetails?.recipe.last_prepared_date &&
+                          formattedDate(foundRecipeDetails?.recipe.last_prepared_date) +
+                            " for " +
+                            foundRecipeDetails?.recipe.meal) ||
+                          "No record of past"}
+                      </p>
+                    </div>
+                    {/* Create dish button */}
+                    <div className="hidden md:block">
                       <Button
-                        className="cursor-pointer rounded-full w-15 h-15 "
+                        className="cursor-pointer"
                         color="dark"
                         onClick={() => setIsDishModalOpen(true)}
                       >
+                        <HiClipboardList className="mr-2 w-5 h-5" />
                         create dish
                       </Button>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* alert msg for succefully created dish record */}
-              {isRecipeOwner && successAlert && (
-                <div className="">
-                  <Alert
-                    color="success"
-                    icon={BsFillHandThumbsUpFill}
-                    onDismiss={() => setSuccessAlert(false)}
-                  >
-                    <span className="">Dish record successfully created</span>
-                    {alertMsg}
-                  </Alert>
-                </div>
-              )}
-            </div>
-
-            {/* recipe image */}
-            <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
-              {foundRecipeDetails?.recipe?.image_url && !imageError ? (
-                <img
-                  className="h-full w-full md:rounded-md"
-                  src={foundRecipeDetails?.recipe?.image_url}
-                  alt="Recipe Image"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
-              )}
-            </div>
-          </div>
-
-          {/* description of recipe */}
-          <div
-            className="flex px-2 mt-2 text-sm 
-                          md:text-md lg:text-lg lg:max-w-2/3 "
-          >
-            <div>
-              <span className="font-semibold">Description: </span>{" "}
-              {foundRecipeDetails?.recipe.description}
-            </div>
-          </div>
-
-          {/* Buttons for owner */}
-          {isRecipeOwner && (
-            <div className="hidden lg:flex justify-between p-2">
-              {/* Create edit button */}
-              <div className="">
-                <Button
-                  className="cursor-pointer bg-app-secondary"
-                  // color="light"
-                  onClick={() => navigate(`/recipe/edit/${id}`)}
-                >
-                  <MdOutlineEditNote className="mr-2 w-5 h-5" />
-                  Edit Recipe
-                </Button>
-              </div>
-
-              {/* Delete recipe */}
-              <div>
-                <Button
-                  className="cursor-pointer"
-                  color="red"
-                  onClick={() => setIsConfirmModalOpen(true)}
-                >
-                  <HiTrash className="mr-2 w-5 h-5" />
-                  Delete Recipe
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* tabs option of flowbite for smaller screen below lg */}
-          <Tabs
-            theme={{
-              tablist: {
-                tabitem: {
-                  variant: {
-                    fullWidth: {
-                      active: { on: "bg-app-primary text-white", off: "hover:bg-app-table-row" },
-                    },
-                  },
-                },
-              },
-            }}
-            className="flex lg:hidden mt-2"
-            aria-label="Tabs with icons"
-            variant="fullWidth"
-          >
-            {/* Ingredients */}
-            <TabItem active title="Ingredients" icon={GiAvocado}>
-              {/* change price button and mini loading screen when base price is being changed*/}
-              {isMiniLoading && (
-                <div className="flex w-full h-8 items-center justify-center">
-                  <Spinner
-                    theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
-                    color="default"
-                    aria-label="Loading"
-                    size="xl"
-                  />
-                </div>
-              )}
-              {!isMiniLoading && (
-                <div className="flex justify-end pr-2 text-sm h-8">
-                  <div
-                    className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
-                    onClick={() => setChangePrice(!changePrice)}
-                  >
-                    {changePrice ? (
-                      <div className="flex">
-                        <span className="flex items-center pr-1.5">
-                          <FaLock />
-                        </span>{" "}
-                        Lock Price
+                    <div className="block md:hidden ">
+                      <div
+                        className="flex w-17 h-17 rounded-full bg-gray-400 items-center justify-center
+                                  border border-gray-600 hover:bg-gray-500"
+                      >
+                        <Button
+                          className="cursor-pointer rounded-full w-15 h-15 "
+                          color="dark"
+                          onClick={() => setIsDishModalOpen(true)}
+                        >
+                          create dish
+                        </Button>
                       </div>
-                    ) : (
-                      "Change Price"
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ingredients list */}
-              <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
-            </TabItem>
-
-            {/* Recipe steps */}
-            <TabItem title="Steps" icon={TbFoodsteps}>
-              <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
-                {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                  <div className="italic text-gray-400 text-center bg-amber-100">
-                    No steps defined for recipe
+                    </div>
                   </div>
                 )}
-                {foundRecipeDetails?.steps &&
-                  foundRecipeDetails?.steps.length !== 0 &&
-                  foundRecipeDetails?.steps.map((s) => (
-                    <div className="flex mb-2" key={s.step_order}>
-                      <div className="flex flex-col text-end top-0 pl-2 min-w-8">
-                        {s.step_order + "."}
-                      </div>
-                      <div className="pl-2">{s.step_text}</div>
-                    </div>
-                  ))}
-              </div>
-            </TabItem>
-          </Tabs>
 
-          {/* tabs option of flowbite for screen bigger than lg */}
-          <div className="hidden lg:block">
+                {/* alert msg for succefully created dish record */}
+                {isRecipeOwner && successAlert && (
+                  <div className="">
+                    <Alert
+                      color="success"
+                      icon={BsFillHandThumbsUpFill}
+                      onDismiss={() => setSuccessAlert(false)}
+                    >
+                      <span className="">Dish record successfully created</span>
+                      {alertMsg}
+                    </Alert>
+                  </div>
+                )}
+              </div>
+
+              {/* recipe image */}
+              <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
+                {foundRecipeDetails?.recipe?.image_url && !imageError ? (
+                  <img
+                    className="h-full w-full md:rounded-md"
+                    src={foundRecipeDetails?.recipe?.image_url}
+                    alt="Recipe Image"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
+                )}
+              </div>
+            </div>
+
+            {/* description of recipe */}
+            <div
+              className="flex px-2 mt-2 text-sm 
+                          md:text-md lg:text-lg lg:max-w-2/3 "
+            >
+              <div>
+                <span className="font-semibold">Description: </span>{" "}
+                {foundRecipeDetails?.recipe.description}
+              </div>
+            </div>
+
+            {/* Buttons for owner */}
+            {isRecipeOwner && (
+              <div className="hidden lg:flex justify-between p-2">
+                {/* Create edit button */}
+                <div className="">
+                  <Button
+                    className="cursor-pointer bg-app-secondary"
+                    // color="light"
+                    onClick={() => navigate(`/recipe/edit/${id}`)}
+                  >
+                    <MdOutlineEditNote className="mr-2 w-5 h-5" />
+                    Edit Recipe
+                  </Button>
+                </div>
+
+                {/* Delete recipe */}
+                <div>
+                  <Button
+                    className="cursor-pointer"
+                    color="red"
+                    onClick={() => setIsConfirmModalOpen(true)}
+                  >
+                    <HiTrash className="mr-2 w-5 h-5" />
+                    Delete Recipe
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* tabs option of flowbite for smaller screen below lg */}
             <Tabs
               theme={{
                 tablist: {
@@ -924,107 +854,188 @@ function RecipeDetails() {
                   },
                 },
               }}
-              className="flex"
+              className="flex lg:hidden mt-2"
               aria-label="Tabs with icons"
               variant="fullWidth"
             >
               {/* Ingredients */}
               <TabItem active title="Ingredients" icon={GiAvocado}>
-                <div className="flex">
-                  {/* change price button and mini loading screen when base price is being changed*/}
-                  <div className="flex-1">
-                    {isMiniLoading && (
-                      <div className="flex w-full h-8 items-center justify-center">
-                        <Spinner
-                          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
-                          color="default"
-                          aria-label="Loading"
-                          size="xl"
-                        />
-                      </div>
-                    )}
-                    {!isMiniLoading && (
-                      <div className="flex justify-end pr-2 text-sm h-8">
-                        <div
-                          className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
-                          onClick={() => setChangePrice(!changePrice)}
-                        >
-                          {changePrice ? (
-                            <div className="flex">
-                              <span className="flex items-center pr-1.5">
-                                <FaLock />
-                              </span>{" "}
-                              Lock Price
-                            </div>
-                          ) : (
-                            "Change Price"
-                          )}
-                        </div>
-                      </div>
-                    )}
+                {/* change price button and mini loading screen when base price is being changed*/}
+                {isMiniLoading && (
+                  <div className="flex w-full h-8 items-center justify-center">
+                    <Spinner
+                      theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                      color="default"
+                      aria-label="Loading"
+                      size="xl"
+                    />
                   </div>
-
-                  {/* just to keep change price button within ingredients section  */}
-                  <div className="flex-1"></div>
-                </div>
-
-                {/* ingredients list */}
-                <div className="flex">
-                  <div className="flex-1">
-                    <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
-                      {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                        <div className="italic text-gray-400 text-center">
-                          No steps defined for recipe
+                )}
+                {!isMiniLoading && (
+                  <div className="flex justify-end pr-2 text-sm h-8">
+                    <div
+                      className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                      onClick={() => setChangePrice(!changePrice)}
+                    >
+                      {changePrice ? (
+                        <div className="flex">
+                          <span className="flex items-center pr-1.5">
+                            <FaLock />
+                          </span>{" "}
+                          Lock Price
                         </div>
+                      ) : (
+                        "Change Price"
                       )}
-                      {foundRecipeDetails?.steps &&
-                        foundRecipeDetails?.steps.length !== 0 &&
-                        foundRecipeDetails?.steps.map((s) => (
-                          <div className="flex mb-2" key={s.step_order}>
-                            <div className="flex flex-col text-end top-0 pl-2 min-w-8">
-                              {s.step_order + "."}
-                            </div>
-                            <div className="pl-2">{s.step_text}</div>
-                          </div>
-                        ))}
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* ingredients list */}
+                <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
               </TabItem>
 
               {/* Recipe steps */}
               <TabItem title="Steps" icon={TbFoodsteps}>
-                <div className="flex">
-                  <div className="flex-1">
-                    <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
-                      {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                        <div className="italic text-gray-400 text-center">
-                          No steps defined for recipe
-                        </div>
-                      )}
-                      {foundRecipeDetails?.steps &&
-                        foundRecipeDetails?.steps.length !== 0 &&
-                        foundRecipeDetails?.steps.map((s) => (
-                          <div className="flex mb-2" key={s.step_order}>
-                            <div className="flex flex-col text-end top-0 pl-2 min-w-8">
-                              {s.step_order + "."}
-                            </div>
-                            <div className="pl-2">{s.step_text}</div>
-                          </div>
-                        ))}
+                <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                  {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                    <div className="italic text-gray-400 text-center bg-amber-100">
+                      No steps defined for recipe
                     </div>
-                  </div>
+                  )}
+                  {foundRecipeDetails?.steps &&
+                    foundRecipeDetails?.steps.length !== 0 &&
+                    foundRecipeDetails?.steps.map((s) => (
+                      <div className="flex mb-2" key={s.step_order}>
+                        <div className="flex flex-col text-end top-0 pl-2 min-w-8">
+                          {s.step_order + "."}
+                        </div>
+                        <div className="pl-2">{s.step_text}</div>
+                      </div>
+                    ))}
                 </div>
               </TabItem>
             </Tabs>
+
+            {/* tabs option of flowbite for screen bigger than lg */}
+            <div className="hidden lg:block">
+              <Tabs
+                theme={{
+                  tablist: {
+                    tabitem: {
+                      variant: {
+                        fullWidth: {
+                          active: {
+                            on: "bg-app-primary text-white",
+                            off: "hover:bg-app-table-row",
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+                className="flex"
+                aria-label="Tabs with icons"
+                variant="fullWidth"
+              >
+                {/* Ingredients */}
+                <TabItem active title="Ingredients" icon={GiAvocado}>
+                  <div className="flex">
+                    {/* change price button and mini loading screen when base price is being changed*/}
+                    <div className="flex-1">
+                      {isMiniLoading && (
+                        <div className="flex w-full h-8 items-center justify-center">
+                          <Spinner
+                            theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                            color="default"
+                            aria-label="Loading"
+                            size="xl"
+                          />
+                        </div>
+                      )}
+                      {!isMiniLoading && (
+                        <div className="flex justify-end pr-2 text-sm h-8">
+                          <div
+                            className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                            onClick={() => setChangePrice(!changePrice)}
+                          >
+                            {changePrice ? (
+                              <div className="flex">
+                                <span className="flex items-center pr-1.5">
+                                  <FaLock />
+                                </span>{" "}
+                                Lock Price
+                              </div>
+                            ) : (
+                              "Change Price"
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* just to keep change price button within ingredients section  */}
+                    <div className="flex-1"></div>
+                  </div>
+
+                  {/* ingredients list */}
+                  <div className="flex">
+                    <div className="flex-1">
+                      <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                        {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                          <div className="italic text-gray-400 text-center">
+                            No steps defined for recipe
+                          </div>
+                        )}
+                        {foundRecipeDetails?.steps &&
+                          foundRecipeDetails?.steps.length !== 0 &&
+                          foundRecipeDetails?.steps.map((s) => (
+                            <div className="flex mb-2" key={s.step_order}>
+                              <div className="flex flex-col text-end top-0 pl-2 min-w-8">
+                                {s.step_order + "."}
+                              </div>
+                              <div className="pl-2">{s.step_text}</div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabItem>
+
+                {/* Recipe steps */}
+                <TabItem title="Steps" icon={TbFoodsteps}>
+                  <div className="flex">
+                    <div className="flex-1">
+                      <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                        {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
+                          <div className="italic text-gray-400 text-center">
+                            No steps defined for recipe
+                          </div>
+                        )}
+                        {foundRecipeDetails?.steps &&
+                          foundRecipeDetails?.steps.length !== 0 &&
+                          foundRecipeDetails?.steps.map((s) => (
+                            <div className="flex mb-2" key={s.step_order}>
+                              <div className="flex flex-col text-end top-0 pl-2 min-w-8">
+                                {s.step_order + "."}
+                              </div>
+                              <div className="pl-2">{s.step_text}</div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabItem>
+              </Tabs>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Delete Modal */}

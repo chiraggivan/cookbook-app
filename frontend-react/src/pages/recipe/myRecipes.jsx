@@ -13,7 +13,9 @@ import LeftSideBar from "../../components/leftSideBar";
 import { getInitials } from "../../utils/appUtils";
 import { FaSearchengin } from "react-icons/fa6";
 import { GiHotMeal } from "react-icons/gi";
+import { MdOutlineEditNote } from "react-icons/md";
 import { Spinner } from "flowbite-react";
+import EmptyResponsePage from "../../components/emptyResponsePage";
 
 function MyRecipes() {
   const token = localStorage.getItem("token");
@@ -33,6 +35,7 @@ function MyRecipes() {
   const [searchRecipe, setSearchRecipe] = useState("");
   const [srchBtnPrssd, setSrchBtnPrssd] = useState(false);
   const [displayRecipes, setDisplayRecipes] = useState();
+  const [hasNoRecipe, setHasNoRecipe] = useState(false);
 
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
@@ -105,6 +108,10 @@ function MyRecipes() {
           });
           setHasMoreMyRecipes(res?.data?.hasMore);
           const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
+          // update useState variable for flag of hasNoRecipe. This decides to show the list of recipe or empty page description
+          if (pageNoMyRecipes === 1 && refinedMyRecipes.length === 0) {
+            setHasNoRecipe(true);
+          }
 
           if (pageNoMyRecipes === 1) {
             setMyRecipes(refinedMyRecipes);
@@ -259,110 +266,127 @@ function MyRecipes() {
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
-        {/*header and search */}
-        <div className="sticky top-(--top-bar-height) z-9 bg-white shadow-md">
-          <div
-            className="flex flex-col items-center pb-5 
+        {hasNoRecipe ? (
+          <EmptyResponsePage
+            title={"No Recipes Yet"}
+            message={
+              "You haven't created any recipes yet. Start by adding first recipe and build your own collection."
+            }
+            urlPath={"/recipe/new"}
+            imageSrc={"/images/no_recipe_yet.png"}
+            ButtonText={"Create your first recipe"}
+            ButtonIcon={MdOutlineEditNote}
+            hideButton={true}
+          />
+        ) : (
+          <>
+            {/*header and search */}
+            <div className="sticky top-(--top-bar-height) z-9 bg-white shadow-md">
+              <div
+                className="flex flex-col items-center pb-5 
                      md:flex-row md:items-end "
-          >
-            <div className="flex items-center md:flex-1  md:justify-start">
-              <div className="text-2xl font-semibold">Your Recipes</div>
-            </div>
+              >
+                <div className="flex items-center md:flex-1  md:justify-start">
+                  <div className="text-2xl font-semibold">Your Recipes</div>
+                </div>
 
-            {/* search field */}
-            <div className="flex md:flex-1">
-              <div className="flex">
-                <Input
-                  value={searchRecipe}
-                  className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
+                {/* search field */}
+                <div className="flex md:flex-1">
+                  <div className="flex">
+                    <Input
+                      value={searchRecipe}
+                      className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                           focus:border-2 h-10 w-70 placeholder:text-gray-400"
-                  onChange={(e) => setSearchRecipe(e.target.value)}
-                  placeholder={"search your recipe...."}
-                />
-                <button
-                  className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
+                      onChange={(e) => setSearchRecipe(e.target.value)}
+                      placeholder={"search your recipe...."}
+                    />
+                    <button
+                      className=" text-xl rounded-r-md border-hidden bg-gray-200 text-gray-700 h-10 px-4 pb-1 
                               hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                  onClick={() => {
-                    setSearchPage(1);
-                    // searchRecipeButton();
-                    setSrchBtnPrssd((prev) => !prev);
-                  }}
-                >
-                  {" "}
-                  <FaSearchengin />
-                </button>
+                      onClick={() => {
+                        setSearchPage(1);
+                        // searchRecipeButton();
+                        setSrchBtnPrssd((prev) => !prev);
+                      }}
+                    >
+                      {" "}
+                      <FaSearchengin />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* line . divider */}
-          {/* <div className="flex items-center mt-2">
+              {/* line . divider */}
+              {/* <div className="flex items-center mt-2">
             <div className="grow border-t border-gray-300"></div>
           </div> */}
-        </div>
+            </div>
 
-        {/* recipe list */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8  p-4">
-          {displayRecipes?.map((i) => (
-            <>
-              <div
-                key={i.recipe_id}
-                onClick={() => navigate(`/recipe/${i.recipe_id}`)}
-                className="flex flex-col max-h-40 rounded-r-2xl shadow-md border border-gray-200 justify-between
+            {/* recipe list */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8  p-4">
+              {displayRecipes?.map((i) => (
+                <>
+                  <div
+                    key={i.recipe_id}
+                    onClick={() => navigate(`/recipe/${i.recipe_id}`)}
+                    className="flex flex-col max-h-40 rounded-r-2xl shadow-md border border-gray-200 justify-between
                         hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
-              >
-                <div className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
-                  {i.name}
-                </div>
-                <div className="">
-                  <div className="flex items-center">
-                    <div className="grow border-t border-gray-200"></div>
-                  </div>
-                  <div className="flex h-25 gap-1 ml-1">
-                    <div className="flex flex-col flex-1 gap-1 ">
-                      <div className="">
-                        <p className="text-sm line-clamp-1 font-semibold text-gray-600 mt-1 ">
-                          portion : {i.portion_size}
-                        </p>
+                  >
+                    <div className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
+                      {i.name}
+                    </div>
+                    <div className="">
+                      <div className="flex items-center">
+                        <div className="grow border-t border-gray-200"></div>
                       </div>
-                      <div className="">
-                        <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
-                          Description : <span className=" font-normal">{i.description}</span>{" "}
-                        </p>
+                      <div className="flex h-25 gap-1 ml-1">
+                        <div className="flex flex-col flex-1 gap-1 ">
+                          <div className="">
+                            <p className="text-sm line-clamp-1 font-semibold text-gray-600 mt-1 ">
+                              portion : {i.portion_size}
+                            </p>
+                          </div>
+                          <div className="">
+                            <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
+                              Description :{" "}
+                              <span className=" font-normal">{i.description}</span>{" "}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="aspect-video">
+                          {failedImages[i.recipe_id] || !i?.image_url ? (
+                            <GiHotMeal className="h-full w-full bg-gray-200 rounded-br-2xl" />
+                          ) : (
+                            <img
+                              className="h-full w-full rounded-br-2xl"
+                              src={i?.image_url}
+                              alt="Recipe Image"
+                              onError={() => handleImageError(i.recipe_id)}
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="aspect-video">
-                      {failedImages[i.recipe_id] || !i?.image_url ? (
-                        <GiHotMeal className="h-full w-full bg-gray-200 rounded-br-2xl" />
-                      ) : (
-                        <img
-                          className="h-full w-full rounded-br-2xl"
-                          src={i?.image_url}
-                          alt="Recipe Image"
-                          onError={() => handleImageError(i.recipe_id)}
-                        />
-                      )}
-                    </div>
                   </div>
-                </div>
+                </>
+              ))}
+            </div>
+
+            {/* loading more -spinner */}
+            {isLoadingMore && (
+              <div className="flex w-full h-30 items-center justify-center">
+                <Spinner
+                  theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                  color="default"
+                  aria-label="Loading"
+                  size="xl"
+                />
               </div>
-            </>
-          ))}
-        </div>
+            )}
 
-        {/* loading more -spinner */}
-        {isLoadingMore && (
-          <div className="flex w-full h-30 items-center justify-center">
-            <Spinner
-              theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
-              color="default"
-              aria-label="Loading"
-              size="xl"
-            />
-          </div>
+            <div className="h-20"></div>
+          </>
         )}
-
-        <div className="h-20"></div>
       </div>
 
       {/* </div> */}

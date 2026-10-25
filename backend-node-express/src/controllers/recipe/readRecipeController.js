@@ -182,7 +182,7 @@ exports.get_recipe_details = async (req, res) => {
 
     //  check if recipeId is negative
     if (!recipeId || recipeId < 1 || !Number.isInteger(recipeId)) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
         message: "Recipe id must a positive number",
       });

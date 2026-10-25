@@ -34,7 +34,6 @@ function Home() {
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log("user is:", user);
 
   const method = "get";
   const url = `${serverURL}/recipe/api/all`;
@@ -180,6 +179,7 @@ function Home() {
 
   // console.log("data before return html : ", data);
   // console.log("page no. ", page);
+  // console.log("user is:", user);
   return (
     <>
       {/*TopBar and LeftSideBar are added automatically thru 
