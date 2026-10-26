@@ -22,9 +22,10 @@ import { HiTrash, HiClipboardList, HiShare, HiPrinter, HiInformationCircle } fro
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdModeEditOutline, MdOutlineEditNote } from "react-icons/md";
 import { TbFoodsteps } from "react-icons/tb";
-import { BsFillHandThumbsUpFill } from "react-icons/bs";
+import { BsBookmark, BsBookmarkFill, BsFillHandThumbsUpFill } from "react-icons/bs";
 import { FaLock } from "react-icons/fa6";
 import { GoNorthStar } from "react-icons/go";
+import { TiArrowForward, TiArrowForwardOutline } from "react-icons/ti";
 
 import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
@@ -47,6 +48,8 @@ function RecipeDetails() {
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [isLoading, setIsLoading] = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(true);
+  const [isChangingBookmark, setIsChangingBookmark] = useState(null);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
   const [isRecipeOwner, setIsRecipeOwner] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -404,6 +407,46 @@ function RecipeDetails() {
     }
 
     setIsEditBaseValuesOpen(false);
+  };
+
+  // ------------------------------------------ bookmark logic ----------------------------------------------
+  const bookmarkRecipe = () => {
+    if (!isBookmarked) {
+      const url = "/userSavedRecipe/api/bookmarkRecipe";
+      const method = "post";
+      const body = { recipe_id: id };
+
+      setIsChangingBookmark(true);
+      const sendData = async () => {
+        try {
+          const res = await api[method](url, body);
+          setIsBookmarked(true);
+        } catch (err) {
+          console.log("Error while bookmarking recipe :", err);
+          window.alert(`Something went wrong. Try again later.`);
+        } finally {
+          setIsChangingBookmark(false);
+        }
+      };
+      sendData();
+    } else {
+      const url = `/userSavedRecipe/api/delete/${id}`;
+      const method = "delete";
+
+      setIsChangingBookmark(true);
+      const sendData = async () => {
+        try {
+          const res = await api[method](url, body);
+          setIsBookmarked(false);
+        } catch (err) {
+          console.log("Error while bookmarking recipe :", err);
+          window.alert(`Something went wrong. Try again later.`);
+        } finally {
+          setIsChangingBookmark(false);
+        }
+      };
+      sendData();
+    }
   };
 
   // ------------------------------ Loading screen ---------------------------------
@@ -840,6 +883,16 @@ function RecipeDetails() {
                 </div>
               </div>
             )}
+
+            {/* Row for bookmark, forward, like, dislike, etc */}
+            <div className="flex justify-end h-10 w-full pr-4 gap-3">
+              {/* <TiArrowForward className="h-10 scale-200" /> */}
+              {isBookmarked ? (
+                <BsBookmarkFill className="h-10 scale-150" onClick={() => {}} />
+              ) : (
+                <BsBookmark className="h-10 scale-150" onClick={() => {}} />
+              )}
+            </div>
 
             {/* tabs option of flowbite for smaller screen below lg */}
             <Tabs

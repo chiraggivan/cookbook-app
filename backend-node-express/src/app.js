@@ -11,6 +11,7 @@ const userDetailRoutes = require("./routes/userDetailRoutes");
 const userIngRoutes = require("./routes/userIngRoutes");
 const foodPlanRoutes = require("./routes/foodPlanRoutes");
 const weeklyDashboardRoutes = require("./routes/weeklyDashboardRoutes");
+const userSavedRecipeRoutes = require("./routes/userSavedRecipeRoutes");
 
 // Middleware
 app.use(cors());
@@ -26,6 +27,7 @@ app.use("/userDetail/api", userDetailRoutes);
 app.use("/useringredient/api", userIngRoutes);
 app.use("/foodplan/api", foodPlanRoutes);
 app.use("/weeklydashboard/api", weeklyDashboardRoutes);
+app.use("/userSavedRecipe/api", userSavedRecipeRoutes);
 app.use("/uploadedImages", express.static("uploadedImages"));
 
 // Test route

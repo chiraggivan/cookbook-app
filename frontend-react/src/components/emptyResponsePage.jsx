@@ -10,7 +10,8 @@ export default function EmptyResponsePage({
   imageSrc = "",
   ButtonText = "Ok",
   ButtonIcon = BsCursorFill,
-  hideButton = false,
+  hideFirstButton = false,
+  hideSecondButton = false,
 }) {
   const navigate = useNavigate();
 
@@ -29,6 +30,7 @@ export default function EmptyResponsePage({
       <p className="mb-8 max-w-md text-base leading-7 text-gray-500">{message}</p>
 
       <button
+        hidden={hideFirstButton}
         onClick={() => navigate(urlPath)}
         className="flex items-center rounded-full bg-app-primary opacity-100 px-8 py-3 text-white transition hover:opacity-90 hover:cursor-pointer"
       >
@@ -37,7 +39,7 @@ export default function EmptyResponsePage({
       </button>
 
       <button
-        hidden={hideButton}
+        hidden={hideSecondButton}
         onClick={() => navigate(-1)}
         className="flex items-center mt-5 font-medium text-gray-500 hover:text-gray-800 hover:cursor-pointer"
       >

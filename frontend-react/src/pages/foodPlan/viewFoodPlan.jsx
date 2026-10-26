@@ -10,6 +10,7 @@ function ViewFoodPlan() {
   //   const token = localStorage.getItem("token");
   const [foodplanData, setFoodplanData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCreateFP, setIsLoadingCreateFP] = useState(false);
   const [hasFoodPlan, setHasFoodPlan] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [dayData, setDayData] = useState(null);
@@ -60,7 +61,7 @@ function ViewFoodPlan() {
   // -----------------------------------create new food plan if it does not exist in food_plan Table -------------------------
   const createNewFoodPlanForUser = async () => {
     try {
-      setIsLoading(true);
+      setIsLoadingCreateFP(true);
       // create a food plan as user doesnt have one.
       const res = await api.get(`/foodplan/api/createfoodplanid`);
       console.log("response from createNewFoodPlanForUser is :", res);
@@ -87,7 +88,7 @@ function ViewFoodPlan() {
       console.log("Error while createNewFoodPlanForUser :", error);
       setErrMsg("Something went wrong while creating food plan.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingCreateFP(false);
     }
   };
 
@@ -157,17 +158,29 @@ function ViewFoodPlan() {
           <div className="mt-2 ">
             Create your food plan to get started and make planning your meals simpler.
           </div>
-          <div>
+          <div className="flex">
+            {/* button of create foodplan */}
             <div
-              className="mt-4 flex justify-start px-2 py-1 w-41 rounded-lg bg-blue-700 text-white text-center
+              className="mt-4 flex justify-start px-2 py-1 w-49 rounded-lg bg-blue-700 text-white text-center
                           hover:bg-blue-900 hover:cursor-pointer "
               onClick={() => {
                 createNewFoodPlanForUser();
                 setErrMsg("");
               }}
             >
-              Create Food Plan +
+              Create Week Planner +
             </div>
+            {/* loading symbol next to button */}
+            {isLoadingCreateFP && (
+              <div className="flex pl-2 mt-4 items-center justify-center">
+                <Spinner
+                  theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                  color="default"
+                  aria-label="Loading"
+                  size="md"
+                />
+              </div>
+            )}
           </div>
         </div>
         <div className="text-sm text-app-danger mx-3 p-3">{errMsg}</div>

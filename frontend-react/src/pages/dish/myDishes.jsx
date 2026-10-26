@@ -12,6 +12,7 @@ import { HiOutlineSearch } from "react-icons/hi";
 import { GiMeal } from "react-icons/gi";
 import formattedDate from "../../utils/formattedDate";
 import { Spinner } from "flowbite-react";
+import EmptyResponsePage from "../../components/emptyResponsePage";
 
 function MyDishes() {
   const token = localStorage.getItem("token");
@@ -20,6 +21,7 @@ function MyDishes() {
   // const { dishes, setDishes, fetchedOnce, setFetchedOnce, setDishDetails } =
   //   useContext(DishContext);
   const [dishes, setDishes] = useState();
+  const [hasNoDish, setHasNoDish] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [searchDish, setSearchDish] = useState("");
@@ -55,11 +57,16 @@ function MyDishes() {
           setIsLoadingMore(true);
         }
         const res = await api[method](url, { params: { q: searchDish, page, limit } });
+        // check if dishes exists, if not then flag the page with setHasNoDish to show relevant display
+        if (res?.data?.data.length === 0) {
+          setHasNoDish(true);
+        }
         const tempData = res.data.data;
         const formattedData = tempData.map((i) => ({
           ...i,
           preparation_date: formattedDate(i.preparation_date),
         }));
+
         if (page === 1) {
           setDishes(formattedData);
         } else {
@@ -79,8 +86,6 @@ function MyDishes() {
       }
     };
     fetchData();
-    // }
-    setIsLoading(false);
   }, [toggleAPIcall]);
 
   // -------------------------------- scroll listener -----------------------------------
@@ -168,79 +173,98 @@ function MyDishes() {
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
       <div className="flex flex-col  mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
-        {/* Create header and search bar for your ingredients and a line separator */}
-        <div className="flex flex-col sticky z-9 top-(--top-bar-height) bg-white shadow-md">
-          {/* Header of the page with search bar */}
-          <div className="flex flex-col m-3 items-center md:items-start md:flex-row md:justify-start">
-            <div className="text-2xl font-semibold">Your Saved Dishes</div>
+        {/* Check if the data is empty and show the page accordingly */}
+        {hasNoDish ? (
+          <EmptyResponsePage
+            title={"No Dishes Create Yet"}
+            message={
+              <>
+                Open one of your own recipes, click{" "}
+                <span className="font-bold text-gray-800">'Create Dish'</span>, and save it to
+                review its ingredients, price, and personal notes anytime.
+              </>
+            }
+            imageSrc={"/images/no_dish_yet.png"}
+            hideFirstButton={true}
+            hideSecondButton={true}
+          />
+        ) : (
+          <>
+            {/* Create header and search bar for your ingredients and a line separator */}
+            <div className="flex flex-col sticky z-9 top-(--top-bar-height) bg-white shadow-md">
+              {/* Header of the page with search bar */}
+              <div className="flex flex-col m-3 items-center md:items-start md:flex-row md:justify-start">
+                <div className="text-2xl font-semibold">Your Saved Dishes</div>
 
-            {/* search bar */}
-            <div className="flex w-[80%] md:pl-60 md:mr-2 max-w-140">
-              {/* search input */}
-              <Input
-                value={searchDish}
-                className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
+                {/* search bar */}
+                <div className="flex w-[80%] md:pl-60 md:mr-2 max-w-140">
+                  {/* search input */}
+                  <Input
+                    value={searchDish}
+                    className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                                     focus:ring-2 focus:ring-gray-300 h-8 w-full lg:w-100 px-2 pb-2 placeholder:text-gray-400"
-                onChange={(e) => setSearchDish(e.target.value)}
-                placeholder={"search your prepared dish"}
-              />
-              {/* search button */}
-              <button
-                className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-8 px-4 "
-                onClick={searchDishesButton}
-              >
-                <HiOutlineSearch />
-              </button>
-            </div>
-          </div>
+                    onChange={(e) => setSearchDish(e.target.value)}
+                    placeholder={"search your prepared dish"}
+                  />
+                  {/* search button */}
+                  <button
+                    className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-8 px-4 "
+                    onClick={searchDishesButton}
+                  >
+                    <HiOutlineSearch />
+                  </button>
+                </div>
+              </div>
 
-          {/* Line Separator */}
-          {/* <div className="flex items-center">
+              {/* Line Separator */}
+              {/* <div className="flex items-center">
             <div className="grow border-b shadow border-gray-400"></div>
           </div> */}
-        </div>
-
-        {/* show all your saved Dishes*/}
-        <div className="grid grid-cols-1 mt-3 lg:grid-cols-2  xl:grid-cols-4 gap-4">
-          {dishes?.map((i) => (
-            <div
-              key={i.user_ingredient_id}
-              className="flex m-2 shadow-xs border-gray-400  cursor-pointer rounded hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
-              onClick={() => navigate(`/dish/${i.dish_id}`)}
-            >
-              {/* image section - left */}
-              <div className="min-w-40 min-h-40 max-w-40 max-h-40 border-0 ">
-                {i.image_url && !imageError ? (
-                  <img
-                    className="h-full w-full object-cover md:rounded-md"
-                    src={i.image_url}
-                    alt="Recipe Image"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <GiMeal className="h-full w-full bg-gray-200" />
-                )}
-                {/* <GiHotMeal className=" h-full w-full bg-gray-300" /> */}
-              </div>
-              {/* details section right */}
-              <div className="px-2 pb-2">
-                <p className="text-lg font-semibold line-clamp-2 leading-[1.3]">
-                  {capitaliseWords(i.recipe_name)}
-                </p>
-                <p className="leading-5"> Portion: {capitaliseWords(i.portion_size)}</p>
-                <p className=" text-sm text-gray-500 line-clamp-1">
-                  Prepared: {i.preparation_date} for {i.meal}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Costing: {i.currency_symbol} {i.total_cost}
-                </p>
-                <p className="text-sm text-gray-500 font-semibold line-clamp-2">
-                  Comment: <span className="italic font-normal">{i.comment}</span>
-                </p>
-              </div>
             </div>
-          ))}
-        </div>
+
+            {/* show all your saved Dishes*/}
+            <div className="grid grid-cols-1 mt-3 lg:grid-cols-2  xl:grid-cols-4 gap-4">
+              {dishes?.map((i) => (
+                <div
+                  key={i.user_ingredient_id}
+                  className="flex m-2 shadow-xs border-gray-400  cursor-pointer rounded hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
+                  onClick={() => navigate(`/dish/${i.dish_id}`)}
+                >
+                  {/* image section - left */}
+                  <div className="min-w-40 min-h-40 max-w-40 max-h-40 border-0 ">
+                    {i.image_url && !imageError ? (
+                      <img
+                        className="h-full w-full object-cover md:rounded-md"
+                        src={i.image_url}
+                        alt="Recipe Image"
+                        onError={() => setImageError(true)}
+                      />
+                    ) : (
+                      <GiMeal className="h-full w-full bg-gray-200" />
+                    )}
+                    {/* <GiHotMeal className=" h-full w-full bg-gray-300" /> */}
+                  </div>
+                  {/* details section right */}
+                  <div className="px-2 pb-2">
+                    <p className="text-lg font-semibold line-clamp-2 leading-[1.3]">
+                      {capitaliseWords(i.recipe_name)}
+                    </p>
+                    <p className="leading-5"> Portion: {capitaliseWords(i.portion_size)}</p>
+                    <p className=" text-sm text-gray-500 line-clamp-1">
+                      Prepared: {i.preparation_date} for {i.meal}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Costing: {i.currency_symbol} {i.total_cost}
+                    </p>
+                    <p className="text-sm text-gray-500 font-semibold line-clamp-2">
+                      Comment: <span className="italic font-normal">{i.comment}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </>
   );

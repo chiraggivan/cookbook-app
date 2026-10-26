@@ -306,7 +306,7 @@ exports.update_recipe = async (req, res) => {
       [user.id, recipeId],
     );
     if (recipeRows.length === 0) {
-      return res.status(403).json({
+      return res.status(404).json({
         success: false,
         message: `Recipe not found or not authorized`,
       });

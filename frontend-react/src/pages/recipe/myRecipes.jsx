@@ -35,7 +35,7 @@ function MyRecipes() {
   const [searchRecipe, setSearchRecipe] = useState("");
   const [srchBtnPrssd, setSrchBtnPrssd] = useState(false);
   const [displayRecipes, setDisplayRecipes] = useState();
-  const [hasNoRecipe, setHasNoRecipe] = useState(false);
+  const [hasNoRecipe, setHasNoRecipe] = useState(null);
 
   const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
@@ -106,16 +106,19 @@ function MyRecipes() {
               limit,
             },
           });
-          setHasMoreMyRecipes(res?.data?.hasMore);
-          const refinedMyRecipes = res?.data.data.map(({ username, user_id, ...rest }) => rest);
           // update useState variable for flag of hasNoRecipe. This decides to show the list of recipe or empty page description
-          if (pageNoMyRecipes === 1 && refinedMyRecipes.length === 0) {
+          if (pageNoMyRecipes === 1 && res?.data?.data.length === 0) {
             setHasNoRecipe(true);
           }
+          setHasMoreMyRecipes(res?.data?.hasMore);
+          const refinedMyRecipes = res?.data?.data.map(({ username, user_id, ...rest }) => rest);
 
           if (pageNoMyRecipes === 1) {
             setMyRecipes(refinedMyRecipes);
-            // setDisplayRecipes(refinedMyRecipes);
+            // check if recipes exists, if not then flag the page with setHasNoRecipe to show relevant display
+            if (refinedMyRecipes.length === 0) {
+              setHasNoRecipe(true);
+            }
           } else {
             setMyRecipes((prev) => [...prev, ...refinedMyRecipes]);
             // setDisplayRecipes((prev) => [...prev, ...refinedMyRecipes]);
@@ -130,8 +133,6 @@ function MyRecipes() {
       };
       fetchData();
     }
-    setIsLoading(false);
-    setIsLoadingMore(false);
   }, [pageNoMyRecipes]);
 
   // -------------------- transfer data from myRecipes context variable to displayRecipes variable ------------------
@@ -205,8 +206,6 @@ function MyRecipes() {
     } else if (searchText === "") {
       setDisplayRecipes(myRecipes);
     }
-    setIsLoading(false);
-    setIsLoadingMore(false);
   }, [srchBtnPrssd, searchPage]);
 
   // ---------------------------- scroll listener for searched recipes --------------------------------
@@ -266,6 +265,7 @@ function MyRecipes() {
       {/*TopBar and LeftSideBar are added automatically thru 
       routes with the help of MainLayout component */}
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5">
+        {/* Check if the data is empty and show the page accordingly */}
         {hasNoRecipe ? (
           <EmptyResponsePage
             title={"No Recipes Yet"}
@@ -276,7 +276,7 @@ function MyRecipes() {
             imageSrc={"/images/no_recipe_yet.png"}
             ButtonText={"Create your first recipe"}
             ButtonIcon={MdOutlineEditNote}
-            hideButton={true}
+            hideSecondButton={true}
           />
         ) : (
           <>

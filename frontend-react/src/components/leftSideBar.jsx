@@ -56,7 +56,7 @@ function LeftSideBar() {
                     }`
                   }
                 >
-                  Food Plan
+                  Week Planner
                 </NavLink>
               </li>
               <li>

@@ -35,12 +35,14 @@ import {
   SidebarItems,
   TextInput,
 } from "flowbite-react";
-import { FaPlus } from "react-icons/fa6";
+import { FaBook, FaPlus } from "react-icons/fa6";
 import { MdOutlineMenuBook } from "react-icons/md";
 import { SlOptionsVertical } from "react-icons/sl";
+import { TbCalendarMonthFilled } from "react-icons/tb";
+import { LiaPasteSolid } from "react-icons/lia";
 
 function TopBar() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user")) || null;
   const navigate = new useNavigate();
   const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
     useContext(MyRecipeContext);
@@ -55,7 +57,7 @@ function TopBar() {
   }, []);
 
   // zero down to one single userName
-  const userName = user.username ?? user.display_name ?? user.email;
+  const userName = user?.username ?? user?.display_name ?? user?.email ?? "";
 
   // for menu button (hamburger) in screen smaller than md
   const [searchText, SetSearchText] = useState("");
@@ -270,7 +272,7 @@ function TopBar() {
                     </SidebarItem>
 
                     <SidebarItem
-                      icon={HiClipboardList}
+                      icon={FaBook}
                       onClick={() => {
                         setIsOpen(false);
                         navigate("/MyRecipes");
@@ -280,17 +282,17 @@ function TopBar() {
                     </SidebarItem>
 
                     <SidebarItem
-                      icon={HiBookmark}
+                      icon={TbCalendarMonthFilled}
                       onClick={() => {
                         setIsOpen(false);
                         navigate("/foodplan");
                       }}
                     >
-                      Weekly Plan
+                      Week Planner
                     </SidebarItem>
 
                     <SidebarItem
-                      icon={HiFolder}
+                      icon={LiaPasteSolid}
                       onClick={() => {
                         setIsOpen(false);
                         navigate("/myDishes");
@@ -325,7 +327,7 @@ function TopBar() {
                       Sign out
                     </SidebarItem>
                   </SidebarItemGroup>
-                  {user.role === "admin" && (
+                  {user?.role === "admin" && (
                     <SidebarItemGroup>
                       <SidebarItem className="font-semibold">Admin Menu</SidebarItem>
                       <SidebarItem className="text-red-500" href="#">

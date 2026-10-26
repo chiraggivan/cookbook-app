@@ -165,7 +165,7 @@ exports.get_weekly_dashboard = async (req, res) => {
 
     // check if data contains weekNo and FoodPlanId.
     if (!foodPlanId || !weekNo) {
-      return res.status(500).json({
+      return res.status(404).json({
         success: false,
         message: `data missing. need these data : foodPlanId, weekNo`,
       });
@@ -173,7 +173,7 @@ exports.get_weekly_dashboard = async (req, res) => {
 
     // confirm the week No. (Currently only week 1 to 5 are to be used. FUTURE it can change)
     if (weekNo < 1 || weekNo > 6) {
-      return res.status(500).json({
+      return res.status(404).json({
         success: false,
         message: `Invalid weekNo`,
       });
@@ -189,7 +189,7 @@ exports.get_weekly_dashboard = async (req, res) => {
       [user.id, weekNo, foodPlanId],
     );
     if (FPWresult.length === 0) {
-      return res.status(500).json({
+      return res.status(404).json({
         success: false,
         message: `No data found for the week of this user.`,
       });

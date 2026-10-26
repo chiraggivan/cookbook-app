@@ -11,6 +11,8 @@ import DishDetailsPage from "./-dishDetailsPage";
 import { DishContext } from "../../context/dishContext";
 import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import formattedDate from "../../utils/formattedDate";
+import NotFoundPage from "../../components/notFoundPage";
+import { Spinner } from "flowbite-react";
 
 function DishDetails() {
   const { id } = useParams();
@@ -18,6 +20,7 @@ function DishDetails() {
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { dishDetails, setDishDetails } = useContext(DishContext);
+  const [isDetailNotFound, setIsDetailNotFound] = useState(null);
   const [currencySymbol, setCurrencySymbol] = useState();
   const [foundDish, setFoundDish] = useState("");
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -70,13 +73,18 @@ function DishDetails() {
           setFetchLoading(true);
           if (token) {
             const res = await api[method](url);
-            // console.log("res is :", res);
+            console.log("res is :", res);
             setFoundDish(res?.data?.data);
             // setDishDetails((prev) => [...prev, res?.data?.data]);
             setCurrencySymbol(res?.data?.data?.dish?.currency_symbol);
           }
         } catch (err) {
           console.log("error while fetching dish details with axios is :", err.response);
+          // Check if dish detail requested for exist. If not then show relevant screen via setIsDetailNotFound
+          if (err.response?.status === 404) {
+            setIsDetailNotFound(true);
+            return;
+          }
         } finally {
           setFetchLoading(false);
         }
@@ -84,12 +92,20 @@ function DishDetails() {
 
       fetchData();
     }
-    setFetchLoading(false);
   }, []);
 
-  //  initial page loading screen
+  // ------------------------------ Loading screen ---------------------------------
   if (fetchLoading) {
-    return <h1> Page Loading ........</h1>;
+    return (
+      <div className="flex w-full h-screen items-center justify-center">
+        <Spinner
+          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+          color="default"
+          aria-label="Loading"
+          size="xl"
+        />
+      </div>
+    );
   }
 
   //---------------- Create html for table with components and ingredients rows ---------------------------------
@@ -192,14 +208,20 @@ function DishDetails() {
   return (
     <>
       <div className="flex flex-col mt-[calc(var(--top-bar-height)+15px)] md:mt-(--top-bar-height) md:ml-(--left-side-bar)">
-        <DishDetailsPage
-          id={id}
-          data={foundDish}
-          navigate={navigate}
-          // tableRows={tableRows}
-          ingsDiv={ingsDiv}
-          handleDelete={handleDelete}
-        />
+        {isDetailNotFound ? (
+          <NotFoundPage />
+        ) : (
+          <>
+            <DishDetailsPage
+              id={id}
+              data={foundDish}
+              navigate={navigate}
+              // tableRows={tableRows}
+              ingsDiv={ingsDiv}
+              handleDelete={handleDelete}
+            />
+          </>
+        )}
       </div>
     </>
   );

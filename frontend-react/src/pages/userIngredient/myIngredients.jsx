@@ -13,6 +13,8 @@ import { Button, Spinner } from "flowbite-react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { TbBowlSpoonFilled } from "react-icons/tb";
 import { FaCarrot } from "react-icons/fa6";
+import { IoMdAdd } from "react-icons/io";
+import EmptyResponsePage from "../../components/emptyResponsePage";
 
 function MyIngredients() {
   const token = localStorage.getItem("token");
@@ -23,6 +25,7 @@ function MyIngredients() {
   const { myIngredients, setMyIngredients, fetchedOnce, setFetchedOnce } =
     useContext(MyIngredientContext);
   const [ingredientList, setIngredientList] = useState();
+  const [hasNoIngredient, setHasNoIngredient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchIng, setSearchIng] = useState("");
   const [displayIngredients, setDisplayIngredients] = useState();
@@ -45,7 +48,7 @@ function MyIngredients() {
   const method = "get";
   const url = `/useringredient/api/list`;
 
-  // ----------------------------- fetch data from backend only for once -------------------------------------
+  // ----------------------------- fetch data from backend  -------------------------------------
   useEffect(() => {
     // if (!fetchedOnce) {
     const fetchData = async () => {
@@ -60,7 +63,11 @@ function MyIngredients() {
         const res = await api[method](url, { params: { q: searchIng, page, limit } });
 
         if (page === 1) {
-          setIngredientList(res?.data.data);
+          setIngredientList(res?.data?.data);
+          // check if user ingredients exists, if not then flag the page with setHasNoIngredient to show relevant display
+          if (res.data?.data.length === 0) {
+            setHasNoIngredient(true);
+          }
         } else {
           setIngredientList((prev) => [...prev, ...res?.data?.data]);
         }
@@ -77,8 +84,6 @@ function MyIngredients() {
       }
     };
     fetchData();
-    // }
-    setIsLoading(false);
   }, [toggleAPIcall]);
 
   // -------------------------------- scroll listener -----------------------------------
@@ -141,103 +146,124 @@ function MyIngredients() {
   return (
     <>
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
-        {/* Create header and search bar for your ingredients and a line separator */}
-        <div className="flex flex-col sticky z-8 top-(--top-bar-height) bg-white shadow-md">
-          {/* header of your custom ingredients & search bar */}
-          <div
-            className="flex flex-col mb-4 items-center
+        {/* Check if the data is empty and show the page accordingly */}
+        {hasNoIngredient ? (
+          <EmptyResponsePage
+            title={"No Ingredient Created Yet"}
+            message={
+              <>
+                Add your first <span className="font-bold text-gray-800">custom ingredient</span> to
+                start using it in your recipes.
+              </>
+            }
+            urlPath={"/myIngredient/new"}
+            imageSrc={"/images/no_ingredient_yet.png"}
+            ButtonText={"Add first custom ingredient"}
+            ButtonIcon={IoMdAdd}
+            hideSecondButton={true}
+          />
+        ) : (
+          <>
+            {/* Create header and search bar for your ingredients and a line separator */}
+            <div className="flex flex-col sticky z-8 top-(--top-bar-height) bg-white shadow-md">
+              {/* header of your custom ingredients & search bar */}
+              <div
+                className="flex flex-col mb-4 items-center
                     lg:flex-row  lg:justify-between"
-          >
-            {/* header plus add button */}
-            <div className="flex flex-col items-center gap-y-2">
-              <p className="text-2xl font-semibold">Your Custom Ingredients</p>
-              <div className="">
-                <Button
-                  className="cursor-pointer"
-                  color="dark"
-                  onClick={() => navigate("/myIngredient/new")}
-                >
-                  <span className="text-xl pr-1 pb-1">+</span> Add New
-                </Button>
-              </div>
-            </div>
+              >
+                {/* header plus add button */}
+                <div className="flex flex-col items-center gap-y-2">
+                  <p className="text-2xl font-semibold">Your Custom Ingredients</p>
+                  <div className="">
+                    <Button
+                      className="cursor-pointer"
+                      color="dark"
+                      onClick={() => navigate("/myIngredient/new")}
+                    >
+                      <span className="text-xl pr-1 pb-1">+</span> Add New
+                    </Button>
+                  </div>
+                </div>
 
-            {/* search bar for custom ingredients */}
-            <div
-              className="flex flex-col items-start sm:w-1/2 
+                {/* search bar for custom ingredients */}
+                <div
+                  className="flex flex-col items-start sm:w-1/2 
                             lg:items-start  lg:w-1/3"
-            >
-              {/* search header */}
-              <div className="flex mt-4 lg:mt-0 "></div>
-              {/* search bar */}
-              <div className="flex w-full items-end justify-end  py-2">
-                {/* search input */}
-                <Input
-                  className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
-                          focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1 placeholder:text-gray-400"
-                  onChange={(e) => setSearchIng(e.target.value)}
-                  placeholder={"Search Your Ingredient"}
-                  value={searchIng}
-                />
-                {/* search button */}
-                <button
-                  className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 
-                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                  onClick={searchUserIngredient}
                 >
-                  <HiOutlineSearch />
-                </button>
+                  {/* search header */}
+                  <div className="flex mt-4 lg:mt-0 "></div>
+                  {/* search bar */}
+                  <div className="flex w-full items-end justify-end  py-2">
+                    {/* search input */}
+                    <Input
+                      className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
+                          focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1 placeholder:text-gray-400"
+                      onChange={(e) => setSearchIng(e.target.value)}
+                      placeholder={"Search Your Ingredient"}
+                      value={searchIng}
+                    />
+                    {/* search button */}
+                    <button
+                      className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 
+                              hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
+                      onClick={searchUserIngredient}
+                    >
+                      <HiOutlineSearch />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Line Separator
+              {/* Line Separator
           <div className="flex items-center mb-2">
             <div className="grow border-t border-gray-300"></div>
           </div> */}
-        </div>
-
-        {/* show all your custom ingredients */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
-          {ingredientList?.map((i) => (
-            <div
-              key={i.user_ingredient_id}
-              className="flex shadow-md border-gray-400 rounded-r-xl mt-3
-                          hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
-            >
-              {/* image section - left */}
-              <div className="h-40 aspect-square border-0 rounded-r-lg bg-gray-100 ">
-                <FaCarrot className="p-[30%] h-full w-full text-orange-400" />
-              </div>
-              {/* details section right */}
-              <div className="px-2">
-                <p className="text-lg font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
-                <p className="text-gray-500 italic text-md line-clamp-1">
-                  {currencySymbol} {i.display_price} for {i.display_quantity} {i.display_unit}{" "}
-                </p>
-                <div className="flex items-center line-clamp-2">
-                  <TbBowlSpoonFilled className="text-gray-500" />
-                  <p className="px-1 text-md text-gray-500">
-                    <span className="font-semibold">Cup Weight : </span>{" "}
-                    {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
-                  </p>
-                </div>
-
-                <p className="px-1 mb-1 text-md text-gray-500  line-clamp-1">{i.notes}</p>
-                <div>
-                  <Button
-                    className="mb-1 cursor-pointer "
-                    color="dark"
-                    outline
-                    onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
-                  >
-                    Edit
-                  </Button>
-                </div>
-              </div>
             </div>
-          ))}
-        </div>
+
+            {/* show all your custom ingredients */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
+              {ingredientList?.map((i) => (
+                <div
+                  key={i.user_ingredient_id}
+                  className="flex shadow-md border-gray-400 rounded-r-xl mt-3
+                          hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
+                >
+                  {/* image section - left */}
+                  <div className="h-40 aspect-square border-0 rounded-r-lg bg-gray-100 ">
+                    <FaCarrot className="p-[30%] h-full w-full text-orange-400" />
+                  </div>
+                  {/* details section right */}
+                  <div className="px-2">
+                    <p className="text-lg font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
+                    <p className="text-gray-500 italic text-md line-clamp-1">
+                      {currencySymbol} {i.display_price} for {i.display_quantity}{" "}
+                      {i.display_unit}{" "}
+                    </p>
+                    <div className="flex items-center line-clamp-2">
+                      <TbBowlSpoonFilled className="text-gray-500" />
+                      <p className="px-1 text-md text-gray-500">
+                        <span className="font-semibold">Cup Weight : </span>{" "}
+                        {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
+                      </p>
+                    </div>
+
+                    <p className="px-1 mb-1 text-md text-gray-500  line-clamp-1">{i.notes}</p>
+                    <div>
+                      <Button
+                        className="mb-1 cursor-pointer "
+                        color="dark"
+                        outline
+                        onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </>
   );
