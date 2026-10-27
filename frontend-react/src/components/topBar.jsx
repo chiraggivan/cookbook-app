@@ -18,7 +18,7 @@ import {
   HiSearch,
   HiUser,
 } from "react-icons/hi";
-import { BsPlusCircleDotted } from "react-icons/bs";
+import { BsBookmarkCheckFill, BsPlusCircleDotted } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
 
 import {
@@ -292,13 +292,13 @@ function TopBar() {
                     </SidebarItem>
 
                     <SidebarItem
-                      icon={LiaPasteSolid}
+                      icon={BsBookmarkCheckFill}
                       onClick={() => {
                         setIsOpen(false);
-                        navigate("/myDishes");
+                        navigate("/mySavedRecipes");
                       }}
                     >
-                      Dishes Made
+                      Saved Recipes
                     </SidebarItem>
 
                     <SidebarItem
@@ -314,6 +314,16 @@ function TopBar() {
 
                   <SidebarItemGroup>
                     {/* <SidebarItem icon={ProfileIcon}>Account</SidebarItem> */}
+                    <SidebarItem
+                      icon={LiaPasteSolid}
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/myDishes");
+                      }}
+                    >
+                      Dishes Made
+                    </SidebarItem>
+
                     <SidebarItem
                       icon={IoMdSettings}
                       onClick={() => {

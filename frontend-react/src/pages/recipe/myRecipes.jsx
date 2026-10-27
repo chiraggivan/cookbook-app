@@ -34,7 +34,7 @@ function MyRecipes() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchRecipe, setSearchRecipe] = useState("");
   const [srchBtnPrssd, setSrchBtnPrssd] = useState(false);
-  const [displayRecipes, setDisplayRecipes] = useState();
+  const [myRecipeList, setMyRecipeList] = useState();
   const [hasNoRecipe, setHasNoRecipe] = useState(null);
 
   const imageBaseURL = "/uploadedImages/";
@@ -86,19 +86,23 @@ function MyRecipes() {
     },
   };
 
+  // -------------------- transfer data from myRecipes context variable to myRecipeList variable ------------------
+  useEffect(() => {
+    setMyRecipeList(myRecipes);
+  }, [myRecipes]);
+
   // -------------------- fetch data from backend on every page number change as well -------------------------------------
   useEffect(() => {
     // check if context variable myRecipes is empty or pageChanged is true. this
     // useEffects only run on first load(when context variable is empty) and when pageChanged value is true
     if (myRecipes.length === 0 || pageChanged) {
       const fetchData = async () => {
+        if (pageNoMyRecipes === 1) {
+          setIsLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
         try {
-          if (pageNoMyRecipes === 1) {
-            setIsLoading(true);
-          } else {
-            setIsLoadingMore(true);
-          }
-
           const res = await api[method](url, {
             params: {
               q: searchRecipe || undefined,
@@ -106,22 +110,18 @@ function MyRecipes() {
               limit,
             },
           });
-          // update useState variable for flag of hasNoRecipe. This decides to show the list of recipe or empty page description
-          if (pageNoMyRecipes === 1 && res?.data?.data.length === 0) {
-            setHasNoRecipe(true);
-          }
+
           setHasMoreMyRecipes(res?.data?.hasMore);
           const refinedMyRecipes = res?.data?.data.map(({ username, user_id, ...rest }) => rest);
 
           if (pageNoMyRecipes === 1) {
+            setMyRecipeList(refinedMyRecipes);
             setMyRecipes(refinedMyRecipes);
             // check if recipes exists, if not then flag the page with setHasNoRecipe to show relevant display
-            if (refinedMyRecipes.length === 0) {
-              setHasNoRecipe(true);
-            }
+            setHasNoRecipe(refinedMyRecipes.length === 0);
           } else {
             setMyRecipes((prev) => [...prev, ...refinedMyRecipes]);
-            // setDisplayRecipes((prev) => [...prev, ...refinedMyRecipes]);
+            // setMyRecipeList((prev) => [...prev, ...refinedMyRecipes]);
           }
         } catch (err) {
           console.log("error while fetching my ingredients list with axios is :", err);
@@ -132,13 +132,11 @@ function MyRecipes() {
         }
       };
       fetchData();
+    } else {
+      // as isLoading is true while rendering the page
+      setIsLoading(false);
     }
   }, [pageNoMyRecipes]);
-
-  // -------------------- transfer data from myRecipes context variable to displayRecipes variable ------------------
-  useEffect(() => {
-    setDisplayRecipes(myRecipes);
-  }, [myRecipes]);
 
   // -------------------------------- scroll listener for My recipe page without search text--------------------------------
   useEffect(() => {
@@ -186,10 +184,10 @@ function MyRecipes() {
 
           if (searchPage === 1) {
             // setMyRecipes(refinedMyRecipes);
-            setDisplayRecipes(refinedMyRecipes);
+            setMyRecipeList(refinedMyRecipes);
           } else {
             // setMyRecipes((prev) => [...prev, ...refinedMyRecipes]);
-            setDisplayRecipes((prev) => [...prev, ...refinedMyRecipes]);
+            setMyRecipeList((prev) => [...prev, ...refinedMyRecipes]);
           }
         } catch (err) {
           console.log(
@@ -204,7 +202,7 @@ function MyRecipes() {
       };
       fetchData();
     } else if (searchText === "") {
-      setDisplayRecipes(myRecipes);
+      setMyRecipeList(myRecipes);
     }
   }, [srchBtnPrssd, searchPage]);
 
@@ -240,6 +238,19 @@ function MyRecipes() {
     }));
   };
 
+  // ------------------------- check the length of list and show empty page display if length is 0 -----------------
+  useEffect(() => {
+    if (!myRecipeList) {
+      return;
+    }
+
+    if (myRecipeList.length === 0) {
+      setHasNoRecipe(true);
+    } else {
+      setHasNoRecipe(false);
+    }
+  }, [myRecipeList]);
+
   // ------------------------------------------- loading screen ----------------------------------------------
   if (isLoading) {
     return (
@@ -257,7 +268,8 @@ function MyRecipes() {
   // console.log("data before return html : ", data);
   // console.log("myRecipes before return html :", myRecipes);
   // console.log("searchRecipe", searchRecipe);
-  // console.log("displayRecipes :", displayRecipes);
+  // console.log("myRecipeList :", myRecipeList);
+  // console.log("isLoading", isLoading);
   // console.log("has more :", hasMoreMyRecipes, " and page is :", pageNoMyRecipes);
 
   return (
@@ -324,7 +336,7 @@ function MyRecipes() {
 
             {/* recipe list */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8  p-4">
-              {displayRecipes?.map((i) => (
+              {myRecipeList?.map((i) => (
                 <>
                   <div
                     key={i.recipe_id}

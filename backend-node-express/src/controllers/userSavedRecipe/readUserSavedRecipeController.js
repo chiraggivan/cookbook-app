@@ -5,23 +5,24 @@ exports.get_user_bookmarked_recipes = async (req, res) => {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
 
     // fetch list of bookmarks for user
-    const query = `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.privacy, u.username, u.display_name, u.email, r.image_url 
+    const query = `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.privacy, 
+                    u.username, u.display_name, u.email, r.image_url, usr.user_saved_recipe_id AS id
                   FROM recipes r 
                       JOIN user_saved_recipes usr ON r.recipe_id = usr.recipe_id
                       JOIN users u ON u.user_id = r.user_id
-                      WHERE usr.user_id = ?`;
+                      WHERE usr.user_id = ? AND r.is_active = 1`;
 
     const [result] = await db.query(query, [user.id]);
 
-    console.log("result :", result);
+    // console.log("result :", result);
 
     // if no bookmarks found
-    if (result.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No bookmarks found",
-      });
-    }
+    // if (result.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No bookmarks found",
+    //   });
+    // }
 
     // FINAL response
     res.json({

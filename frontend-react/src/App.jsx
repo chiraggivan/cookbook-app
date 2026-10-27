@@ -7,6 +7,7 @@ import { IngredientRoutes } from "./routes/admin/ingredientRoutes";
 import { UserIngredientRoutes } from "./routes/userIngredientRoutes";
 import { FoodPlanRoutes } from "./routes/foodPlanRoutes";
 import { DashboardRoutes } from "./routes/dashboardRoutes";
+import { SavedRecipeRoutes } from "./routes/savedRecipeRoutes";
 import NotFoundPage from "./components/notFoundPage";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       {UserIngredientRoutes}
       {FoodPlanRoutes}
       {DashboardRoutes}
+      {SavedRecipeRoutes}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

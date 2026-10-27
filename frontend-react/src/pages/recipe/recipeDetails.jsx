@@ -48,7 +48,8 @@ function RecipeDetails() {
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [isLoading, setIsLoading] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(true);
+  const [showBookmarkIcon, setShowBookmarkIcon] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(null);
   const [isChangingBookmark, setIsChangingBookmark] = useState(null);
   const [changePrvcyLoading, setChangePrvcyLoading] = useState(false);
   const [isRecipeOwner, setIsRecipeOwner] = useState(null);
@@ -121,6 +122,16 @@ function RecipeDetails() {
           // Below vairable is for useContext. Temp switching off. Need to work on it for every condition
           // setRecipeDetails((prev) => [...prev, tempRecipe]);
           // }
+
+          // is the user is the owner of the recipe , DONT show bookmark icon.
+          if (user.user_id == tempRecipe.recipe.user_id) {
+            setShowBookmarkIcon(false);
+          } else {
+            setShowBookmarkIcon(true);
+          }
+
+          // find if bookmarked
+          setIsBookmarked(tempRecipe.recipe.is_bookmarked);
           setFoundRecipeDetails(tempRecipe);
         } catch (err) {
           console.log("error while fetching reicpe details with axios is :", err.response);
@@ -409,7 +420,7 @@ function RecipeDetails() {
     setIsEditBaseValuesOpen(false);
   };
 
-  // ------------------------------------------ bookmark logic ----------------------------------------------
+  // ------------------------------------------ change bookmark logic ----------------------------------------------
   const bookmarkRecipe = () => {
     if (!isBookmarked) {
       const url = "/userSavedRecipe/api/bookmarkRecipe";
@@ -417,10 +428,15 @@ function RecipeDetails() {
       const body = { recipe_id: id };
 
       setIsChangingBookmark(true);
+      // function to call api
       const sendData = async () => {
         try {
-          const res = await api[method](url, body);
+          await api[method](url, body);
           setIsBookmarked(true);
+          setFoundRecipeDetails((prev) => ({
+            ...prev,
+            recipe: { ...prev.recipe, is_bookmarked: 1 },
+          }));
         } catch (err) {
           console.log("Error while bookmarking recipe :", err);
           window.alert(`Something went wrong. Try again later.`);
@@ -428,16 +444,22 @@ function RecipeDetails() {
           setIsChangingBookmark(false);
         }
       };
+
       sendData();
     } else {
       const url = `/userSavedRecipe/api/delete/${id}`;
       const method = "delete";
 
       setIsChangingBookmark(true);
+      // function to call api
       const sendData = async () => {
         try {
-          const res = await api[method](url, body);
+          await api[method](url);
           setIsBookmarked(false);
+          setFoundRecipeDetails((prev) => ({
+            ...prev,
+            recipe: { ...prev.recipe, is_bookmarked: 0 },
+          }));
         } catch (err) {
           console.log("Error while bookmarking recipe :", err);
           window.alert(`Something went wrong. Try again later.`);
@@ -445,6 +467,7 @@ function RecipeDetails() {
           setIsChangingBookmark(false);
         }
       };
+
       sendData();
     }
   };
@@ -623,6 +646,7 @@ function RecipeDetails() {
 
   // console.log("HiTrash :", HiTrash);
   // console.log("foundRecipeDetails is :", foundRecipeDetails);
+  // console.log("showBookmarkICon :", showBookmarkIcon);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
   // console.log("myRecipes :", myRecipes);
@@ -887,10 +911,24 @@ function RecipeDetails() {
             {/* Row for bookmark, forward, like, dislike, etc */}
             <div className="flex justify-end h-10 w-full pr-4 gap-3">
               {/* <TiArrowForward className="h-10 scale-200" /> */}
-              {isBookmarked ? (
-                <BsBookmarkFill className="h-10 scale-150" onClick={() => {}} />
-              ) : (
-                <BsBookmark className="h-10 scale-150" onClick={() => {}} />
+              {showBookmarkIcon && (
+                <>
+                  {isBookmarked ? (
+                    <BsBookmarkFill
+                      className="h-10 scale-150 hover:scale-125 hover:cursor-pointer"
+                      onClick={() => {
+                        bookmarkRecipe();
+                      }}
+                    />
+                  ) : (
+                    <BsBookmark
+                      className="h-10 scale-150 hover:scale-125 hover:cursor-pointer"
+                      onClick={() => {
+                        bookmarkRecipe();
+                      }}
+                    />
+                  )}{" "}
+                </>
               )}
             </div>
 

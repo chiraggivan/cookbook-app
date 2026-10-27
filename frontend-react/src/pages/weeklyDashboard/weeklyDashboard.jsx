@@ -16,6 +16,9 @@ import {
   Sector,
 } from "recharts";
 import NotFoundPage from "../../components/notFoundPage";
+import EmptyResponsePage from "../../components/emptyResponsePage";
+import { IoMdHome } from "react-icons/io";
+import { TbCalendarMonthFilled } from "react-icons/tb";
 
 function WeeklyDashboard() {
   const params = useParams();
@@ -33,7 +36,7 @@ function WeeklyDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const currencySymbol = user.currency_symbol;
 
-  const [totalMeals, setTotalMeals] = useState(0);
+  const [generateDashboard, setGenerateDashboard] = useState(null);
   const isScrnBlwMd = window.innerWidth < 768; // used for converting Mon to M
   const isScrnBlwLg = window.innerWidth < 1024; // used for converting Monday to Mon
 
@@ -42,14 +45,15 @@ function WeeklyDashboard() {
   const method = "get";
   const url = `/weeklyDashboard/api/getWeeklyDashboard/${weekNo}/${planId}`;
 
-  //   initial fetch
+  // ------------------------- initial fetch -------------------------------------------
   useEffect(() => {
     setIsLoading(true);
     const fetchData = async () => {
       try {
         const res = await api[method](url);
-        // console.log("response from bckend is :", res);
+        console.log("response from bckend is :", res);
         setAggData(res?.data?.data?.aggData);
+        // setGenerateDashboard(res?.data?.data?.aggData?.total_recipes > 0);
         setWeeklyData(res?.data?.data?.weeklyData);
         setDayData(res?.data?.data?.dayCostList);
         setMealData(res?.data?.data?.mealCostList);
@@ -60,7 +64,7 @@ function WeeklyDashboard() {
         console.log("Error during weeklyDashboard page :", error);
         // Check if dashboard requested for, exist. If not then show relevant screen via setIsDetailNotFound
         if (error.response?.status === 404) {
-          setIsDashboardNotFound(true);
+          setGenerateDashboard(false);
           return;
         }
       } finally {
@@ -70,10 +74,7 @@ function WeeklyDashboard() {
     fetchData();
   }, []);
 
-  // update totalMeals based on mealData
-  useEffect(() => {
-    setTotalMeals(mealData.length);
-  }, [mealData]);
+  // ----------------- check if any recipes found , if not then show empty dashboard screen ---------------
 
   // ------------------------------------------- loading screen ---------------------------------------------------
   if (isLoading) {
@@ -98,11 +99,21 @@ function WeeklyDashboard() {
   // console.log("weeklyData :", weeklyData);
   // console.log("isScrnBlwMd :", isScrnBlwMd);
   // console.log("totalMeals :", totalMeals);
+  // console.log("generate dashboard :", generateDashboard);
 
   return (
     <>
-      {isDashboardNotFound ? (
-        <NotFoundPage />
+      {generateDashboard ? (
+        <EmptyResponsePage
+          title="Your Weekly Dashboard Is Waiting!"
+          message="Add recipes to your meal planner to unlock helpful insights into your weekly meals, costs, and ingredients."
+          urlPath="/foodplan"
+          imageSrc="/images/empty_dashboard.png"
+          ButtonText="View Meal Planner"
+          ButtonIcon={TbCalendarMonthFilled}
+          hideFirstButton={false}
+          hideSecondButton={true}
+        />
       ) : (
         <>
           <div className="flex flex-col max-w-5xl mx-auto bg-gray-50">

@@ -61,14 +61,14 @@ function LeftSideBar() {
               </li>
               <li>
                 <NavLink
-                  to="/myDishes"
+                  to="/mySavedRecipes"
                   className={({ isActive }) =>
                     `block font-medium transition duration-200 ${
                       isActive ? "text-app-primary" : "text-gray-700 hover:text-app-primary"
                     }`
                   }
                 >
-                  Dishes Made
+                  Saved Recipes
                 </NavLink>
               </li>
 

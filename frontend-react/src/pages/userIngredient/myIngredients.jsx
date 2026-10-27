@@ -129,6 +129,19 @@ function MyIngredients() {
     setToggleAPIcall((prev) => !prev);
   };
 
+  // ------------------------- check the length of list and show empty page display if length is 0 -----------------
+  useEffect(() => {
+    if (!ingredientList) {
+      return;
+    }
+
+    if (ingredientList.length === 0) {
+      setHasNoIngredient(true);
+    } else {
+      setHasNoIngredient(false);
+    }
+  }, [ingredientList]);
+
   // ------------------------------------------- loading screen ----------------------------------------------
   if (isLoading) {
     return (

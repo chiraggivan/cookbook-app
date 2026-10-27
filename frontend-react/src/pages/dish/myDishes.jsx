@@ -20,7 +20,7 @@ function MyDishes() {
   const navigate = useNavigate();
   // const { dishes, setDishes, fetchedOnce, setFetchedOnce, setDishDetails } =
   //   useContext(DishContext);
-  const [dishes, setDishes] = useState();
+  const [dishList, setDishList] = useState();
   const [hasNoDish, setHasNoDish] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -68,9 +68,9 @@ function MyDishes() {
         }));
 
         if (page === 1) {
-          setDishes(formattedData);
+          setDishList(formattedData);
         } else {
-          setDishes((prev) => [...prev, ...formattedData]);
+          setDishList((prev) => [...prev, ...formattedData]);
         }
         setHasMore(res?.data?.hasMore || false);
 
@@ -134,6 +134,19 @@ function MyDishes() {
   // console.log("hasMore is:", hasMore);
   // console.log("wasSearchedBefore is:", wasSearchedBefore);
 
+  // ------------------------- check the length of list and show empty page display if length is 0 -----------------
+  useEffect(() => {
+    if (!dishList) {
+      return;
+    }
+
+    if (dishList.length === 0) {
+      setHasNoDish(true);
+    } else {
+      setHasNoDish(false);
+    }
+  }, [dishList]);
+
   // -----------------------  show loading while waiting for data to be ready -------------------------
   if (isLoading) {
     return (
@@ -194,7 +207,7 @@ function MyDishes() {
             <div className="flex flex-col sticky z-9 top-(--top-bar-height) bg-white shadow-md">
               {/* Header of the page with search bar */}
               <div className="flex flex-col m-3 items-center md:items-start md:flex-row md:justify-start">
-                <div className="text-2xl font-semibold">Your Saved Dishes</div>
+                <div className="text-2xl font-semibold">Dishes Made</div>
 
                 {/* search bar */}
                 <div className="flex w-[80%] md:pl-60 md:mr-2 max-w-140">
@@ -224,7 +237,7 @@ function MyDishes() {
 
             {/* show all your saved Dishes*/}
             <div className="grid grid-cols-1 mt-3 lg:grid-cols-2  xl:grid-cols-4 gap-4">
-              {dishes?.map((i) => (
+              {dishList?.map((i) => (
                 <div
                   key={i.user_ingredient_id}
                   className="flex m-2 shadow-xs border-gray-400  cursor-pointer rounded hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"

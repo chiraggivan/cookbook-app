@@ -7,13 +7,21 @@ const { getLastRecordOfRecipeCreated } = require("./getLastRecordRecipeCreated")
 exports.getRecipeDetailsById = async (recipeId, userId) => {
   try {
     const [recipeResult] = await db.query(
-      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.image_url, r.created_at, r.user_id, u.username, u.display_name, u.email
-        FROM recipes r JOIN users u ON r.user_id = u.user_id 
+      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.image_url, r.created_at, r.user_id, u.username, u.display_name, u.email,
+            CASE 
+              WHEN usr.user_saved_recipe_id IS NOT NULL THEN 
+                true
+              ELSE 
+                false
+            END AS is_bookmarked
+        FROM recipes r 
+          JOIN users u ON r.user_id = u.user_id 
+          LEFT JOIN user_saved_recipes usr ON usr.recipe_id = ? AND usr.user_id = ?
         WHERE r.recipe_id = ? 
         AND r.is_active = 1
         AND (r.user_id = ?
         OR r.privacy = 'public')`,
-      [recipeId, userId],
+      [recipeId, userId, recipeId, userId],
     );
 
     //  check any recipe found
