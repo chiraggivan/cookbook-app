@@ -3,25 +3,25 @@ import React, { createContext, useState } from "react";
 export const MyRecipeContext = createContext();
 
 export const MyRecipeProvider = ({ children }) => {
-  const [myRecipes, setMyRecipes] = useState([]);
+  const [myRecipesCntxt, setMyRecipesCntxt] = useState([]);
   const [fetchedOnce, setFetchedOnce] = useState(false);
   const [recipeDetails, setRecipeDetails] = useState([]);
-  const [hasMoreMyRecipes, setHasMoreMyRecipes] = useState(false);
-  const [pageNoMyRecipes, setPageNoMyRecipes] = useState(1);
+  const [hasMoreMyRecipesCntxt, setHasMoreMyRecipesCntxt] = useState(false);
+  const [pageNoMyRecipesCntxt, setPageNoMyRecipesCntxt] = useState(1);
 
   return (
     <MyRecipeContext.Provider
       value={{
-        myRecipes,
-        setMyRecipes,
+        myRecipesCntxt,
+        setMyRecipesCntxt,
         fetchedOnce,
         setFetchedOnce,
         recipeDetails,
         setRecipeDetails,
-        hasMoreMyRecipes,
-        setHasMoreMyRecipes,
-        pageNoMyRecipes,
-        setPageNoMyRecipes,
+        hasMoreMyRecipesCntxt,
+        setHasMoreMyRecipesCntxt,
+        pageNoMyRecipesCntxt,
+        setPageNoMyRecipesCntxt,
       }}
     >
       {children}

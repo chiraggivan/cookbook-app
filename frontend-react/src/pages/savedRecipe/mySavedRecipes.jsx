@@ -215,7 +215,7 @@ function MyIngredients() {
                 className="flex flex-col mb-4 items-center
                     lg:flex-row  lg:justify-between"
               >
-                {/* header plus add button */}
+                {/* header */}
                 <div className="flex flex-col items-center gap-y-2">
                   <p className="text-2xl font-semibold">Saved Recipes:</p>
                 </div>

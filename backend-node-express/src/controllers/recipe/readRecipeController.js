@@ -128,18 +128,6 @@ exports.get_my_recipes = async (req, res) => {
     const queryLimit = limit + 1;
     const offset = (page - 1) * limit;
 
-    // verify user exists
-    const [userResult] = await db.query(
-      `SELECT username FROM users WHERE user_id = ? AND is_active = 1`,
-      [user.id],
-    );
-    if (userResult.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: " user not active or not found",
-      });
-    }
-
     // find all the recipes of logged in user
     const [result] = await db.query(
       `SELECT r.recipe_id, r.name, r.user_id, r.portion_size, r.description, r.image_url, u.username

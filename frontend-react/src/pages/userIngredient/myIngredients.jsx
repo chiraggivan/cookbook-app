@@ -50,7 +50,6 @@ function MyIngredients() {
 
   // ----------------------------- fetch data from backend  -------------------------------------
   useEffect(() => {
-    // if (!fetchedOnce) {
     const fetchData = async () => {
       try {
         if (page === 1) {
@@ -109,16 +108,12 @@ function MyIngredients() {
 
   // ------- to fetch more recipes for infinite scroll as page changes due above scroll listener------------
   useEffect(() => {
-    if (!token) {
-      return;
-    }
-
     setToggleAPIcall((prev) => !prev);
   }, [page]);
 
   // ------------------- search button result of user's recipe -----------------------
   const searchUserIngredient = () => {
-    const string = searchIng.trim().replace(/\s+/g, " ").toLowerCase();
+    const string = searchIng.trim().replace(/\s+/g, " ");
 
     if (string.length === 0 && !wasSearchedBefore) {
       return;
