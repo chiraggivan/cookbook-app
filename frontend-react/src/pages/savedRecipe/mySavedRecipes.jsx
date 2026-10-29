@@ -1,12 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import useAuth from "../../hooks/useAuth";
-
 import api from "../../api/axios";
-
 import Input from "../../components/input";
-import { capitaliseWords, serverURL } from "../../utils/appUtils";
+import { capitaliseWords, serverURL, windowScrollPercentage } from "../../utils/appUtils";
 import { Button, Spinner } from "flowbite-react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { TbBowlSpoonFilled } from "react-icons/tb";
@@ -18,58 +15,49 @@ import { GoBookmarkFill, GoBookmarkSlashFill } from "react-icons/go";
 import { ImInfo } from "react-icons/im";
 import { GiHotMeal } from "react-icons/gi";
 
-function MyIngredients() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const currencySymbol = user.currency_symbol || "£";
+function MySavedRecipes() {
   const navigate = useNavigate();
   const [savedRecipeList, setSavedRecipeList] = useState();
   const [hasNoSavedRecipe, setHasNoSavedRecipe] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchRecipe, setSearchRecipe] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [inputText, setInputText] = useState("");
   const [isChangingBookmark, setIsChangingBookmark] = useState(false);
 
-  //   for animation of delete bookmark
-  const [parent] = useAutoAnimate();
-
-  const [page, setPage] = useState(1);
-  const limit = 10;
+  const limit = 5;
+  const scrollwindowPercent = 90;
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const scrollwindowPercent = 90;
-  const [wasSearchedBefore, setWasSearchedBefore] = useState(false);
-  const [toggleAPIcall, setToggleAPIcall] = useState(false);
+  const [cursor, setCursor] = useState(null);
+
+  //  for animation of delete bookmark
+  const [parent] = useAutoAnimate();
 
   const method = "get";
   const url = `/userSavedRecipe/api/bookmarkedlist`;
+  // console.log("coming from savedRecipes2 file");
 
   // ----------------------------- fetch data from backend  -------------------------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (page === 1) {
+        if (cursor === null) {
           setIsLoading(true);
-        }
-        if (page > 1) {
+        } else {
           setIsLoadingMore(true);
         }
 
-        const res = await api[method](url, { params: { q: searchRecipe, page, limit } });
-
-        if (page === 1) {
+        const res = await api[method](url, { params: { q: searchText, limit, cursor } });
+        if (cursor === null) {
           setSavedRecipeList(res?.data?.data);
-          // check if user has saved any recipe, if not then flag the page with setHasNoSavedRecipe to show relevant display
-          if (res.data?.data?.length === 0) {
+          // check if user has saved any recipe, if not then flag the pageNo with setHasNoSavedRecipe to show relevant display
+          if (res.data?.data?.length === 0 && searchText.length === 0) {
             setHasNoSavedRecipe(true);
           }
         } else {
           setSavedRecipeList((prev) => [...prev, ...res?.data?.data]);
         }
         setHasMore(res?.data?.hasMore || false);
-
-        // making sure that search button doesnt call api if search is empty for the previous api call
-        if (!searchRecipe) {
-          setWasSearchedBefore(false);
-        }
       } catch (err) {
         console.log("error while fetching my saved recipe list with axios is :", err);
       } finally {
@@ -79,19 +67,15 @@ function MyIngredients() {
     };
 
     fetchData();
-  }, [toggleAPIcall]);
+  }, [cursor, searchText]);
 
   // -------------------------------- scroll listener -----------------------------------
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
+      const scrollPercentage = windowScrollPercentage();
 
-      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
-      // console.log("scroll % :", scrollPercentage);
       if (scrollPercentage >= scrollwindowPercent && hasMore && !isLoadingMore) {
-        setPage((prev) => prev + 1);
+        setCursor(savedRecipeList[savedRecipeList.length - 1].created_at);
       }
     };
 
@@ -102,22 +86,11 @@ function MyIngredients() {
     };
   }, [hasMore, isLoadingMore]);
 
-  // ------- to fetch more recipes for infinite scroll as page changes due above scroll listener------------
-  useEffect(() => {
-    setToggleAPIcall((prev) => !prev);
-  }, [page]);
-
   // ------------------- search button result of user's recipe -----------------------
-  const searchSavedRecipes = () => {
-    const string = searchRecipe.trim().replace(/\s+/g, " ");
-
-    if (string.length === 0 && !wasSearchedBefore) {
-      return;
-    }
-
-    setPage(1);
-    setWasSearchedBefore(true);
-    setToggleAPIcall((prev) => !prev);
+  const searchButton = () => {
+    const stringText = inputText.trim().replace(/\s+/g, " ");
+    setSearchText(stringText);
+    setCursor(1);
   };
 
   // ------------------------------ creating variable to store which recipe have images and valid --------
@@ -143,7 +116,12 @@ function MyIngredients() {
     const sendData = async () => {
       try {
         await api[method](url);
+        // if successful, get check the length and if less than five, fetch new and append it
+        const newListLength = savedRecipeList.length - 1;
         setSavedRecipeList((prev) => prev.filter((i) => i.recipe_id !== id));
+        if (newListLength < 5 && hasMore) {
+          setCursor(savedRecipeList[savedRecipeList.length - 1].created_at);
+        }
       } catch (err) {
         console.log("Error while bookmarking recipe :", err);
         window.alert(`Something went wrong. Try again later.`);
@@ -154,19 +132,6 @@ function MyIngredients() {
 
     sendData();
   };
-
-  // ------------------------- check the length of list and show empty page display if length is 0 -----------------
-  useEffect(() => {
-    if (!savedRecipeList) {
-      return;
-    }
-
-    if (savedRecipeList.length === 0) {
-      setHasNoSavedRecipe(true);
-    } else {
-      setHasNoSavedRecipe(false);
-    }
-  }, [savedRecipeList]);
 
   // ------------------------------------------- loading screen ----------------------------------------------
   if (isLoading) {
@@ -183,6 +148,7 @@ function MyIngredients() {
   }
 
   //   console.log("savedRecipeList :", savedRecipeList);
+
   return (
     <>
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
@@ -233,15 +199,15 @@ function MyIngredients() {
                     <Input
                       className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                           focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1 placeholder:text-gray-400"
-                      onChange={(e) => setSearchRecipe(e.target.value)}
+                      onChange={(e) => setInputText(e.target.value)}
                       placeholder={"Search Saved Recipe"}
-                      value={searchRecipe}
+                      value={inputText}
                     />
                     {/* search button */}
                     <button
                       className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 
                               hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                      onClick={searchSavedRecipes}
+                      onClick={searchButton}
                     >
                       <HiOutlineSearch />
                     </button>
@@ -264,11 +230,11 @@ function MyIngredients() {
                 <div
                   key={i.id}
                   className="relative flex border border-gray-300 rounded-xl m-2 p-2 
-                          hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
+                          hover:scale-101 transition duration-300"
                 >
                   {/* image section - left */}
                   <div
-                    className="h-20 aspect-16/12 border-0 hover:cursor-pointer"
+                    className="h-20 aspect-4/3 border-0 hover:cursor-pointer"
                     onClick={() => navigate(`/recipe/${i.recipe_id}`)}
                   >
                     <div className=" h-full w-full">
@@ -276,7 +242,7 @@ function MyIngredients() {
                         <GiHotMeal className="h-full w-full bg-gray-200 rounded-lg md:rounded-xl" />
                       ) : (
                         <img
-                          className="h-full w-full rounded-lg md:rounded-xl"
+                          className="h-full w-full rounded-lg md:rounded-xl object-cover object-center"
                           src={i?.image_url}
                           alt="Recipe Image"
                           onError={() => handleImageError(i.recipe_id)}
@@ -291,7 +257,7 @@ function MyIngredients() {
                     onClick={() => navigate(`/recipe/${i.recipe_id}`)}
                   >
                     {/* recipe name */}
-                    <p className="text-md font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
+                    <p className="text-md font-semibold line-clamp-2">{capitaliseWords(i.name)}</p>
                     {/* portion size */}
                     <p className="text-gray-500 italic text-xs md:text-sm line-clamp-1">
                       {i.portion_size}
@@ -316,7 +282,7 @@ function MyIngredients() {
                       <div className="flex items-center justify-center h-20 aspect-16/12 border-0 bg-gray-300/10 rounded-md">
                         <IoIosLock className=" text-white bg-gray-700/80 rounded-full h-6 w-6 scale-150 p-1.5" />
                       </div>
-                      <div className="flex  items-center border border-red-500 bg-red-100 opacity-100 mt-8 gap-3 rounded-md py-2 px-4">
+                      <div className="flex flex-1 items-center border border-red-500 bg-red-100 opacity-100 mt-8 gap-3 rounded-md py-2 px-4">
                         <FaCircleInfo className="pt-0.5 h-5 w-5 text-red-500 scale-125" />
                         <p className="text-xs text-red-500 ">Currenrtly unavailable.</p>
                       </div>
@@ -332,4 +298,4 @@ function MyIngredients() {
   );
 }
 
-export default MyIngredients;
+export default MySavedRecipes;

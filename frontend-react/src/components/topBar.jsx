@@ -1,12 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { getInitials } from "../utils/appUtils";
-import Input from "./input";
 import { useEffect, useState, useContext } from "react";
 import { GiCarrot, GiHamburgerMenu, GiSettingsKnobs } from "react-icons/gi";
 import { useSearch } from "../context/globalSearchContext";
 import { MyRecipeContext } from "../context/myRecipeContext";
-import { DishContext } from "../context/dishContext";
-import { MyIngredientContext } from "../context/myIngredientContext";
 import {
   HiBookmark,
   HiClipboardList,
@@ -18,9 +15,8 @@ import {
   HiSearch,
   HiUser,
 } from "react-icons/hi";
-import { BsBookmarkCheckFill, BsPlusCircleDotted } from "react-icons/bs";
+import { BsBookmarkCheckFill } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
-
 import {
   createTheme,
   Drawer,
@@ -36,18 +32,14 @@ import {
   TextInput,
 } from "flowbite-react";
 import { FaBook, FaPlus } from "react-icons/fa6";
-import { MdOutlineMenuBook } from "react-icons/md";
-import { SlOptionsVertical } from "react-icons/sl";
 import { TbCalendarMonthFilled } from "react-icons/tb";
 import { LiaPasteSolid } from "react-icons/lia";
 
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user")) || null;
   const navigate = new useNavigate();
-  const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
-    useContext(MyRecipeContext);
-  const { dishes, dishDetails } = useContext(DishContext);
-  const { myIngredients } = useContext(MyIngredientContext);
+  const { setMyRecipes, setRecipeDetails, setFetchedOnce } = useContext(MyRecipeContext);
+
   const { setSearchRecipe, searchInput, setSearchInput } = useSearch();
   useEffect(() => {
     if (!user) {
@@ -60,7 +52,7 @@ function TopBar() {
   const userName = user?.username ?? user?.display_name ?? user?.email ?? "";
 
   // for menu button (hamburger) in screen smaller than md
-  const [searchText, SetSearchText] = useState("");
+
   const [isOpen, setIsOpen] = useState(false);
   const handleClose = () => setIsOpen(false);
   const handleSearch = (e) => {

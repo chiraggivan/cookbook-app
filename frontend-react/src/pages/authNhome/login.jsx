@@ -12,8 +12,14 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { currentUserId, setCurrentUserId } = useContext(CurrentUserContext);
-  const { myRecipes, recipeDetails, fetchedOnce, setMyRecipes, setRecipeDetails, setFetchedOnce } =
-    useContext(MyRecipeContext);
+  const {
+    myRecipes,
+    recipeDetails,
+    fetchedOnce,
+    setMyRecipesCntxt,
+    setRecipeDetails,
+    setFetchedOnce,
+  } = useContext(MyRecipeContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const expired = searchParams.get("expired");
@@ -38,7 +44,7 @@ function Login() {
 
   // first thing when login screen loads, reset fetchedOnce, myRecipes and recipeDetails context variables
   useEffect(() => {
-    setMyRecipes([]);
+    setMyRecipesCntxt([]);
     setRecipeDetails([]);
     setFetchedOnce(false);
 

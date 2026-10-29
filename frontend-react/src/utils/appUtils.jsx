@@ -1,7 +1,10 @@
 const serverURL = import.meta.env.VITE_API_URL;
 
-const JWTunverifiedMsg = "Invalid or Expired token."; // to check on every page if token is invalid from middleware
-const showTokenErrMsgOnScreen = "Login expired";
+// const JWTunverifiedMsg = "Invalid or Expired token."; // to check on every page if token is invalid from middleware
+// const showTokenErrMsgOnScreen = "Login expired";
+const pageContentLimit = 5;
+const fetchDataAtScroll = 90;
+const totalPagesInContext = 3;
 
 // get the intials (mostly username) in Upper case for alternative to image of user
 const getInitials = (name) => {
@@ -75,13 +78,27 @@ function confirmInputNumber(ogData, field) {
   return value;
 }
 
+// -------------------- browser window scroll percentage ----------------------------------------
+function windowScrollPercentage() {
+  const scrollTop = window.scrollY;
+  const windowHeight = window.innerHeight;
+  const documentHeight = document.documentElement.scrollHeight;
+  const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
+
+  return scrollPercentage || 0;
+}
+
 export {
   serverURL,
-  JWTunverifiedMsg,
-  showTokenErrMsgOnScreen,
+  // JWTunverifiedMsg,
+  // showTokenErrMsgOnScreen,
+  pageContentLimit,
+  fetchDataAtScroll,
+  totalPagesInContext,
   getInitials,
   capitaliseWords,
   validateInput,
   validateInputNumber,
   confirmInputNumber,
+  windowScrollPercentage,
 };

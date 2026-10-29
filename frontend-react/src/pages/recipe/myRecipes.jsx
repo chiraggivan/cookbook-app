@@ -1,16 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import useAuth from "../../hooks/useAuth";
-import axios from "axios";
 import api from "../../api/axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
-import { CurrentUserContext } from "../../context/currentUserContext";
-import { JWTunverifiedMsg, serverURL } from "../../utils/appUtils";
-import Button from "../../components/button";
+import {
+  fetchDataAtScroll,
+  pageContentLimit,
+  totalPagesInContext,
+  windowScrollPercentage,
+} from "../../utils/appUtils";
 import Input from "../../components/input";
-import TopBar from "../../components/topBar";
-import LeftSideBar from "../../components/leftSideBar";
-import { getInitials } from "../../utils/appUtils";
 import { FaSearchengin } from "react-icons/fa6";
 import { GiHotMeal } from "react-icons/gi";
 import { MdOutlineEditNote } from "react-icons/md";
@@ -18,9 +16,6 @@ import { Spinner } from "flowbite-react";
 import EmptyResponsePage from "../../components/emptyResponsePage";
 
 function MyRecipes() {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
-  // const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const {
     myRecipesCntxt,
@@ -38,11 +33,14 @@ function MyRecipes() {
   const [srchBtnToggle, setSrchBtnToggle] = useState(false);
   const [srchTxtToggle, setSrchTxtToggle] = useState(false);
   const [hasNoRecipe, setHasNoRecipe] = useState(null);
-  const limit = 4;
-  const scrollwindowPercent = 99;
+  const limit = pageContentLimit;
+  const scrollwindowPercent = fetchDataAtScroll;
+  const totalDataInContext = totalPagesInContext;
 
   // initialise main list variable with the myRecipesCntxt value
   const [mainList, setMainList] = useState(myRecipesCntxt);
+  const [mainPageNo, setMainPageNo] = useState(pageNoMyRecipesCntxt);
+  const [mainPageHasMore, setMainPageHasMore] = useState(hasMoreMyRecipesCntxt);
 
   //  variable for infinite scroll with out search text
   const [pageChanged, setPageChanged] = useState(false);
@@ -63,12 +61,20 @@ function MyRecipes() {
   const method = "get";
   const url = `/recipe/api/my`;
 
-  const [counter, setCounter] = useState(1);
+  // --------------------------- function to limit the myRecipes context data -----------------------------
+  const updateMyRecipesContext = (pageNo, hasMore, data) => {
+    if (pageNo === 1) {
+      setHasMoreMyRecipesCntxt(hasMore);
+      setMyRecipesCntxt(data);
+    } else if (pageNo < totalDataInContext) {
+      setPageNoMyRecipesCntxt(pageNo);
+      setHasMoreMyRecipesCntxt(hasMore);
+      setMyRecipesCntxt((prev) => [...prev, ...data]);
+    }
+  };
+
   // -------------------- fetch data from backend on every page number change as well -------------------------------------
   useEffect(() => {
-    console.log("counter : ", counter);
-    console.log("searchPage :", searchPage);
-    setCounter((prev) => prev + 1);
     // Run the api IF  1)mainList from myRecipeCntxt is empty OR 2)pageChanged via scrolling  OR 3) search text
     if (mainList.length === 0 || pageChanged || searchText !== "") {
       const fetchData = async () => {
@@ -80,9 +86,9 @@ function MyRecipes() {
           setIsLoadingMore(true);
           // return;
         } else {
-          pageNo = pageNoMyRecipesCntxt;
+          pageNo = mainPageNo;
           // spinner for WITHOUT search text
-          if (pageNoMyRecipesCntxt === 1) {
+          if (mainPageNo === 1) {
             setIsLoading(true);
           } else {
             setIsLoadingMore(true);
@@ -108,19 +114,19 @@ function MyRecipes() {
               setMainList((prev) => [...prev, ...res?.data?.data]);
             }
           } else {
-            setHasMoreMyRecipesCntxt(res?.data?.hasMore);
+            setMainPageHasMore(res?.data?.hasMore);
             const refinedMyRecipes = res?.data?.data.map(({ username, user_id, ...rest }) => rest);
 
-            if (pageNoMyRecipesCntxt === 1) {
+            if (mainPageNo === 1) {
               setMainList(refinedMyRecipes);
-              setMyRecipesCntxt(refinedMyRecipes);
+              updateMyRecipesContext(pageNo, res?.data?.hasMore, refinedMyRecipes);
               // check if recipes exists without search text, if not then flag the page with setHasNoRecipe to show relevant display
               if (!searchRecipe) {
                 setHasNoRecipe(refinedMyRecipes.length === 0);
               }
             } else {
               setMainList((prev) => [...prev, ...refinedMyRecipes]);
-              setMyRecipesCntxt((prev) => [...prev, ...refinedMyRecipes]);
+              updateMyRecipesContext(pageNo, res?.data?.hasMore, refinedMyRecipes);
             }
           }
         } catch (err) {
@@ -136,21 +142,16 @@ function MyRecipes() {
       // as isLoading is true while rendering the page
       setIsLoading(false);
     }
-  }, [pageNoMyRecipesCntxt, srchTxtToggle, searchPage]);
+  }, [mainPageNo, srchTxtToggle, searchPage]);
 
   // -------------------------------- scroll listener for My recipe page without search text--------------------------------
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-
-      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
-      // console.log("scroll % :", scrollPercentage);
+      const scrollPercentage = windowScrollPercentage();
       if (!searchText) {
-        if (scrollPercentage >= scrollwindowPercent && hasMoreMyRecipesCntxt && !isLoadingMore) {
+        if (scrollPercentage >= scrollwindowPercent && mainPageHasMore && !isLoadingMore) {
           setPageChanged(true);
-          setPageNoMyRecipesCntxt((prev) => prev + 1);
+          setMainPageNo((prev) => prev + 1);
         }
       } else {
         // for search window scroll
@@ -165,7 +166,7 @@ function MyRecipes() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [hasMoreMyRecipesCntxt, isLoadingMore, searchHasMore, searchText]);
+  }, [mainPageHasMore, isLoadingMore, searchHasMore, searchText]);
 
   // ---------------------------- Sreached button pressed -----------------------------
   useEffect(() => {
@@ -207,7 +208,7 @@ function MyRecipes() {
   // console.log("searchHasMore :", searchHasMore);
   // console.log("isLoadingMore :", isLoadingMore);
   // console.log("data before return html : ", data);
-  // console.log("myRecipesCntxt before return html :", myRecipesCntxt);
+  // console.log("myRecipesCntxt :", myRecipesCntxt);
   // console.log("searchRecipe", searchRecipe);
   // console.log("myRecipeList :", myRecipeList);
   // console.log("isLoading", isLoading);
@@ -239,6 +240,7 @@ function MyRecipes() {
                 className="flex flex-col items-center pb-5 
                      md:flex-row md:items-end "
               >
+                {/* Search header */}
                 <div className="flex items-center md:flex-1  md:justify-start">
                   <div className="text-2xl font-semibold">Your Recipes</div>
                 </div>

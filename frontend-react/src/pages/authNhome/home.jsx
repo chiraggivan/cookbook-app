@@ -1,95 +1,58 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
-import axios from "axios";
+
 import api from "../../api/axios";
 import { Dropdown, DropdownItem, Spinner } from "flowbite-react";
-import {
-  serverURL,
-  showTokenErrMsgOnScreen,
-  JWTunverifiedMsg,
-  getInitials,
-} from "../../utils/appUtils";
+import { serverURL, getInitials, pageContentLimit, fetchDataAtScroll } from "../../utils/appUtils";
 import { GiHotMeal } from "react-icons/gi";
 import { useSearch } from "../../context/globalSearchContext";
 import { SlOptionsVertical } from "react-icons/sl";
 import { MdOutlineEditNote, MdOutlineMenuBook } from "react-icons/md";
-import { CurrentUserContext } from "../../context/currentUserContext";
-import { useContext } from "react";
 
 function Home() {
-  const { token, loading: authHookLoading, isAuthenticated } = useAuth();
-  const { currentUserId } = useContext(CurrentUserContext);
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  // const [searchParams] = useSearchParams();
-  // const searchRecipe = searchParams.get("q");
   const { searchRecipe } = useSearch();
   const [data, setData] = useState();
   const [page, setPage] = useState(1);
   const limit = 10;
-  const scrollwindowPercent = 99;
+  const scrollwindowPercent = fetchDataAtScroll;
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const imageBaseURL = "/uploadedImages/";
   const [imageError, setImageError] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user"));
 
   const method = "get";
   const url = `${serverURL}/recipe/api/all`;
 
-  const config = {
-    headers: { Authorization: `Bearer ${token}` },
-    params: {
-      q: searchRecipe || undefined,
-      page,
-      limit,
-    },
-  };
-
-  // Redirect effects
-  useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated)) {
-      navigate("/login");
-    }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
-
   //----------------------  verify token and search recipe ----------------------------
   useEffect(() => {
     const fetchData = async () => {
-      if (token) {
-        try {
-          setIsLoading(true);
-          const res = await api[method](url, {
-            params: {
-              q: searchRecipe || undefined,
-              page,
-              limit,
-            },
-          });
-          if (page === 1) {
-            setData(res?.data?.data);
-          } else {
-            setData((prev) => [...prev, ...res?.data?.data]);
-          }
-          setHasMore(res?.data?.hasMore ?? false);
-        } catch (err) {
-          console.log("error in home is :", err);
-          // // catching error from middleware wrt token verification
-          // if (err.response?.data?.code === "authentication") {
-          //   localStorage.removeItem("token");
-          //   localStorage.removeItem("user");
-          //   navigate(`/login?errMsg=${err.response?.data?.message}`);
-          //   return;
-          // }
-        } finally {
-          setIsLoading(false);
-          setImageError(false);
+      try {
+        setIsLoading(true);
+        const res = await api[method](url, {
+          params: {
+            q: searchRecipe || undefined,
+            page,
+            limit,
+          },
+        });
+        if (page === 1) {
+          setData(res?.data?.data);
+        } else {
+          setData((prev) => [...prev, ...res?.data?.data]);
         }
+        setHasMore(res?.data?.hasMore ?? false);
+      } catch (err) {
+        console.log("error in home is :", err);
+      } finally {
+        setIsLoading(false);
+        setImageError(false);
       }
     };
     fetchData();
-  }, [token]);
+  }, []);
 
   //---------------------- for search recipe state change -----------------------------
   useEffect(() => {
