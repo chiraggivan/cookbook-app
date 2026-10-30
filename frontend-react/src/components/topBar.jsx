@@ -38,7 +38,7 @@ import { LiaPasteSolid } from "react-icons/lia";
 function TopBar() {
   const user = JSON.parse(localStorage.getItem("user")) || null;
   const navigate = new useNavigate();
-  const { setMyRecipes, setRecipeDetails, setFetchedOnce } = useContext(MyRecipeContext);
+  const { setMyRecipesCntxt, setRecipeDetails, setFetchedOnce } = useContext(MyRecipeContext);
 
   const { setSearchRecipe, searchInput, setSearchInput } = useSearch();
   useEffect(() => {
@@ -75,7 +75,7 @@ function TopBar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setMyRecipes([]);
+    setMyRecipesCntxt([]);
     setRecipeDetails([]);
     setFetchedOnce(false);
 

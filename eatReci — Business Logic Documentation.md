@@ -11,7 +11,8 @@ the source code.
 
 # Index
 
-## 1. Register
+<details>
+   <summary><strong>1. Register</strong></summary>
 
 1. [Purpose](#11-purpose)
 2. [Registration Methods](#12-registration-methods)
@@ -23,7 +24,10 @@ the source code.
 8. [Validation Layers](#18-validation-layers)
 9. [Expected Successful Outcome](#19-expected-successful-outcome)
 
-## 2. Email Verification
+</details>
+
+<details>
+<summary><strong>2. Email Verification</strong></summary>
 
 1. [Purpose](#21-purpose)
 2. [Verification Link](#22-verification-link)
@@ -33,7 +37,10 @@ the source code.
 6. [Token Not Found](#26-token-not-found)
 7. [Missing Token](#27-missing-token)
 
-## 3. Login
+</details>
+
+<details>
+<summary><strong>3. Login</strong></summary>
 
 1. [Purpose](#31-purpose)
 2. [Login Credentials](#32-login-credentials)
@@ -46,7 +53,10 @@ the source code.
 9. [Expected Successful Outcome](#39-expected-successful-outcome)
 10. [Google Sign In](#310-google-sign-in)
 
-## 4. Email Re-verification
+</details>
+
+<details>
+<summary><strong>4. Email Re-verification</strong></summary>
 
 1. [Purpose](#41-purpose)
 2. [How the User Reaches the Re-verification Page](#42-how-the-user-reaches-the-re-verification-page)
@@ -55,7 +65,10 @@ the source code.
 5. [Verification of the New Link](#45-verification-of-the-new-link)
 6. [Error Handling](#46-error-handling)
 
-## 5. Forgot Password
+</details>
+
+<details>
+<summary><strong>5. Forgot Password</strong></summary>
 
 1. [Purpose](#51-purpose)
 2. [Forgot Password Page](#52-forgot-password-page)
@@ -78,11 +91,17 @@ the source code.
 19. [Successful Password Reset](#519-successful-password-reset)
 20. [Password Reset Error](#520-password-reset-error)
 
-## 6. Post-login Session and Authorization
+</details>
+
+<details>
+<summary><strong>6. Post-login Session and Authorization</strong></summary>
 
 1. [Explanation](#61-explanation)
 
-## 7. Application Shell
+</details>
+
+<details>
+<summary><strong>7. Application Shell</strong></summary>
 
 1. [Top Bar](#71-top-bar)
 2. [Application Logo](#72-application-logo)
@@ -95,7 +114,10 @@ the source code.
 9. [Responsive Left Bar](#79-responsive-left-bar)
 10. [User Profile](#710-user-profile)
 
-## 8. Home Page
+</details>
+
+<details>
+<summary><strong>8. Home Page</strong></summary>
 
 1. [Initial Recipe Listing](#81-initial-recipe-listing)
 2. [Progressive Recipe Loading](#82-progressive-recipe-loading)
@@ -103,7 +125,10 @@ the source code.
 4. [Search Results](#84-search-results)
 5. [Recipe Display](#85-recipe-display)
 
-## 9. Read Recipe
+</details>
+
+<details>
+<summary><strong>9. Read Recipe</strong></summary>
 
 1. [Opening the Read Recipe Page](#91-opening-the-read-recipe-page)
 2. [Backend Authentication and Recipe Validation](#92-backend-authentication-and-recipe-validation)
@@ -119,7 +144,10 @@ the source code.
 12. [Error, Unauthorized and Recipe Not Found Handling](#912-error-unauthorized-and-recipe-not-found-handling)
 13. [Pending Improvement — Recipe Not Found Page](#913-pending-improvement--recipe-not-found-page)
 
-## 13. My Recipes
+</details>
+
+<details>
+<summary><strong>13. My Recipes</strong></summary>
 
 1. [Opening My Recipes](#131-opening-my-recipes)
 2. [Backend Authentication and User Validation](#132-backend-authentication-and-user-validation)
@@ -135,7 +163,10 @@ the source code.
 12. [Progressive Loading and Search](#1312-progressive-loading-and-search)
 13. [Pending Improvements](#1313-pending-improvements)
 
-## 14. Users' Recipes
+</details>
+
+<details>
+<summary><strong>14. Users' Recipes</strong></summary>
 
 1. [Opening the Users' Recipes Page](#141-opening-the-users-recipes-page)
 2. [Requesting the User's Recipes](#142-requesting-the-users-recipes)
@@ -151,7 +182,10 @@ the source code.
 12. [Error and Unauthorized Handling](#1412-error-and-unauthorized-handling)
 13. [Pending Improvement — User or Page Not Found](#1413-pending-improvement--user-or-page-not-found)
 
-## 15. Dish Created
+</details>
+
+<details>
+<summary><strong>15. Dish Created</strong></summary>
 
 1. [Accessing Dish Created](#151-accessing-dish-created)
 2. [Dish Created Form](#152-dish-created-form)
@@ -167,7 +201,10 @@ the source code.
 12. [Error and Unauthorized Handling](#1512-error-and-unauthorized-handling)
 13. [Important Business Rule](#1513-important-business-rule)
 
-## 16. Dishes Made
+</details>
+
+<details>
+<summary><strong>16. Dishes Made</strong></summary>
 
 1. [Opening Dishes Made](#161-opening-dishes-made)
 2. [Requesting Dishes Made](#162-requesting-dishes-made)
@@ -182,7 +219,10 @@ the source code.
 11. [Historical Snapshot](#1611-historical-snapshot)
 12. [Error Handling](#1612-error-handling)
 
-## 17. Read Dish
+</details>
+
+<details>
+<summary><strong>17. Read Dish</strong></summary>
 
 1. [Opening the Read Dish Page](#171-opening-the-read-dish-page)
 2. [Backend Authentication and Dish Validation](#172-backend-authentication-and-dish-validation)
@@ -193,7 +233,10 @@ the source code.
 7. [Error and Unauthorized Handling](#177-error-and-unauthorized-handling)
 8. [Historical Dish Information](#178-historical-dish-information)
 
-## 18. Delete Dish
+</details>
+
+<details>
+<summary><strong>18. Delete Dish</strong></summary>
 
 1. [Delete Confirmation](#181-delete-confirmation)
 2. [Submitting the Delete Request](#182-submitting-the-delete-request)
@@ -203,7 +246,10 @@ the source code.
 6. [Frontend Handling of Successful Deletion](#186-frontend-handling-of-successful-deletion)
 7. [Error and Unauthorized Handling](#187-error-and-unauthorized-handling)
 
-## 19. My Ingredients
+</details>
+
+<details>
+<summary><strong>19. My Ingredients</strong></summary>
 
 1. [Opening My Ingredients](#191-opening-my-ingredients)
 2. [Backend Authentication and Request Processing](#192-backend-authentication-and-request-processing)
@@ -217,7 +263,10 @@ the source code.
 10. [Editing an Ingredient](#1910-editing-an-ingredient)
 11. [Authentication Error Handling](#1911-authentication-error-handling)
 
-## 20. Create New Ingredient
+</details>
+
+<details>
+<summary><strong>20. Create New Ingredient</strong></summary>
 
 1. [Opening Create New Ingredient](#201-opening-create-new-ingredient)
 2. [Similar Ingredient Names](#202-similar-ingredient-names)
@@ -242,7 +291,10 @@ the source code.
 21. [Error Handling](#2021-error-handling)
 22. [Canceling Ingredient Creation](#2022-canceling-ingredient-creation)
 
-## 21. Edit My Ingredient
+</details>
+
+<details>
+<summary><strong>21. Edit My Ingredient</strong></summary>
 
 1. [Opening Edit My Ingredient](#211-opening-edit-my-ingredient)
 2. [Displaying Existing Ingredient Information](#212-displaying-existing-ingredient-information)
@@ -265,7 +317,10 @@ the source code.
 19. [Error Handling](#2119-error-handling)
 20. [Canceling the Update](#2120-canceling-the-update)
 
-## 22. Delete My Ingredient
+</details>
+
+<details>
+<summary><strong>22. Delete My Ingredient</strong></summary>
 
 1. [Accessing Delete My Ingredient](#221-accessing-delete-my-ingredient)
 2. [Delete Confirmation](#222-delete-confirmation)
@@ -278,6 +333,32 @@ the source code.
 9. [Completing the Deletion](#229-completing-the-deletion)
 10. [Frontend Handling of Successful Deletion](#2210-frontend-handling-of-successful-deletion)
 11. [Error and Unauthorized Handling](#2211-error-and-unauthorized-handling)
+
+</details>
+
+<details>
+<summary><strong>23. Saved Recipes</strong></summary>
+
+1. [Opening Saved Recipes](#231-opening-saved-recipes)
+2. [Backend Authentication and Request Processing](#232-backend-authentication-and-request-processing)
+3. [Retrieving Saved Recipes](#233-retrieving-saved-recipes)
+4. [Backend Response](#234-backend-response)
+5. [Frontend Processing and Display](#235-frontend-processing-and-display)
+6. [Empty Saved Recipes Page](#236-empty-saved-recipes-page)
+7. [Progressive Loading](#237-progressive-loading)
+8. [Searching Saved Recipes](#238-searching-saved-recipes)
+9. [Displaying Search Results](#239-displaying-search-results)
+10. [Removing a Saved Recipe](#2310-removing-a-saved-recipe)
+11. [Undoing Bookmark Removal](#2311-undoing-bookmark-removal)
+12. [Confirming Bookmark Removal](#2312-confirming-bookmark-removal)
+13. [Handling Multiple Bookmark Removal Requests](#2313-handling-multiple-bookmark-removal-requests)
+14. [Handling Errors During Bookmark Removal](#2314-handling-errors-during-bookmark-removal)
+15. [Automatically Fetching Additional Recipes During Bookmark Removal](#2315-automatically-fetching-additional-recipes-during-bookmark-removal)
+16. [Handling Unavailable Saved Recipes](#2316-handling-unavailable-saved-recipes)
+
+</details>
+
+<div style="margin-bottom: 30px;"></div>
 
 # 1. Register
 
@@ -2875,3 +2956,225 @@ If an error occurs during authentication, validation, ownership checking, or del
 The frontend displays the appropriate error message to the user.
 
 The user remains on the current page unless the deletion is successfully completed.
+
+# 23. Saved Recipes
+
+The **Saved Recipes** functionality allows the logged in user to view recipes that they have bookmarked from other users.
+
+Users can bookmark recipes while viewing their details on the **Recipe Details** page. Once bookmarked, these recipes become available in the Saved Recipes section.
+
+The page also provides a **search facility** and an option to **remove bookmarks** from saved recipes.
+
+## 23.1 Opening Saved Recipes
+
+When the user selects **Saved Recipes** from the application navigation, the **Saved Recipes** page is opened.
+
+When the page loads, the frontend requests the recipes bookmarked by the logged in user from the backend.
+
+The backend retrieves recipes created by other users that the logged in user has bookmarked.
+
+Recipes created by the logged in user are not included because the user's own recipes are already available under **My Recipes**.
+
+The retrieved recipes are displayed as **recipe cards**, allowing the user to view their saved recipes.
+
+## 23.2 Backend Authentication and Request Processing
+
+When the request reaches the backend, it first passes through the application's **authentication process**.
+
+The authenticated user is identified from the user's authenticated session.
+
+The controller then obtains the authenticated user information and any **search text or pagination information** supplied with the request.
+
+Because the user has already been authenticated before the request reaches the controller, the backend can proceed with retrieving the user's saved recipes.
+
+## 23.3 Retrieving Saved Recipes
+
+The backend retrieves the recipes bookmarked by the authenticated user.
+
+Only recipes **created by other users and bookmarked by the authenticated user** are included in the results.
+
+The user's own recipes are excluded from the Saved Recipes listing.
+
+When no search text has been provided, the user's saved recipes are retrieved without a search filter.
+
+The backend retrieves a **predefined number of recipes at a time** rather than returning the complete collection in a single request.
+
+The results are returned to the frontend as a list of saved recipes.
+
+## 23.4 Backend Response
+
+After the saved recipes have been retrieved, the backend returns the recipe list to the frontend.
+
+If the request is successfully processed, the frontend receives the recipe information required to display the Saved Recipes page.
+
+If no saved recipes are available, an **empty list** is returned.
+
+If the authentication process cannot identify the user, the authentication middleware returns the appropriate error response and the recipe retrieval process does not continue.
+
+## 23.5 Frontend Processing and Display
+
+When the frontend receives the saved recipe list successfully, it stores the returned recipes and updates the Saved Recipes page.
+
+The page displays the recipes as **recipe cards**.
+
+Each recipe card provides the relevant recipe information and a **bookmark option**.
+
+The bookmark option allows the user to remove the recipe from their saved recipes.
+
+## 23.6 Empty Saved Recipes Page
+
+When the user has not bookmarked any recipes, the Saved Recipes page displays a **generic empty state**.
+
+The empty state informs the user that no recipes have been saved yet.
+
+It also provides an appropriate message and image explaining that recipes can be bookmarked while viewing their details on the **Recipe Details** page.
+
+This helps the user understand how to start building their saved recipes collection.
+
+## 23.7 Progressive Loading
+
+The Saved Recipes page uses **progressive loading** so that recipes can be retrieved in multiple sets rather than loading the complete collection at once.
+
+When the page is initially opened, the frontend requests a **predefined number of saved recipes** from the backend.
+
+When the user reaches the end of the currently displayed recipes, the frontend requests the next set of recipes.
+
+The newly retrieved recipes are **appended to the recipes already displayed**.
+
+This allows the user to continue scrolling through their saved recipes without manually selecting another page.
+
+## 23.8 Searching Saved Recipes
+
+The Saved Recipes page provides a **search bar** at the top of the page.
+
+The user can enter search text and select the **Search** button to search their saved recipes.
+
+When the search is submitted, the frontend sends the entered search text to the backend along with the relevant pagination information.
+
+The backend uses the supplied search text to retrieve matching recipes bookmarked by the authenticated user.
+
+The search results are retrieved in **predefined sets** rather than returning all matching recipes at once.
+
+## 23.9 Displaying Search Results
+
+When the frontend receives the search results, the recipe list displayed on the page is updated according to the returned results.
+
+The matching recipes are displayed using the same **recipe card format** as the normal Saved Recipes listing.
+
+The search results also support **progressive loading**.
+
+When the user reaches the end of the currently displayed search results, the frontend requests the next set of matching recipes and appends them to the existing search results.
+
+## 23.10 Removing a Saved Recipe
+
+Each saved recipe card provides a **bookmark option**.
+
+When the user selects the bookmark icon, the application **temporarily removes the recipe from the displayed list**.
+
+A small **toast notification** appears at the bottom left of the page informing the user that the bookmark has been removed.
+
+The notification provides an **Undo** option and a **close** option.
+
+The actual deletion of the bookmark from the backend is delayed for **five seconds**, allowing the user to undo the action before the deletion is processed.
+
+## 23.11 Undoing Bookmark Removal
+
+When the user selects **Undo** within the five-second notification period, the pending bookmark removal is cancelled.
+
+The recipe is **restored to its original position** in the displayed list.
+
+The toast notification then disappears.
+
+As the pending deletion has been cancelled, the **delete saved recipe API is not called** and no changes are made to the bookmark in the database.
+
+## 23.12 Confirming Bookmark Removal
+
+The application provides two ways to confirm the removal of a bookmark.
+
+**First condition: Automatic confirmation after five seconds**
+
+When the user does not select either Undo or the close option, the toast notification disappears after **five seconds**.
+
+The associated **setTimeout function** then executes the **delete saved recipe function**, which sends the deletion request to the backend.
+
+**Second condition: User selects the close option**
+
+If the user selects the **close option** on the toast notification, the application immediately executes the **delete saved recipe function**.
+
+The deletion request is therefore sent to the backend without waiting for the remaining five-second period.
+
+In both cases, the backend is responsible for **permanently removing the bookmark from the database**.
+
+## 23.13 Handling Multiple Bookmark Removal Requests
+
+The application also handles situations where the user removes another bookmark while a previous bookmark removal is still pending.
+
+Before displaying the next removal notification, the frontend checks whether an earlier delete saved recipe request is still pending.
+
+If an earlier request is pending, the application **immediately executes the delete saved recipe function for the previous recipe**.
+
+This ensures that the previous deletion is processed before the application starts handling the next bookmark removal.
+
+Once the previous request has been processed, the application continues with the new bookmark removal.
+
+The newly selected recipe is temporarily removed from the displayed list, and a **new five-second toast notification** is displayed.
+
+The user can then undo the new removal or allow the deletion to proceed.
+
+This prevents multiple pending bookmark removal operations from interfering with one another.
+
+## 23.14 Handling Errors During Bookmark Removal
+
+When the delete saved recipe API is executed, the frontend handles any errors returned by the backend.
+
+If the deletion request fails, the bookmark has not been successfully removed from the database.
+
+The frontend therefore **restores the previously removed recipe to the displayed list**.
+
+A small **error notification** appears on the screen for **three seconds**, informing the user that something went wrong and asking them to try again later.
+
+This error handling applies to all three situations in which the delete saved recipe function can be executed:
+
+- When the **five-second timeout expires** and the deletion request is automatically executed.
+- When the user selects the **close option** on the toast notification.
+- When the user removes another bookmark while an earlier removal request is still pending, forcing the previous deletion to execute.
+
+In each situation, if the API request fails, the frontend restores the affected recipe to the list and displays the error notification.
+
+The recipe is therefore not permanently removed from the user's displayed saved recipes when the backend deletion is unsuccessful.
+
+## 23.15 Automatically Fetching Additional Recipes During Bookmark Removal
+
+The Saved Recipes page also handles situations where the user removes multiple bookmarks without scrolling down the page.
+
+For example, when the initial list contains **10 recipes**, the user may start removing bookmarks without requesting the next set of recipes through normal scrolling.
+
+As the displayed recipe list becomes shorter, the frontend checks its current length.
+
+When the number of displayed recipes reaches **5**, the frontend automatically requests the next set of saved recipes from the backend, provided additional results are available.
+
+The newly retrieved recipes are **appended to the existing recipe list**.
+
+This ensures that the user continues to see available saved recipes even when removing bookmarks reduces the number of currently displayed recipes.
+
+Without this additional fetching mechanism, the displayed list could become empty even though the user still has other bookmarked recipes available in the database.
+
+The automatic fetching mechanism therefore prevents the user from having to **refresh the page manually** to retrieve the remaining saved recipes.
+
+## 23.16 Handling Unavailable Saved Recipes
+
+A saved recipe may become unavailable if the user who originally created it changes its visibility from **Public** to **Private**.
+
+In this situation, the recipe continues to appear in the logged in user's **Saved Recipes** list because it was previously bookmarked.
+
+However, the recipe card displays a **semi-transparent overlay** with the message **Currently Unavailable**.
+
+This informs the user that the recipe is no longer available for viewing.
+
+While the recipe is unavailable, the user cannot open its **Recipe Details** page.
+
+The **bookmark option remains available**, allowing the user to remove the recipe from their Saved Recipes list if they no longer wish to keep it bookmarked.
+
+If the original user changes the recipe visibility back from **Private** to **Public** in the future, the recipe becomes available again, and the user who previously bookmarked it can view its details without having to bookmark it again.
+
+This ensures that previously saved recipes are not silently removed when their original owners change their visibility settings, while clearly informing the user that the recipe is currently unavailable.

@@ -5,7 +5,7 @@ const UndoToast = ({ onUndo, onClose, message }) => {
 
       <button
         onClick={onUndo}
-        className="text-xs md:text-sm font-semibold text-blue-400 hover:text-blue-300"
+        className="text-xs md:text-sm font-semibold text-blue-400 hover:text-blue-300 hover:cursor-pointer"
       >
         Undo
       </button>

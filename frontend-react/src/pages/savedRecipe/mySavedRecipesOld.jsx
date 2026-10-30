@@ -15,26 +15,30 @@ import { GoBookmarkFill, GoBookmarkSlashFill } from "react-icons/go";
 import { ImInfo } from "react-icons/im";
 import { GiHotMeal } from "react-icons/gi";
 import UndoToast from "../../components/undoToast";
+import AlertToast from "../../components/alertToast";
 
 function MySavedRecipes() {
   const navigate = useNavigate();
-  const [savedRecipeList, setSavedRecipeList] = useState();
+  const [savedRecipeList, setSavedRecipeList] = useState([]);
   const [hasNoSavedRecipe, setHasNoSavedRecipe] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [inputText, setInputText] = useState("");
-  const [isChangingBookmark, setIsChangingBookmark] = useState(false);
-  const deleteTimer = useRef(null);
-  const deletedIndex = useRef(null);
-  const deletedRecipe = useRef(null);
-  const [openToast, setOpenToast] = useState(false);
-  const [deletedId, setDeletedId] = useState(null);
-
   const limit = 5;
   const scrollwindowPercent = 90;
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [cursor, setCursor] = useState(null);
+
+  const deleteTimer = useRef(null);
+  const deletedIndex = useRef(null);
+  const deletedRecipe = useRef(null);
+  const deletedRecipeId = useRef(null);
+  const totalRecipes = useRef(0);
+  const latestRecipesList = useRef([]); // used to make sure the timeout (during undo) has lastest list to check the length
+
+  const [openUndoToast, setOpenUndoToast] = useState(false);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
 
   //   for animation of delete bookmark
   const [parent] = useAutoAnimate();
@@ -60,8 +64,10 @@ function MySavedRecipes() {
           if (res.data?.data?.length === 0 && searchText.length === 0) {
             setHasNoSavedRecipe(true);
           }
+          totalRecipes.current = res.data?.data?.length;
         } else {
           setSavedRecipeList((prev) => [...prev, ...res?.data?.data]);
+          totalRecipes.current = totalRecipes.current + res.data?.data?.length;
         }
         setHasMore(res?.data?.hasMore || false);
       } catch (err) {
@@ -99,74 +105,96 @@ function MySavedRecipes() {
     setCursor(1);
   };
 
+  // -------------------- reset all useRef and useState used for removing bookmark ----------------
+  const resetVariables = () => {
+    setOpenUndoToast(false);
+    clearTimeout(deleteTimer.current);
+    deleteTimer.current = null;
+    deletedIndex.current = null;
+    deletedRecipe.current = null;
+    deletedRecipeId.current = null;
+  };
+
   // -------------------- function to call remove bookmark(as used at 2 places) ------------------------
 
-  const deleteSavedRecipe = (id) => {
+  const deleteSavedRecipe = async (id) => {
+    clearTimeout(deleteTimer.current);
     const url = `/userSavedRecipe/api/delete/${id}`;
     const method = "delete";
 
-    // function to call api
-    const sendData = async () => {
-      try {
-        await api[method](url);
-        // if successful, get check the length and if less than five, fetch new and append it
-        const newListLength = savedRecipeList.length - 1;
-        setSavedRecipeList((prev) => prev.filter((i) => i.recipe_id !== id));
-        if (newListLength < 5 && hasMore) {
-          setCursor(savedRecipeList[savedRecipeList.length - 1].created_at);
-        }
-      } catch (err) {
-        console.log("Error while bookmarking recipe :", err);
-        window.alert(`Something went wrong. Try again later.`);
-      } finally {
-        console.log("Removed bookmark!!!");
+    try {
+      await api[method](url);
+      // if successful, get check the length and if less than five, fetch new and append it
+      const newListLength = latestRecipesList.current.length;
+      if (newListLength < 6 && hasMore) {
+        setCursor(savedRecipeList[savedRecipeList.length - 1].created_at);
       }
-    };
-
-    sendData();
+      setHasNoSavedRecipe(latestRecipesList.current.length > 0 ? false : true);
+    } catch (err) {
+      console.log("Error while removing bookmark from a recipe :", err);
+      setOpenAlertToast(true);
+      setTimeout(() => {
+        setOpenAlertToast(false);
+      }, 3000);
+      totalRecipes.current = totalRecipes.current + 1;
+      const index = deletedIndex.current;
+      const recipe = deletedRecipe.current;
+      setSavedRecipeList((prev) => {
+        //--> put back the delete recipe at its original place
+        const updated = [...prev];
+        updated.splice(index, 0, recipe);
+        return updated;
+      });
+    } finally {
+      resetVariables();
+    }
   };
 
   // --------------------- bookmark symbol clicked to remove it ----------------------------------------------
-  const removeBookmark = (id) => {
-    if (!id) {
-      return;
+  const removeBookmark = async (id) => {
+    // // ------------- check if any old timeout in waiting
+    if (deleteTimer.current) {
+      const originalLength = totalRecipes.current;
+      // Finish previous deletion and wait for it
+      await deleteSavedRecipe(deletedRecipeId.current);
+      if (originalLength !== totalRecipes.current) {
+        console.log("Error while removing when old request was pending ");
+        return;
+      }
     }
+
     // // ------------- store the deleted index and obj
     deletedIndex.current = savedRecipeList.findIndex((i) => i.recipe_id === id);
     deletedRecipe.current = savedRecipeList.find((i) => i.recipe_id === id);
+    deletedRecipeId.current = id;
 
-    // // ------------- open toast and update the frontend list to remvoe recipe BUT backend still not called
-    setOpenToast(true);
-    setSavedRecipeList(savedRecipeList.filter((i) => i.recipe_id !== id));
+    // // ------------- update the frontend list to remvoe recipe and open toast BUT backend still not called
+    latestRecipesList.current = savedRecipeList.filter((i) => i.recipe_id !== id); // used to make sure the timeout has lastest list to check the length
+    setSavedRecipeList(latestRecipesList.current);
+    totalRecipes.current = totalRecipes.current - 1;
+    setOpenUndoToast(true);
 
     deleteTimer.current = setTimeout(() => {
-      console.log("timout !!!");
-      setOpenToast(false);
-      deleteTimer.current = null;
       deleteSavedRecipe(id);
     }, 5000);
   };
 
+  // -------------------- handle close toast button , immediately remove bookmark from backend --------------------------------------
+  const handleCloseToaster = () => {
+    deleteSavedRecipe(deletedRecipeId.current);
+  };
+
   // ---------------------- undo removed bookmark ---------------------------------------
   const undoRemovedBookmark = () => {
-    setOpenToast(false); //--> close toaster
-    clearTimeout(deleteTimer.current); //--> clear timenout and not run the function
-    deleteTimer.current = null; //--> reset deleteTimer Ref to null
+    const index = deletedIndex.current;
+    const recipe = deletedRecipe.current;
+    resetVariables();
     setSavedRecipeList((prev) => {
       //--> put back the delete recipe at its original place
       const updated = [...prev];
-      updated.splice(deletedIndex.current, 0, deletedRecipe.current);
+      updated.splice(index, 0, recipe);
       return updated;
     });
-  };
-
-  // -------------------- handle close toast button , immediately remove bookmark from backend --------------------------------------
-  const handleCloseToaster = () => {
-    setOpenToast(false);
-    clearTimeout(deleteTimer.current);
-    deleteTimer.current = null;
-    deleteSavedRecipe(deletedId);
-    setDeletedId(null);
   };
 
   // ------------------ creating variable to store which recipe have images and valid --------
@@ -192,7 +220,8 @@ function MySavedRecipes() {
     );
   }
 
-  //   console.log("savedRecipeList :", savedRecipeList);
+  // console.log("savedRecipeList :", savedRecipeList);
+  // console.log("totalRecipes.current :", totalRecipes.current);
 
   return (
     <>
@@ -200,7 +229,7 @@ function MySavedRecipes() {
         {/* Check if the data is empty and show the page accordingly */}
         {hasNoSavedRecipe ? (
           <EmptyResponsePage
-            title={"Not Saved Any Recipe Yet"}
+            title={"Not Saved Any Recipe"}
             message={
               <>
                 Click the bookmark icon{" "}
@@ -319,14 +348,14 @@ function MySavedRecipes() {
                       className="hover:cursor-pointer scale-125 "
                       onClick={() => {
                         removeBookmark(i.recipe_id);
-                        setDeletedId(i.recipe_id);
+                        deletedRecipeId.current = i.recipe_id;
                       }}
                     />
                   </div>
 
                   {/* overlay if recipe is public any more */}
                   {i.privacy === "private" && (
-                    <div className="absolute flex left-0 top-0 h-full w-[full-1] rounded-xl gap-2 bg-white/80 z-50 p-2">
+                    <div className="absolute flex left-0 top-0 h-full w-[full-1] rounded-xl gap-2 bg-white/80 z-4 p-2">
                       <div className="flex items-center justify-center h-20 aspect-16/12 border-0 bg-gray-300/10 rounded-md">
                         <IoIosLock className=" text-white bg-gray-700/80 rounded-full h-6 w-6 scale-150 p-1.5" />
                       </div>
@@ -343,13 +372,14 @@ function MySavedRecipes() {
         )}
       </div>
 
-      {openToast && (
+      {openUndoToast && (
         <UndoToast
           onUndo={undoRemovedBookmark}
           onClose={handleCloseToaster}
           message={"Bookmark removed"}
         />
       )}
+      {openAlertToast && <AlertToast message={"Error. Please try later."} success={false} />}
     </>
   );
 }
