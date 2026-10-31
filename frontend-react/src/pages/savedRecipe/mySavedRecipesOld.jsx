@@ -24,6 +24,10 @@ function MySavedRecipes() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [inputText, setInputText] = useState("");
+  const searchTimer = useRef(null);
+  const apiControllerRef = useRef(null);
+  const [isSrchInputActive, setIsSrchInputActive] = useState(false);
+
   const limit = 5;
   const scrollwindowPercent = 90;
   const [hasMore, setHasMore] = useState(false);
@@ -49,15 +53,26 @@ function MySavedRecipes() {
 
   // ----------------------------- fetch data from backend  -------------------------------------
   useEffect(() => {
+    const apiController = new AbortController();
     const fetchData = async () => {
       try {
-        if (cursor === null) {
+        if (cursor === null && searchText === "" && !isSrchInputActive) {
           setIsLoading(true);
         } else {
           setIsLoadingMore(true);
         }
 
-        const res = await api[method](url, { params: { q: searchText, limit, cursor } });
+        if (apiControllerRef.current) {
+          apiControllerRef.current.abort();
+        }
+
+        apiControllerRef.current = apiController;
+
+        const res = await api[method](url, {
+          params: { q: searchText, limit, cursor },
+          signal: apiController.signal,
+        });
+        // console.log("res :", res);
         if (cursor === null) {
           setSavedRecipeList(res?.data?.data);
           // check if user has saved any recipe, if not then flag the pageNo with setHasNoSavedRecipe to show relevant display
@@ -75,6 +90,9 @@ function MySavedRecipes() {
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
+        if (apiControllerRef.current === apiController) {
+          apiController.current = null;
+        }
       }
     };
 
@@ -102,8 +120,23 @@ function MySavedRecipes() {
   const searchButton = () => {
     const stringText = inputText.trim().replace(/\s+/g, " ");
     setSearchText(stringText);
-    setCursor(1);
+    setCursor(null);
   };
+
+  // ------------------- OPTIONAL for AUTO SEARCH as you type feature ----------------
+  useEffect(() => {
+    const stringText = inputText.trim().replace(/\s+/g, " ");
+    // clear old search setTimeout
+    if (searchTimer.current) {
+      clearTimeout(searchTimer.current);
+    }
+
+    // create new search Timeout
+    searchTimer.current = setTimeout(() => {
+      setSearchText(stringText);
+      setCursor(null);
+    }, 400);
+  }, [inputText]);
 
   // -------------------- reset all useRef and useState used for removing bookmark ----------------
   const resetVariables = () => {
@@ -113,6 +146,7 @@ function MySavedRecipes() {
     deletedIndex.current = null;
     deletedRecipe.current = null;
     deletedRecipeId.current = null;
+    latestRecipesList.current = [];
   };
 
   // -------------------- function to call remove bookmark(as used at 2 places) ------------------------
@@ -189,6 +223,7 @@ function MySavedRecipes() {
     const index = deletedIndex.current;
     const recipe = deletedRecipe.current;
     resetVariables();
+    totalRecipes.current = totalRecipes.current + 1;
     setSavedRecipeList((prev) => {
       //--> put back the delete recipe at its original place
       const updated = [...prev];
@@ -276,6 +311,8 @@ function MySavedRecipes() {
                       onChange={(e) => setInputText(e.target.value)}
                       placeholder={"Search Saved Recipe"}
                       value={inputText}
+                      onFocus={() => setIsSrchInputActive(true)}
+                      onBlur={() => setIsSrchInputActive(false)}
                     />
                     {/* search button */}
                     <button
@@ -328,7 +365,7 @@ function MySavedRecipes() {
                   {/* details section right */}
                   <div
                     className="px-2 flex-1 hover:cursor-pointer"
-                    onClick={() => navigate(`/recipe/${i.recipe_id}`)}
+                    onClick={i.privacy === "public" ? () => navigate(`/recipe/${i.recipe_id}`) : ""}
                   >
                     {/* recipe name */}
                     <p className="text-md font-semibold line-clamp-2">{capitaliseWords(i.name)}</p>
@@ -355,7 +392,7 @@ function MySavedRecipes() {
 
                   {/* overlay if recipe is public any more */}
                   {i.privacy === "private" && (
-                    <div className="absolute flex left-0 top-0 h-full w-[full-1] rounded-xl gap-2 bg-white/80 z-4 p-2">
+                    <div className="absolute flex left-0 top-0 h-full w-[calc(100%-30px)] rounded-xl gap-2 bg-white/80 z-4 p-2">
                       <div className="flex items-center justify-center h-20 aspect-16/12 border-0 bg-gray-300/10 rounded-md">
                         <IoIosLock className=" text-white bg-gray-700/80 rounded-full h-6 w-6 scale-150 p-1.5" />
                       </div>
