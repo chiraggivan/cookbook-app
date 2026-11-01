@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import api from "../../api/axios";
@@ -8,7 +9,7 @@ import useFetch from "../../hooks/useFetch";
 // import Navbar from "../../components/navbarOld";
 import Input from "../../components/input";
 import { MyIngredientContext } from "../../context/myIngredientContext";
-import { capitaliseWords, serverURL } from "../../utils/appUtils";
+import { capitaliseWords, serverURL, windowScrollPercentage } from "../../utils/appUtils";
 import { Button, Spinner } from "flowbite-react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { TbBowlSpoonFilled } from "react-icons/tb";
@@ -17,8 +18,6 @@ import { IoMdAdd } from "react-icons/io";
 import EmptyResponsePage from "../../components/emptyResponsePage";
 
 function MyIngredients() {
-  const token = localStorage.getItem("token");
-  const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const user = JSON.parse(localStorage.getItem("user"));
   const currencySymbol = user.currency_symbol || "£";
   const navigate = useNavigate();
@@ -26,24 +25,19 @@ function MyIngredients() {
     useContext(MyIngredientContext);
   const [ingredientList, setIngredientList] = useState();
   const [hasNoIngredient, setHasNoIngredient] = useState(false);
+  const [hasNoSearchedIng, setHasNoSearchIng] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchIng, setSearchIng] = useState("");
-  const [displayIngredients, setDisplayIngredients] = useState();
+  const [searchText, setSearchText] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [isSrchInputActive, setIsSrchInputActive] = useState(false);
 
-  const [page, setPage] = useState(1);
   const limit = 3;
+  const scrollwindowPercent = 99;
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const scrollwindowPercent = 99;
-  const [wasSearchedBefore, setWasSearchedBefore] = useState(false);
-  const [toggleAPIcall, setToggleAPIcall] = useState(false);
+  const [pageNo, setPageNo] = useState(1);
 
-  // Redirect to home if token NOT found
-  useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated)) {
-      navigate("/login");
-    }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
+  const [parent] = useAutoAnimate();
 
   const method = "get";
   const url = `/useringredient/api/list`;
@@ -52,28 +46,29 @@ function MyIngredients() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (page === 1) {
+        if (pageNo === 1 && searchText === "") {
           setIsLoading(true);
         }
-        if (page > 1) {
+        if (pageNo > 1) {
           setIsLoadingMore(true);
         }
 
-        const res = await api[method](url, { params: { q: searchIng, page, limit } });
-
-        if (page === 1) {
+        const res = await api[method](url, { params: { q: searchText, pageNo, limit } });
+        setHasMore(res?.data?.hasMore);
+        if (pageNo === 1) {
           setIngredientList(res?.data?.data);
-          // check if user ingredients exists, if not then flag the page with setHasNoIngredient to show relevant display
-          if (res.data?.data.length === 0) {
+          // check if user ingredients exists, if not then flag the pageNo with setHasNoIngredient to show relevant display
+          if (res.data?.data.length === 0 && searchText.length === 0) {
             setHasNoIngredient(true);
+          } else if (res.data?.data?.length === 0 && searchText.length !== 0) {
+            setHasNoSearchIng(true);
+          } else if (res.data?.data?.length !== 0 && searchText.length !== 0) {
+            setHasNoSearchIng(false);
+          } else if (res.data?.data?.length !== 0 && searchText.length === 0) {
+            setHasNoSearchIng(false);
           }
         } else {
           setIngredientList((prev) => [...prev, ...res?.data?.data]);
-        }
-        setHasMore(res?.data?.hasMore || false);
-        // making sure that search button doesnt call api if search is empty for the previous api call
-        if (!searchIng) {
-          setWasSearchedBefore(false);
         }
       } catch (err) {
         console.log("error while fetching my ingredients list with axios is :", err);
@@ -83,19 +78,14 @@ function MyIngredients() {
       }
     };
     fetchData();
-  }, [toggleAPIcall]);
+  }, [pageNo, searchText]);
 
   // -------------------------------- scroll listener -----------------------------------
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-
-      const scrollPercentage = ((scrollTop + windowHeight) / documentHeight) * 100;
-      // console.log("scroll % :", scrollPercentage);
+      const scrollPercentage = windowScrollPercentage();
       if (scrollPercentage >= scrollwindowPercent && hasMore && !isLoadingMore) {
-        setPage((prev) => prev + 1);
+        setPageNo((prev) => prev + 1);
       }
     };
 
@@ -106,36 +96,12 @@ function MyIngredients() {
     };
   }, [hasMore, isLoadingMore]);
 
-  // ------- to fetch more recipes for infinite scroll as page changes due above scroll listener------------
-  useEffect(() => {
-    setToggleAPIcall((prev) => !prev);
-  }, [page]);
-
   // ------------------- search button result of user's recipe -----------------------
-  const searchUserIngredient = () => {
-    const string = searchIng.trim().replace(/\s+/g, " ");
-
-    if (string.length === 0 && !wasSearchedBefore) {
-      return;
-    }
-
-    setPage(1);
-    setWasSearchedBefore(true);
-    setToggleAPIcall((prev) => !prev);
+  const searchButton = () => {
+    const stringText = inputText.trim().replace(/\s+/g, " ");
+    setSearchText(stringText);
+    setPageNo(1);
   };
-
-  // ------------------------- check the length of list and show empty page display if length is 0 -----------------
-  useEffect(() => {
-    if (!ingredientList) {
-      return;
-    }
-
-    if (ingredientList.length === 0) {
-      setHasNoIngredient(true);
-    } else {
-      setHasNoIngredient(false);
-    }
-  }, [ingredientList]);
 
   // ------------------------------------------- loading screen ----------------------------------------------
   if (isLoading) {
@@ -151,10 +117,12 @@ function MyIngredients() {
     );
   }
   // console.log("myIngredients before return html : ", myIngredients);
+  // console.log("ingredient list :", ingredientList);
+  // console.log("hasMore :", hasMore);
   return (
     <>
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
-        {/* Check if the data is empty and show the page accordingly */}
+        {/* Check if the data is empty and show the pageNo accordingly */}
         {hasNoIngredient ? (
           <EmptyResponsePage
             title={"No Ingredient Created Yet"}
@@ -206,15 +174,15 @@ function MyIngredients() {
                     <Input
                       className="border-t border-l border-b rounded-l-md border-gray-400 focus:outline-none 
                           focus:ring-2 focus:ring-gray-300 h-10 w-full lg:w-100 px-2 pb-1 placeholder:text-gray-400"
-                      onChange={(e) => setSearchIng(e.target.value)}
+                      onChange={(e) => setInputText(e.target.value)}
                       placeholder={"Search Your Ingredient"}
-                      value={searchIng}
+                      value={inputText}
                     />
                     {/* search button */}
                     <button
                       className=" text-xl cursor-pointer rounded-r-md border-r border-t border-b border-gray-400 bg-gray-200 text-gray-700 h-10 px-4 
                               hover:ring-2 hover:ring-gray-600 hover:cursor-pointer"
-                      onClick={searchUserIngredient}
+                      onClick={searchButton}
                     >
                       <HiOutlineSearch />
                     </button>

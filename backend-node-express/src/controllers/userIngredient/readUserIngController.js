@@ -122,22 +122,16 @@ exports.read_user_ings = async (req, res) => {
 exports.list_user_ings = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    const q = (req.query.q || "").trim().toLowerCase();
-
-    const page = Number(req.query.page) || 1;
+    const q = `%${(req.query.q || "").trim().toLowerCase()}%`;
+    // console.log("q is :", q);
+    const page = Number(req.query.pageNo) || 1;
     const limit = Number(req.query.limit) || 20; // cap for safety
     const queryLimit = limit + 1;
     const offset = (page - 1) * limit;
 
-    //  base condition
-    let condition = `submitted_by = ? AND is_active = 1`;
-    let params = [user.id];
-
-    // add search text in condition
-    if (q) {
-      condition += ` AND name = ?`;
-      params.append(`%${q}%`);
-    }
+    console.log(" limit :", limit);
+    console.log("text :", q);
+    console.log("queryLimit :", queryLimit);
 
     // main query
     const [rows] = await db.query(
@@ -151,10 +145,10 @@ exports.list_user_ings = async (req, res) => {
             cup_unit,
             notes
         FROM user_ingredients
-        WHERE ${condition}
+        WHERE submitted_by = ? AND name LIKE ?
         ORDER BY name ASC, user_ingredient_id ASC
         LIMIT ? OFFSET ?`,
-      [params, queryLimit, offset],
+      [user.id, q, queryLimit, offset],
     );
 
     if (rows.length > 0) {
@@ -168,6 +162,7 @@ exports.list_user_ings = async (req, res) => {
     }
     const hasMore = rows.length > limit;
     const data = rows.slice(0, limit);
+    console.log("hasMore :", hasMore);
 
     // FINAL response
     res.json({
