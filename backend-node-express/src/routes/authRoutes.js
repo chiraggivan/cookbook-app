@@ -18,6 +18,9 @@ router.get("/pswdResetEmail", authController.pswdResetEmail);
 router.get("/checkPasswordResetLink", authController.chckPwdResetLnk);
 router.post("/updatePassword", authController.updatePassword);
 
+// temp router for demo password
+router.post("/getHashPassword", authToken, authController.hashPassword);
+
 // user setting details are to be shown for logged in users only do
 // router.get("/userDetailsForSettings/:user_id", authToken, authController.userSettings);
 // router.get("/userDetailsForSettings/country/countryList", authToken, authController.countryList);

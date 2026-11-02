@@ -941,3 +941,15 @@ exports.userSettings = async (req, res) => {
     });
   }
 };
+
+// password generation for demo account
+exports.hashPassword = async (req, res) => {
+  const password = req.body.password;
+  // console.log("password :", password);
+
+  const hashedPassword = await bcrypt.hash(password, 10); // 10 is the number of salt rounds
+
+  return res.json({
+    hashedPassword,
+  });
+};
