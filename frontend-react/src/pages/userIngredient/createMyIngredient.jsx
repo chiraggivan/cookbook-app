@@ -1,21 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
-import useFetch from "../../hooks/useFetch";
-import axios from "axios";
 import api from "../../api/axios";
-import Input from "../../components/input";
-// import Textarea from "../../components/textarea";
-// import Button from "../../components/button";
-import Dropdown from "../../components/dropdown";
 import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
-// import Navbar from "../../components/navbarOld";
 import { MyIngredientContext } from "../../context/myIngredientContext";
-import { serverURL } from "../../utils/appUtils";
-import { Select, TextInput, Textarea, Button } from "flowbite-react";
-import ConfirmModal from "../../components/confirmModal";
-import { HiTrash } from "react-icons/hi";
 import CreateUpdateMyIngredientPage from "./createUpdateMyIngredientPage";
+import AlertToast from "../../components/alertToast";
 
 function AddIngredient() {
   const { token, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -28,6 +18,8 @@ function AddIngredient() {
   const sendData = {};
   const { myIngredients, setMyIngredients } = useContext(MyIngredientContext);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
 
   const [errorMessage, setErrorMessage] = useState("");
   const mode = "create";
@@ -198,7 +190,13 @@ function AddIngredient() {
       console.log("Error found in createMyIngredient while creating :", err.response);
       // WINDOW ALERT Condition for Demo account
       if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-        window.alert(err.response.data?.message || "forbidden to do this.");
+        // window.alert(err.response.data?.message || "forbidden to do this.");
+        alertMsg.current = err.response.data?.message || "forbidden to do this.";
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          setOpenAlertToast(false);
+          alertMsg.current = null;
+        }, 3000);
         return;
       }
       setErrorMessage(err.response?.data.message);
@@ -220,22 +218,27 @@ function AddIngredient() {
   }, [ingData]);
 
   return (
-    <CreateUpdateMyIngredientPage
-      mode={mode}
-      ingData={ingData}
-      handleChange={handleChange}
-      validateInput={validateInput}
-      validateNumber={validateNumber}
-      setIngData={setIngData}
-      errorMessage={errorMessage}
-      existIngs={existIngs}
-      // updateBtn={updateBtn}
-      handlesubmit={handlesubmit}
-      setIsConfirmModalOpen={setIsConfirmModalOpen}
-      isConfirmModalOpen={isConfirmModalOpen}
-      navigate={navigate}
-      // handleDelete={handleDelete}
-    />
+    <>
+      <CreateUpdateMyIngredientPage
+        mode={mode}
+        ingData={ingData}
+        handleChange={handleChange}
+        validateInput={validateInput}
+        validateNumber={validateNumber}
+        setIngData={setIngData}
+        errorMessage={errorMessage}
+        existIngs={existIngs}
+        // updateBtn={updateBtn}
+        handlesubmit={handlesubmit}
+        setIsConfirmModalOpen={setIsConfirmModalOpen}
+        isConfirmModalOpen={isConfirmModalOpen}
+        navigate={navigate}
+        // handleDelete={handleDelete}
+      />
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
+    </>
   );
 }
 

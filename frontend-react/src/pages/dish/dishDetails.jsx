@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import axios from "axios";
@@ -13,17 +13,21 @@ import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import formattedDate from "../../utils/formattedDate";
 import NotFoundPage from "../../components/notFoundPage";
 import { Spinner } from "flowbite-react";
+import AlertToast from "../../components/alertToast";
 
 function DishDetails() {
   const { id } = useParams();
   const token = localStorage.getItem("token");
-  const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
+  // const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { dishDetails, setDishDetails } = useContext(DishContext);
   const [isDetailNotFound, setIsDetailNotFound] = useState(null);
   const [currencySymbol, setCurrencySymbol] = useState();
   const [foundDish, setFoundDish] = useState("");
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
   let tableRows = [];
   let ingsDiv = [];
 
@@ -38,7 +42,15 @@ function DishDetails() {
       console.log("catch block Failed to delete item", err);
       // WINDOW ALERT Condition for Demo account
       if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-        window.alert(err.response.data?.message || "forbidden to do this.");
+        // window.alert(err.response.data?.message || "forbidden to do this.");
+        alertMsg.current = err.response.data?.message || "forbidden to do this.";
+        setIsConfirmModalOpen(false);
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          setOpenAlertToast(false);
+          alertMsg.current = null;
+        }, 3000);
+
         return;
       }
       // console.log(err.response?.foundDish?.message);
@@ -47,11 +59,11 @@ function DishDetails() {
   };
 
   // ------------------------------------ Redirect effect -----------------------------------------------------
-  useEffect(() => {
-    if (!authHookLoading && (!token || !isAuthenticated)) {
-      navigate("/login");
-    }
-  }, [authHookLoading, token, isAuthenticated, navigate]);
+  // useEffect(() => {
+  //   if (!authHookLoading && (!token || !isAuthenticated)) {
+  //     navigate("/login");
+  //   }
+  // }, [authHookLoading, token, isAuthenticated, navigate]);
 
   // ---------- fetch the data by giving url, method and body(if required) with the help of useFetch HOOK
   const method = "get";
@@ -73,7 +85,6 @@ function DishDetails() {
           setFetchLoading(true);
           if (token) {
             const res = await api[method](url);
-            console.log("res is :", res);
             setFoundDish(res?.data?.data);
             // setDishDetails((prev) => [...prev, res?.data?.data]);
             setCurrencySymbol(res?.data?.data?.dish?.currency_symbol);
@@ -112,7 +123,12 @@ function DishDetails() {
   if (foundDish) {
     // console.log("date in found dish is :", foundDish.dish.preparation_date);
     // console.log("type of date is :", typeof foundDish.dish.preparation_date);
-    foundDish.dish.preparation_date = formattedDate(foundDish.dish.preparation_date);
+    // console.log(" preparation date :", foundDish.dish.preparation_date);
+    // console.log("formattedDate :", formattedDate(foundDish.dish.preparation_date));
+    if (formattedDate(foundDish.dish.preparation_date).slice(0, 3) !== "NaN") {
+      foundDish.dish.preparation_date = formattedDate(foundDish.dish.preparation_date);
+    }
+
     const recipeData = foundDish?.ingredients;
 
     const uniqueComp = [...new Set(recipeData?.map((i) => i.component_display_order))].sort(
@@ -175,31 +191,6 @@ function DishDetails() {
           </div>,
         );
       });
-      // for (const i of compIngs) {
-      //   ingsDiv.push(
-      //     <div className="flex flex-col max-w-xl mx-auto">
-      //       <div className="flex p-1 justify-between  ">
-      //         <div className="flex">
-      //           <div className="flex min-w-8 text-md items-start justify-end mr-1">
-      //             {i.quantity}
-      //           </div>
-      //           <div className="flex min-w-12 text-md items-start justify-center mr-1">
-      //             {capitaliseWords(i.unit_name)}
-      //           </div>
-      //           <div className="flex min-w-20 text-md items-start justify-start mr-2">
-      //             {capitaliseWords(i.ingredient_name)}
-      //           </div>
-      //         </div>
-      //         <div className="flex flex-col my-0.5">
-      //           <div className="flex min-w-7 text-md justify-end mr-1">£ {i.cost}</div>
-      //           <div className="flex min-w-7 text-sm justify-end mr-1 text-gray-500">
-      //             £{i.base_price}/{i.base_unit}
-      //           </div>
-      //         </div>
-      //       </div>
-      //     </div>,
-      //   );
-      // }
     }
   }
 
@@ -213,8 +204,11 @@ function DishDetails() {
         ) : (
           <>
             <DishDetailsPage
+              token={token}
               id={id}
               data={foundDish}
+              isConfirmModalOpen={isConfirmModalOpen}
+              setIsConfirmModalOpen={setIsConfirmModalOpen}
               navigate={navigate}
               // tableRows={tableRows}
               ingsDiv={ingsDiv}
@@ -223,6 +217,9 @@ function DishDetails() {
           </>
         )}
       </div>
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
     </>
   );
 }

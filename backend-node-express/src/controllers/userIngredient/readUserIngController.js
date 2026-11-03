@@ -129,10 +129,6 @@ exports.list_user_ings = async (req, res) => {
     const queryLimit = limit + 1;
     const offset = (page - 1) * limit;
 
-    console.log(" limit :", limit);
-    console.log("text :", q);
-    console.log("queryLimit :", queryLimit);
-
     // main query
     const [rows] = await db.query(
       `SELECT

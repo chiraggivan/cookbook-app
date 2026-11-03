@@ -7,19 +7,14 @@ import api from "../../api/axios";
 import Input from "../../components/input";
 import Textarea from "../../components/textarea";
 import Toggle from "../../components/toggle";
-import Card from "../../components/card";
-import Table from "../../components/table";
 import Dropdown from "../../components/dropdown";
-import Navbar from "../../components/navbarOld";
-// import Button from "../../components/button";
 import { capitaliseWords, serverURL } from "../../utils/appUtils";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import DropdownArray from "../../components/dropdownArray";
 import { getFinalDataForBackend } from "./editRecipeUtils/getFinalDataForBackend";
 import OnDataChange from "../../utils/submitButtonActivation";
 import { MyRecipeContext } from "../../context/myRecipeContext";
-import TopBar from "../../components/topBar";
-import { Button, Progress, Spinner, TabItem, Tabs, TextInput } from "flowbite-react";
+import { alertTheme, Button, Progress, Spinner, TabItem, Tabs, TextInput } from "flowbite-react";
 import { GiAvocado, GiHotMeal, GiHotSpices } from "react-icons/gi";
 import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 import { HiClipboardList, HiTrash } from "react-icons/hi";
@@ -28,6 +23,7 @@ import EditBaseValuesModal from "../../components/editBaseValuesModal";
 import EditIngStyleModal from "../../components/editIngStyleModal";
 import { MdModeEditOutline, MdOutlineEdit } from "react-icons/md";
 import NotFoundPage from "../../components/notFoundPage";
+import AlertToast from "../../components/alertToast";
 
 function EditRecipe() {
   const token = localStorage.getItem("token");
@@ -39,10 +35,12 @@ function EditRecipe() {
   const [isPrivate, setIsPrivate] = useState(false);
   const recipeCosting = useRef(0);
   const [errorMessage, setErrorMessage] = useState("");
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedIng, setSuggestedIng] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  // const [rowData, setRowData] = useState([]);
+
   const [activeInputId, setActiveInputId] = useState(null);
   const itemRefs = useRef([]); // -------------> for auto scroll be visible while arrow down or up in suggested ingredients div
   const emptyIngRowData = () => ({
@@ -93,8 +91,7 @@ function EditRecipe() {
   const timeoutRef = useRef(null);
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
-  // const [imageURL, setImageURL] = useState("");
-  // const imageBaseURL = "/uploadedImages/";
+
   const [imageError, setImageError] = useState(false);
   const [imgErrMsg, setImgErrMsg] = useState("");
   const [imgUploadSuccessMsg, setImgUploadSuccessMsg] = useState("");
@@ -109,7 +106,7 @@ function EditRecipe() {
   const [compUid, setCompUid] = useState(null);
   const [ingUid, setIngUid] = useState(null);
 
-  // variables for ing style mode
+  // variables for ing style modal
   const [isEditIngstyle, setIsEditIngStyle] = useState(false);
   const [ingName, setIngName] = useState();
   const [prepStyle, setPrepStyle] = useState();
@@ -197,7 +194,10 @@ function EditRecipe() {
         if (err.response?.status === 403 && err.response?.data?.role === "demo") {
           setUploadProgress(0);
           setImgUploadSuccessMsg("Failed to upload image.");
-          window.alert(err.response.data?.message || "forbidden to do this.");
+          // window.alert(err.response.data?.message || "forbidden to do this.");
+          alertMsg.current = err.response.data?.message || "forbidden to do this.";
+          showAlert();
+
           return;
         }
         setPreviewImage(null);
@@ -326,6 +326,8 @@ function EditRecipe() {
         // }
       } catch (err) {
         // window.alert(`Error while fetching recipe data from database`);
+        alertMsg.current = `Error while fetching recipe data from database`;
+        showAlert();
         console.log("error while fetching reicpe details with axios is :", err.response);
         if (err.response?.status === 404) {
           setIsRecipeNotFound(true);
@@ -393,7 +395,9 @@ function EditRecipe() {
           // console.log("ingredients found are : ", res.data);
           setSuggestedIng(res.data.rows);
         } catch (err) {
-          window.alert(`Error while fetching ingredients list from database`);
+          // window.alert(`Error while fetching ingredients list from database`);
+          alertMsg.current = `Error while fetching ingredients list from database`;
+          showAlert();
           console.log("error in newRecipe.jsx while ing search :", err.response);
         }
       };
@@ -525,7 +529,9 @@ function EditRecipe() {
           ),
         }));
       } catch (err) {
-        window.alert(`Error while fetching measuring unit data from database`);
+        // window.alert(`Error while fetching measuring unit data from database`);
+        alertMsg.current = `Error while fetching measuring unit data from database`;
+        showAlert();
         console.log("error in createMyIng.jsx while fetching measuring units :", err.response);
       }
     };
@@ -1295,15 +1301,28 @@ function EditRecipe() {
         console.log("error while updating finalData with axios is :", err.response.data.message);
         // WINDOW ALERT Condition for Demo account
         if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-          window.alert(err.response.data?.message || "forbidden to do this.");
+          // window.alert(err.response.data?.message || "forbidden to do this.");
+          alertMsg.current = err.response.data?.message || "forbidden to do this.";
+          showAlert();
           return;
         }
-        window.alert(`Error while updating recipe. Retry later`);
+        // window.alert(`Error while updating recipe. Retry later`);
+        alertMsg.current = "Error while updating recipe. Retry later";
+        showAlert();
       } finally {
         setIsLoading(false);
       }
     };
     updateRecipe();
+  };
+
+  //-------------------- function for alert toast (as multiple alerts in this page) ------------------------------
+  const showAlert = () => {
+    setOpenAlertToast(true);
+    setTimeout(() => {
+      setOpenAlertToast(false);
+      alertMsg.current = null;
+    }, 3000);
   };
 
   // console.log("inputText :", inputText);
@@ -2267,6 +2286,7 @@ function EditRecipe() {
         )}
       </div>
 
+      {/* change base value modal for small screen */}
       {isEditBaseValuesOpen && (
         <EditBaseValuesModal
           isOpen={isEditBaseValuesOpen}
@@ -2288,6 +2308,7 @@ function EditRecipe() {
         />
       )}
 
+      {/* change ing style modal for small screen */}
       {isEditIngstyle && (
         <EditIngStyleModal
           isOpen={isEditIngstyle}
@@ -2305,6 +2326,9 @@ function EditRecipe() {
           ingUid={ingUid}
         />
       )}
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
     </>
   );
 }

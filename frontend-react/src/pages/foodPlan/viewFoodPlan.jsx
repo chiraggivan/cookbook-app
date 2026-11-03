@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { Button, Spinner } from "flowbite-react";
 import { MdEditNote } from "react-icons/md";
 import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from "flowbite-react";
 import EditFoodplanModal from "../../components/editFoodplanModal";
+import AlertToast from "../../components/alertToast";
 
 function ViewFoodPlan() {
   //   const token = localStorage.getItem("token");
@@ -18,6 +19,9 @@ function ViewFoodPlan() {
   const [foodplanId, setFoodplanId] = useState();
   const [errMsg, setErrMsg] = useState("");
   const navigate = useNavigate();
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
+
   const method = "get";
   const url = `/foodplan/api/view`;
 
@@ -113,7 +117,15 @@ function ViewFoodPlan() {
         console.log("Error while saving edited dayplan data in viewFoodPlan page:", err.response);
         // WINDOW ALERT Condition for Demo account
         if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-          window.alert(err.response.data?.message || "forbidden to do this.");
+          setIsLoading(false);
+          // window.alert(err.response.data?.message || "forbidden to do this.");
+          alertMsg.current = err.response.data?.message || "forbidden to do this.";
+          setOpenAlertToast(true);
+          setTimeout(() => {
+            setOpenAlertToast(false);
+            alertMsg.current = null;
+          }, 3000);
+
           return;
         }
       } finally {
@@ -270,6 +282,9 @@ function ViewFoodPlan() {
           meals={foodplanData.meals}
         />
       )}
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
     </>
   );
 }

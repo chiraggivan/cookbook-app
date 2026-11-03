@@ -24,6 +24,7 @@ import { FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 import { TbFoodsteps } from "react-icons/tb";
 import EditBaseValuesModal from "../../components/editBaseValuesModal";
 import { MdModeEditOutline } from "react-icons/md";
+import AlertToast from "../../components/alertToast";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -35,7 +36,8 @@ function NewRecipe() {
   const [suggestedIng, setSuggestedIng] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
-  // const [rowData, setRowData] = useState([]);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
 
   const [activeInputId, setActiveInputId] = useState(null);
   const itemRefs = useRef([]); // -------------> for auto scroll be visible while arrow down or up in suggested ingredients div
@@ -176,7 +178,13 @@ function NewRecipe() {
         if (err.response?.status === 403 && err.response?.data?.role === "demo") {
           setUploadProgress(0);
           setImgUploadSuccessMsg("Failed to upload image.");
-          window.alert(err.response.data?.message || "forbidden to do this.");
+          // window.alert(err.response.data?.message || "forbidden to do this.");
+          alertMsg.current = err.response.data?.message || "forbidden to do this.";
+          setOpenAlertToast(true);
+          setTimeout(() => {
+            setOpenAlertToast(false);
+            alertMsg.current = null;
+          }, 3000);
           return;
         }
         setPreviewImage(null);
@@ -1238,7 +1246,14 @@ function NewRecipe() {
         console.log("err found during saving new recipe api: ", err.response);
         // WINDOW ALERT Condition for Demo account
         if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-          window.alert(err.response.data?.message || "forbidden to do this.");
+          // window.alert(err.response.data?.message || "forbidden to do this.");
+          setIsLoading(false);
+          alertMsg.current = err.response.data?.message || "forbidden to do this.";
+          setOpenAlertToast(true);
+          setTimeout(() => {
+            setOpenAlertToast(false);
+            alertMsg.current = null;
+          }, 3000);
           return;
         }
         setErrorMessage(`Error while saving recipe. Try again later.`);
@@ -2118,6 +2133,7 @@ function NewRecipe() {
         </div>
       </div>
 
+      {/* modal for changing base values */}
       {isEditBaseValuesOpen && (
         <EditBaseValuesModal
           isOpen={isEditBaseValuesOpen}
@@ -2139,6 +2155,9 @@ function NewRecipe() {
           currencySymbol={currencySymbol}
         />
       )}
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
     </>
   );
 }

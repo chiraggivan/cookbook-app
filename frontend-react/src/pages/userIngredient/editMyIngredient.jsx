@@ -12,12 +12,8 @@ import { mainUnits, cupUnits } from "../../utils/ingredientConstant";
 // import Navbar from "../../components/navbarOld";
 import OnDataChange from "../../utils/submitButtonActivation";
 import { MyIngredientContext } from "../../context/myIngredientContext";
-import { capitaliseWords, serverURL } from "../../utils/appUtils";
-import { Button, TextInput, Textarea, Select } from "flowbite-react";
-import { FaWeightScale } from "react-icons/fa6";
-import ConfirmModal from "../../components/confirmModal";
-import { HiTrash } from "react-icons/hi";
 import CreateUpdateMyIngredientPage from "./createUpdateMyIngredientPage";
+import AlertToast from "../../components/alertToast";
 
 function EditIngredient() {
   const { state } = useLocation();
@@ -38,6 +34,8 @@ function EditIngredient() {
   const { myIngredients, setMyIngredients } = useContext(MyIngredientContext);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
   const mode = "edit"; // ---> used for process identifying in common page for update and create myIngredient
   // if no state found in url then return
   if (!state?.data) {
@@ -244,7 +242,13 @@ function EditIngredient() {
       console.log("Error found in EditMyIngredient while updating :", err.response);
       // WINDOW ALERT Condition for Demo account
       if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-        window.alert(err.response.data?.message || "forbidden to do this.");
+        // window.alert(err.response.data?.message || "forbidden to do this.");
+        alertMsg.current = err.response.data?.message || "forbidden to do this.";
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          setOpenAlertToast(false);
+          alertMsg.current = null;
+        }, 3000);
         return;
       }
       setErrorMessage(err.response?.data.message);
@@ -276,7 +280,13 @@ function EditIngredient() {
       console.log("Error while deleting my Ingredient :", err);
       // WINDOW ALERT Condition for Demo account
       if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-        window.alert(err.response.data?.message || "forbidden to do this.");
+        // window.alert(err.response.data?.message || "forbidden to do this.");
+        alertMsg.current = err.response.data?.message || "forbidden to do this.";
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          setOpenAlertToast(false);
+          alertMsg.current = null;
+        }, 3000);
         return;
       }
       alert(err.response?.data?.message);
@@ -309,23 +319,28 @@ function EditIngredient() {
   // console.log("ingData :", ingData);
   // console.log("orgData :", orgData);
   return (
-    <CreateUpdateMyIngredientPage
-      mode={mode}
-      ingData={ingData}
-      handleChange={handleChange}
-      validateInput={validateInput}
-      validateNumber={validateNumber}
-      setIngData={setIngData}
-      errorMessage={errorMessage}
-      existIngs={existIngs}
-      updateBtn={updateBtn}
-      handlesubmit={handlesubmit}
-      setIsConfirmModalOpen={setIsConfirmModalOpen}
-      isConfirmModalOpen={isConfirmModalOpen}
-      handleDelete={handleDelete}
-      navigate={navigate}
-      currencySymbol={currencySymbol}
-    />
+    <>
+      <CreateUpdateMyIngredientPage
+        mode={mode}
+        ingData={ingData}
+        handleChange={handleChange}
+        validateInput={validateInput}
+        validateNumber={validateNumber}
+        setIngData={setIngData}
+        errorMessage={errorMessage}
+        existIngs={existIngs}
+        updateBtn={updateBtn}
+        handlesubmit={handlesubmit}
+        setIsConfirmModalOpen={setIsConfirmModalOpen}
+        isConfirmModalOpen={isConfirmModalOpen}
+        handleDelete={handleDelete}
+        navigate={navigate}
+        currencySymbol={currencySymbol}
+      />
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
+    </>
   );
 }
 

@@ -14,6 +14,7 @@ import { BsBookmark } from "react-icons/bs";
 import { GoBookmarkFill, GoBookmarkSlashFill } from "react-icons/go";
 import { ImInfo } from "react-icons/im";
 import { GiHotMeal } from "react-icons/gi";
+import AlertToast from "../../components/alertToast";
 
 function MySavedRecipes() {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ function MySavedRecipes() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [inputText, setInputText] = useState("");
-  const [isChangingBookmark, setIsChangingBookmark] = useState(false);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef(null);
 
   const limit = 5;
   const scrollwindowPercent = 90;
@@ -111,7 +113,6 @@ function MySavedRecipes() {
     const url = `/userSavedRecipe/api/delete/${id}`;
     const method = "delete";
 
-    setIsChangingBookmark(true);
     // function to call api
     const sendData = async () => {
       try {
@@ -124,9 +125,14 @@ function MySavedRecipes() {
         }
       } catch (err) {
         console.log("Error while bookmarking recipe :", err);
-        window.alert(`Something went wrong. Try again later.`);
+        // window.alert(`Something went wrong. Try again later.`);
+        alertMsg.current = "Something went wrong. Try again later.";
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          setOpenAlertToast(false);
+          alertMsg.current = null;
+        }, 3000);
       } finally {
-        setIsChangingBookmark(false);
       }
     };
 
@@ -294,6 +300,9 @@ function MySavedRecipes() {
           </>
         )}
       </div>
+
+      {/* alert toast */}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
     </>
   );
 }

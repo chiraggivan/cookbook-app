@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import api from "../../api/axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
@@ -21,17 +21,16 @@ import { SlOptionsVertical } from "react-icons/sl";
 import { HiTrash, HiClipboardList, HiShare, HiPrinter, HiInformationCircle } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
 import { MdModeEditOutline, MdOutlineEditNote } from "react-icons/md";
-import { TbFoodsteps } from "react-icons/tb";
+import { TbCalendarHeart, TbFoodsteps } from "react-icons/tb";
 import { BsBookmark, BsBookmarkFill, BsFillHandThumbsUpFill } from "react-icons/bs";
-import { FaLock } from "react-icons/fa6";
+import { FaLock, FaUsers } from "react-icons/fa6";
 import { GoNorthStar } from "react-icons/go";
-import { TiArrowForward, TiArrowForwardOutline } from "react-icons/ti";
-
 import formattedDate from "../../utils/formattedDate";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 import EditBaseValuesModal from "../../components/editBaseValuesModal";
 import { weightUnits, volumeUnits } from "../../utils/ingredientConstant";
 import NotFoundPage from "../../components/notFoundPage";
+import AlertToast from "../../components/alertToast";
 
 function RecipeDetails() {
   const token = localStorage.getItem("token");
@@ -56,11 +55,12 @@ function RecipeDetails() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState("");
-  const [isAlert, setIsAlert] = useState(false);
   const [successAlert, setSuccessAlert] = useState(false);
-  const [alertMsg, setAlertMsg] = useState("");
-
   const [changePrice, setChangePrice] = useState(false);
+  const hasUserCreatedIngredient = useRef(false);
+  const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertForSuccess = useRef(false);
+  const alertMsg = useRef(null);
 
   const navigate = useNavigate();
   const recipeRows = [];
@@ -182,8 +182,10 @@ function RecipeDetails() {
       const res = await api[method](privacyURL, body);
       // console.log("res :", res);
     } catch (err) {
-      // console.log("Error found recipeDetails - changePrivacy :", err.response.data.message);
-      window.alert("Something went wrong while updating privacy. Please try again later.");
+      // window.alert("Something went wrong while updating privacy. Please try again later.");
+      alertMsg.current = `Something went wrong while updating privacy. Please try again later.`;
+      alertForSuccess.current = false;
+      showAlert();
 
       //  change back the privacy that we set with onChange in Toggle component, during err in above try block
       // setRecipeDetails(
@@ -212,19 +214,18 @@ function RecipeDetails() {
     try {
       const res = await api.delete(deleteurl);
       if (res?.data?.success === true) {
-        // alert(res?.data?.message);
-        setAlertMsg(res?.data?.message);
-        setIsAlert(true);
         // // edit context variables as well
         // const x = recipeDetails.filter((i) => i.recipe.recipe_id !== Number(id));
         // setRecipeDetails(x);
         // const y = myRecipes.filter((i) => i.recipe_id !== Number(id));
         // setMyRecipes(y);
         // ---------------------------
-        navigate("/MyRecipes");
+        alertMsg.current = res?.data?.message;
+        alertForSuccess.current = true;
+        showAlert();
+        setTimeout(() => navigate("/MyRecipes"), 3000); // timeout matches with timeout of alertToast in showAlert func
         return;
       } else {
-        alert(res?.data?.message);
         // console.log(res?.data?.message);
         return;
       }
@@ -232,7 +233,11 @@ function RecipeDetails() {
       console.log("Error while deleting recipe :", err.response?.data?.message);
       // WINDOW ALERT Condition for Demo account
       if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-        window.alert(err.response.data?.message || "forbidden to do this.");
+        // window.alert(err.response.data?.message || "forbidden to do this.");
+        setIsConfirmModalOpen(false);
+        alertMsg.current = err.response.data?.message || "forbidden to do this.";
+        alertForSuccess.current = false;
+        showAlert();
         return;
       }
       alert(err.response?.data?.message);
@@ -296,11 +301,17 @@ function RecipeDetails() {
       console.log("Error for dish created button:", err.response);
       // WINDOW ALERT Condition for Demo account
       if (err.response?.status === 403 && err.response?.data?.role === "demo") {
-        window.alert(
+        // window.alert(
+        //   err.response?.data?.message +
+        //     " This section will be temporarily updated for viewing, but the changes won't be saved. Refreshing the page will restore the previous values." ||
+        //     "forbidden to do this.",
+        // );
+        alertMsg.current =
           err.response?.data?.message +
             " This section will be temporarily updated for viewing, but the changes won't be saved. Refreshing the page will restore the previous values." ||
-            "forbidden to do this.",
-        );
+          "forbidden to do this.";
+        alertForSuccess.current = false;
+        showAlert();
         setFoundRecipeDetails((prev) => ({
           ...prev,
           recipe: {
@@ -313,9 +324,10 @@ function RecipeDetails() {
         setSuccessAlert(true);
         return;
       }
-      // console.log(err.response?.data?.message);
-      setIsAlert(true);
-      setAlertMsg(err.response?.data?.message);
+
+      alertMsg.current = err.response?.data?.message;
+      alertForSuccess.current = false;
+      showAlert();
       return;
     }
   };
@@ -404,15 +416,24 @@ function RecipeDetails() {
         });
         setFoundRecipeDetails((prev) => ({ ...prev, ingredients: updatedIngrediientsData }));
         setIsEditBaseValuesOpen(false);
-        window.alert(
-          err.response.data?.message +
+        // window.alert(
+        //   err.response.data?.message +
+        //     " This section will be temporarily updated for viewing, but the changes won't be saved. Refreshing the page will restore the previous values." ||
+        //     "forbidden to do this.",
+        // );
+        alertMsg.current =
+          err.response?.data?.message +
             " This section will be temporarily updated for viewing, but the changes won't be saved. Refreshing the page will restore the previous values." ||
-            "forbidden to do this.",
-        );
+          "forbidden to do this.";
+        alertForSuccess.current = false;
+        showAlert();
         return;
       }
       ///////////////////////////////////////////////////////////////////////////////////
-      window.alert(`Error While updating Base price of ${ingName}`);
+      // window.alert(`Error While updating Base price of ${ingName}`);
+      alertMsg.current(`Error While updating Base price of ${ingName}`);
+      alertForSuccess.current = false;
+      showAlert();
     } finally {
       setIsMiniLoading(false);
     }
@@ -439,7 +460,10 @@ function RecipeDetails() {
           }));
         } catch (err) {
           console.log("Error while bookmarking recipe :", err);
-          window.alert(`Something went wrong. Try again later.`);
+          // window.alert(`Something went wrong. Try again later.`);
+          alertMsg.current = `Something went wrong. Try again later.`;
+          alertForSuccess.current = false;
+          showAlert();
         } finally {
           setIsChangingBookmark(false);
         }
@@ -461,8 +485,11 @@ function RecipeDetails() {
             recipe: { ...prev.recipe, is_bookmarked: 0 },
           }));
         } catch (err) {
-          console.log("Error while bookmarking recipe :", err);
-          window.alert(`Something went wrong. Try again later.`);
+          console.log("Error while removing bookmark from recipe :", err);
+          // window.alert(`Something went wrong. Try again later.`);
+          alertMsg.current = `Something went wrong. Try again later.`;
+          alertForSuccess.current = false;
+          showAlert();
         } finally {
           setIsChangingBookmark(false);
         }
@@ -537,6 +564,9 @@ function RecipeDetails() {
       }
 
       compIngs.forEach((i, index) => {
+        if (i.ingredient_source === "user") {
+          hasUserCreatedIngredient.current = true;
+        }
         recipeRows.push(
           <div
             className={
@@ -644,6 +674,15 @@ function RecipeDetails() {
     }
   }
 
+  //-------------------- function for alert toast (as multiple alerts in this page) ------------------------------
+  const showAlert = () => {
+    setOpenAlertToast(true);
+    setTimeout(() => {
+      setOpenAlertToast(false);
+      alertMsg.current = null;
+    }, 5000);
+  };
+
   // console.log("HiTrash :", HiTrash);
   // console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("showBookmarkICon :", showBookmarkIcon);
@@ -656,6 +695,7 @@ function RecipeDetails() {
   // console.log("image url for src :", foundRecipeDetails?.recipe?.image_url);
   // console.log("imageError is:", imageError);
   // console.log("user is :", user);
+  // console.log("alertForSuccess :", alertForSuccess);
 
   // ---------------------------------------- jsx for the page ------------------------------------------------
   return (
@@ -847,7 +887,6 @@ function RecipeDetails() {
                       onDismiss={() => setSuccessAlert(false)}
                     >
                       <span className="">Dish record successfully created</span>
-                      {alertMsg}
                     </Alert>
                   </div>
                 )}
@@ -983,12 +1022,24 @@ function RecipeDetails() {
                 )}
 
                 {/* ingredients list */}
-                <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                <div
+                  className={hasUserCreatedIngredient.current ? `` : `min-h-[calc(100vh-200px)]`}
+                >
+                  {recipeRows}
+                </div>
+
+                {/* show * description for user created ingredients */}
+                {hasUserCreatedIngredient.current && (
+                  <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-500 italic text-xs md:text-sm">
+                    <GoNorthStar className="" /> User created Ingredient. Only available for recipe
+                    owner.
+                  </div>
+                )}
               </TabItem>
 
               {/* Recipe steps */}
               <TabItem title="Steps" icon={TbFoodsteps}>
-                <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
+                <div className="px-2 min-h-[calc(100vh-150px)] max-w-xl">
                   {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
                     <div className="italic text-gray-400 text-center bg-amber-100">
                       No steps defined for recipe
@@ -1008,7 +1059,7 @@ function RecipeDetails() {
               </TabItem>
             </Tabs>
 
-            {/* tabs option of flowbite for screen bigger than lg */}
+            {/* tabs option of flowbite for screen bigger than lg(showing ingredients and steps side by side) */}
             <div className="hidden lg:block">
               <Tabs
                 theme={{
@@ -1029,8 +1080,9 @@ function RecipeDetails() {
                 aria-label="Tabs with icons"
                 variant="fullWidth"
               >
-                {/* Ingredients */}
+                {/* Ingredients TAB screen*/}
                 <TabItem active title="Ingredients" icon={GiAvocado}>
+                  {/* change price button */}
                   <div className="flex">
                     {/* change price button and mini loading screen when base price is being changed*/}
                     <div className="flex-1">
@@ -1072,9 +1124,24 @@ function RecipeDetails() {
                   {/* ingredients list */}
                   <div className="flex">
                     <div className="flex-1">
-                      <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                      <div
+                        className={
+                          hasUserCreatedIngredient.current ? `` : `min-h-[calc(100vh-200px)]`
+                        }
+                      >
+                        {recipeRows}
+                      </div>
+
+                      {/* show * description for user created ingredients */}
+                      {hasUserCreatedIngredient.current && (
+                        <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-500 italic text-xs md:text-sm">
+                          <GoNorthStar className="" /> User created Ingredient. Only available for
+                          recipe owner.
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
+                      {/* steps list */}
                       <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
                         {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
                           <div className="italic text-gray-400 text-center">
@@ -1096,13 +1163,68 @@ function RecipeDetails() {
                   </div>
                 </TabItem>
 
-                {/* Recipe steps */}
+                {/* Steps TAB screen*/}
                 <TabItem title="Steps" icon={TbFoodsteps}>
+                  {/* change price button */}
+                  <div className="flex">
+                    {/* change price button and mini loading screen when base price is being changed*/}
+                    <div className="flex-1">
+                      {isMiniLoading && (
+                        <div className="flex w-full h-8 items-center justify-center">
+                          <Spinner
+                            theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                            color="default"
+                            aria-label="Loading"
+                            size="xl"
+                          />
+                        </div>
+                      )}
+                      {!isMiniLoading && (
+                        <div className="flex justify-end pr-2 text-sm h-8">
+                          <div
+                            className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                            onClick={() => setChangePrice(!changePrice)}
+                          >
+                            {changePrice ? (
+                              <div className="flex">
+                                <span className="flex items-center pr-1.5">
+                                  <FaLock />
+                                </span>{" "}
+                                Lock Price
+                              </div>
+                            ) : (
+                              "Change Price"
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* just to keep change price button within ingredients section  */}
+                    <div className="flex-1"></div>
+                  </div>
+
+                  {/* ingredients list */}
                   <div className="flex">
                     <div className="flex-1">
-                      <div className="min-h-[calc(100vh-200px)]">{recipeRows}</div>
+                      <div
+                        className={
+                          hasUserCreatedIngredient.current ? `` : `min-h-[calc(100vh-200px)]`
+                        }
+                      >
+                        {recipeRows}
+                      </div>
+
+                      {/* show * description for user created ingredients */}
+                      {hasUserCreatedIngredient.current && (
+                        <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-500 italic text-xs md:text-sm">
+                          <GoNorthStar className="" /> User created Ingredient. Only available for
+                          recipe owner.
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
+                      {/* steps list */}
                       <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
                         {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
                           <div className="italic text-gray-400 text-center">
@@ -1185,14 +1307,105 @@ function RecipeDetails() {
         />
       )}
 
-      {/* alert window */}
-      {isAlert && (
-        <Alert color="failure" icon={HiInformationCircle} onDismiss={() => setIsAlert(false)}>
-          {alertMsg}
-        </Alert>
+      {/* alert toast */}
+      {openAlertToast && (
+        <AlertToast message={alertMsg.current} success={alertForSuccess.current} yPosition="top" />
       )}
     </div>
   );
 }
 
 export default RecipeDetails;
+
+// {/* NEW DIV TO REPLACE Details and Image */}
+// <div className="flex flex-col-reverse mt-4 lg:flex-row lg:max-w-lg">
+//   {/* details */}
+//   <div className="">
+//     {/* portion size & privacy */}
+//     <div className="flex mt-2 mx-2 gap-2">
+//       {/* portion size */}
+//       <div className="flex-col flex-6 rounded-md p-2 ">
+//         <div className="text-md font-semibold">Portion Details</div>
+//         <div className="border-y w-28 border-gray-600"></div>
+//         <div className="flex gap-2">
+//           <div className="flex items-center">
+//             <FaUsers className="text-gray-600" />
+//           </div>
+//           <div className="">2 people</div>
+//         </div>
+//       </div>
+
+//       {/* privacy */}
+//       <div className="flex-col flex-4 rounded-md p-2">
+//         <div className="flex gap-2 justify-center">
+//           <div className="flex items-center ">
+//             <FaLock className="text-gray-600" />{" "}
+//           </div>
+//           <div className="text-md font-semibold">Recipe Public</div>
+//         </div>
+//         <div className="border-y mx-auto w-32 border-gray-600"></div>
+//         <div className="flex gap-2 justify-center">
+//           <div className="">toggle</div>
+//           <div className=""> text</div>
+//         </div>
+//       </div>
+//     </div>
+
+//     {/* created dish section */}
+//     <div className="flex flex-col mt-2 mx-2 py-2 gap-2 rounded-lg border bg-gray-50 border-gray-600 ">
+//       {/* first line  */}
+//       <div className="flex px-2 gap-2">
+//         <div className="flex items-center">
+//           <TbCalendarHeart />{" "}
+//         </div>
+//         <div className="text-md font-semibold">Last Prepared:</div>
+//         <div className="flex text-sm items-center"> 26th Oct '26 for Lunch</div>
+//       </div>
+
+//       {/* create dish Button */}
+//       <Button className="flex mx-2 text-center justify-center rounded" color={"dark"}>
+//         Create Dish
+//       </Button>
+//     </div>
+
+//     {/* Description */}
+//     <div className="flex flex-col mt-2 mx-2 py-2 gap-1 rounded-lg">
+//       <div className="px-2 font-semibold">Description Header</div>
+//       <div className="border-y w-38 ml-2 border-gray-600"></div>
+//       <div className="px-2 rounded-lg border-gray-600 text-sm max-h-50 overflow-y-auto scrollbar-thin">
+//         It has the details of a recipe and that includes the image of the recipe the
+//         portion details if the private on not private Toggles which it has got the last
+//         prepared details it has got also the button to create the create dish button
+//         which will be adjusting to last prepared as this two are dependent on each other
+//         or they are like a relative of each other and descriptions which is of the
+//         recipe and also the total price of the recipe which is displayed in that section
+//         or in that day now give me a nice way to display all these details on a large
+//         screen with a div having a landscape which is more of a wider angle like you can
+//         say something in the range of 20 years to 6 screen size or something like that
+//         so that my details are quite spread enough way which we can have as one section
+//         for image and another section for all the other details also you can think about
+//         it as description can be of a very length so keeping that thing within the same
+//         dev is it feasible or not because then the image size might keep on increasing
+//         dependent upon the size of description so just give me few examples as in the
+//         screenshots of how it the best way to make it look on the screen
+//       </div>
+//     </div>
+
+//     <div className=""></div>
+//   </div>
+
+//   {/* image */}
+//   <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
+//     {foundRecipeDetails?.recipe?.image_url && !imageError ? (
+//       <img
+//         className="h-full w-full md:rounded-md"
+//         src={foundRecipeDetails?.recipe?.image_url}
+//         alt="Recipe Image"
+//         onError={() => setImageError(true)}
+//       />
+//     ) : (
+//       <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
+//     )}
+//   </div>
+// </div>
+// <div className=""></div>

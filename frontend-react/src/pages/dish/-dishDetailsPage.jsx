@@ -2,15 +2,21 @@
 import { Button, Dropdown, DropdownItem } from "flowbite-react";
 import { capitaliseWords } from "../../utils/appUtils";
 import { HiPrinter, HiTrash } from "react-icons/hi";
-import ConfirmModal from "../../components/confirmModal";
 import { useState } from "react";
 import { GiHotMeal, GiHotSpices, GiMeal } from "react-icons/gi";
 import { SlOptionsVertical } from "react-icons/sl";
 import ConfirmDeleteModal from "../../components/confirmDeleteModal";
 
-function DishDetailsPage({ id, data, ingsDiv, navigate, handleDelete }) {
-  const token = localStorage.getItem("token");
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+function DishDetailsPage({
+  token,
+  id,
+  data,
+  isConfirmModalOpen,
+  setIsConfirmModalOpen,
+  ingsDiv,
+  navigate,
+  handleDelete,
+}) {
   const [imageError, setImageError] = useState(false);
 
   return (
