@@ -573,7 +573,7 @@ function RecipeDetails() {
             className={
               index % 2 === 0
                 ? "flex w-full text-sm md:text-lg "
-                : "flex w-full text-sm md:text-lg bg-app-table-row"
+                : "flex w-full text-sm md:text-lg bg-gray-100"
             }
             key={i.ingredient_display_order}
           >
@@ -746,7 +746,7 @@ function RecipeDetails() {
 
                   {/* privacy */}
                   {isRecipeOwner === true && (
-                    <div className="flex rounded-full border-2 border-gray-300 bg-gray-100 py-1 px-2 gap-2 justify-between min-w-35">
+                    <div className="flex rounded-full border-2 border-gray-300 bg-gray-100 p-1 gap-2 justify-between min-w-33">
                       {/* icon and text */}
                       <div className="flex items-center ">
                         {foundRecipeDetails?.recipe.privacy === "private" ? (
@@ -940,7 +940,10 @@ function RecipeDetails() {
                   tabitem: {
                     variant: {
                       fullWidth: {
-                        active: { on: "bg-app-primary text-white", off: "hover:bg-app-table-row" },
+                        active: {
+                          on: "bg-gray-200",
+                          off: "hover:bg-gray-100 hover:cursor-pointer",
+                        },
                       },
                     },
                   },
