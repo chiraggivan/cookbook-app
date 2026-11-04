@@ -1,5 +1,8 @@
 @import "tailwindcss";
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
 @import "flowbite";
+@custom-variant dark (&:where(.dark, .dark *));
 @theme {
   --color-page-background: #9ade7b;
   --color-app-primary: #68ba52;
@@ -19,10 +22,6 @@ body {
     inter,
     sans serif;
 }
-
-/* html {
-  scrollbar-gutter: stable;
-} */
 
 .navbar li {
   padding: 0 10px;

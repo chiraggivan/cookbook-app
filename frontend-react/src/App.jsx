@@ -9,20 +9,24 @@ import { FoodPlanRoutes } from "./routes/foodPlanRoutes";
 import { DashboardRoutes } from "./routes/dashboardRoutes";
 import { SavedRecipeRoutes } from "./routes/savedRecipeRoutes";
 import NotFoundPage from "./components/notFoundPage";
+import { ThemeInit } from "../.flowbite-react/init";
 
 function App() {
   return (
-    <Routes>
-      {AuthNhomeRoutes}
-      {RecipeRoutes}
-      {DishRoutes}
-      {IngredientRoutes}
-      {UserIngredientRoutes}
-      {FoodPlanRoutes}
-      {DashboardRoutes}
-      {SavedRecipeRoutes}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <>
+      <ThemeInit />
+      <Routes>
+        {AuthNhomeRoutes}
+        {RecipeRoutes}
+        {DishRoutes}
+        {IngredientRoutes}
+        {UserIngredientRoutes}
+        {FoodPlanRoutes}
+        {DashboardRoutes}
+        {SavedRecipeRoutes}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   );
 }
 
