@@ -707,11 +707,35 @@ function RecipeDetails() {
         {isNotFound ? (
           <NotFoundPage />
         ) : (
-          <div className="flex flex-col mt-1 w-full max-w-5xl lg:mx-auto">
+          <div className="flex flex-col mt-1 w-full sm:max-w-lg sm:mx-auto md:max-w-2xl lg:max-w-5xl lg:mx-auto">
             {/* NEW DIV TO REPLACE Details and Image */}
-            <div className="flex flex-col-reverse mt-4 lg:flex-row lg:max-w-lg">
+            <div className="flex flex-col mt-4 lg:flex-row lg:max-h-">
+              {/* image */}
+              <div
+                className={`flex flex-1 ${foundRecipeDetails?.recipe?.image_url && !imageError ? `xl:border-2 xl:rounded-xl xl:border-gray-300` : ``} `}
+              >
+                {foundRecipeDetails?.recipe?.image_url && !imageError ? (
+                  <img
+                    className="h-full w-full lg:object-cover xl:object-contain sm:rounded-lg md:rounded-2xl"
+                    src={foundRecipeDetails?.recipe?.image_url}
+                    alt="Recipe Image"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div
+                    className="flex items-center justify-center bg-gray-100 w-full h-full aspect-video 
+                              sm:max-h-50 sm:rounded-lg sm:aspect-[unset]
+                              md:rounded-2xl
+                              lg:max-h-full lg:aspect-video
+                              xl:rounded-xl"
+                  >
+                    <GiHotMeal className="h-[80%] w-[80%] sm:h-[20%] sm:w-[20%] md:h-[20%] md:w-[20%] lg:h-[40%] lg:w-[40%] bg-gray-100" />
+                  </div>
+                )}
+              </div>
+
               {/* details */}
-              <div className="">
+              <div className="flex flex-1 flex-col ">
                 {/* recipe name */}
                 <div className="text-lg mt-2 mx-2 font-semibold">
                   {capitaliseWords(foundRecipeDetails?.recipe.name)}
@@ -843,10 +867,11 @@ function RecipeDetails() {
                     {isRecipeOwner === true && (
                       <div className="rounded-full transition duration-300">
                         <Dropdown
+                          className="rounded-lg border-2 border-gray-300"
                           label=""
                           dismissOnClick={false}
                           renderTrigger={() => (
-                            <span className="flex w-full h-full items-center justify-center p-2 hover:bg-amber-100 rounded-full">
+                            <span className="flex w-full h-full items-center justify-center p-2 hover:bg-gray-100 rounded-full">
                               <SlOptionsVertical className="" />
                             </span>
                           )}
@@ -909,26 +934,12 @@ function RecipeDetails() {
                 <div className="flex flex-col mt-2 mx-2 py-2 gap-1 rounded-lg border-2 border-gray-300 bg-gray-100">
                   <h2 className="px-2 font-semibold">Description</h2>
                   {/* <div className="border-y w-38 ml-2 border-gray-600"></div> */}
-                  <div className="px-2 rounded-lg border-gray-600 text-sm max-h-50 overflow-y-auto scrollbar-thin">
+                  <div className="px-2 rounded-lg border-gray-600 text-sm max-h-35 overflow-y-auto scrollbar-thin">
                     {foundRecipeDetails?.recipe.description}
                   </div>
                 </div>
 
                 <div className=""></div>
-              </div>
-
-              {/* image */}
-              <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
-                {foundRecipeDetails?.recipe?.image_url && !imageError ? (
-                  <img
-                    className="h-full w-full md:rounded-md"
-                    src={foundRecipeDetails?.recipe?.image_url}
-                    alt="Recipe Image"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
-                )}
               </div>
             </div>
             <div className=""></div>
@@ -1041,7 +1052,7 @@ function RecipeDetails() {
                     },
                   },
                 }}
-                className="flex"
+                className="flex mt-2"
                 aria-label="Tabs with icons"
                 variant="fullWidth"
               >

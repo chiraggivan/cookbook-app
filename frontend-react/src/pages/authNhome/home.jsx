@@ -230,7 +230,7 @@ function Home() {
                     dismissOnClick={false}
                     renderTrigger={() => (
                       <span className="flex w-full h-full items-center justify-center ">
-                        <SlOptionsVertical className="w-6 h-6 " />
+                        <SlOptionsVertical className="" />
                       </span>
                     )}
                   >
