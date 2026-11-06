@@ -159,11 +159,13 @@ function Home() {
             >
               {/*  within card creating 2 sections: one for image and second one for info */}
               <div
-                className="aspect-video md:rounded-t-xl"
+                className="aspect-video md:rounded-xl bg-gray-100"
                 onClick={() => navigate(`/recipe/${i.recipe_id}`)}
               >
                 {failedImages[i.recipe_id] || !i?.image_url ? (
-                  <GiHotMeal className="h-full w-full bg-gray-200 md:rounded-xl" />
+                  <div className="flex h-full w-full items-center justify-center">
+                    <GiHotMeal className="h-[40%] w-[40%] bg-gray-100 md:rounded-xl" />
+                  </div>
                 ) : (
                   <img
                     className="h-full w-full md:rounded-xl"

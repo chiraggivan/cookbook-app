@@ -51,9 +51,8 @@ function WeeklyDashboard() {
     const fetchData = async () => {
       try {
         const res = await api[method](url);
-        console.log("response from bckend is :", res);
+        // console.log("res is:", res.data.data);
         setAggData(res?.data?.data?.aggData);
-        // setGenerateDashboard(res?.data?.data?.aggData?.total_recipes > 0);
         setWeeklyData(res?.data?.data?.weeklyData);
         setDayData(res?.data?.data?.dayCostList);
         setMealData(res?.data?.data?.mealCostList);
@@ -378,6 +377,7 @@ function WeeklyDashboard() {
                     <div className="flex items-center justify-center text-center my-1 font-bold">
                       Meal Cost Breakdown
                     </div>
+
                     {/* meals chart */}
                     <div className="flex-1 w-full ">
                       {mealData && (
@@ -432,6 +432,7 @@ function WeeklyDashboard() {
                             ></Pie>
                             <Tooltip />
                             <Legend
+                              itemSorter={null}
                               content={({ payload }) => (
                                 <div className="flex flex-wrap justify-center gap-3">
                                   {payload.map((entry, plindex) => (

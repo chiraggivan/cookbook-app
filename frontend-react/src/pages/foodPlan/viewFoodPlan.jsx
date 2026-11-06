@@ -6,6 +6,9 @@ import { MdEditNote } from "react-icons/md";
 import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from "flowbite-react";
 import EditFoodplanModal from "../../components/editFoodplanModal";
 import AlertToast from "../../components/alertToast";
+import { FaEdit, FaRegEdit } from "react-icons/fa";
+import { capitaliseWords } from "../../utils/appUtils";
+import { IoMdAdd } from "react-icons/io";
 
 function ViewFoodPlan() {
   //   const token = localStorage.getItem("token");
@@ -161,7 +164,7 @@ function ViewFoodPlan() {
       <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5 ">
         <div className="border border-gray-400 rounded-lg mx-3 p-3 text-gray-800">
           <div className="mt-2 text-xl font-bold">Plan Your Week with Ease</div>
-          <div className="mt-1 flex grow border-b border-app-primary border-2"></div>
+          <div className="mt-1 flex grow border-b border-gray-300 border-2"></div>
           <div className="mt-2 ">
             Create a personalised weekly food timetable using the recipes you already have. Once
             your food plan is created, the dashboard helps you stay organised with useful insights
@@ -204,43 +207,105 @@ function ViewFoodPlan() {
     <>
       <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5 ">
         {foodplanData?.food_plan?.length > 0 && (
-          <Accordion>
+          <Accordion className="mx-2">
             {foodplanData?.food_plan?.map((week) => (
               <AccordionPanel key={week.week_no}>
                 <AccordionTitle>Week {week?.week_no}</AccordionTitle>
                 <AccordionContent>
+                  {/* Dashboard button */}
+                  <Button
+                    className="bg-gray-600 hover:cursor-pointer hover:bg-gray-800 mb-4"
+                    onClick={() => navigate(`/dashboard/${week.week_no}/${foodplanId}`)}
+                  >
+                    Dashboard
+                  </Button>
+
+                  {/* days */}
                   {week?.weekly_meals.map((day) => (
-                    <div key={day.day_no} className="my-5">
-                      <div className="flex flex-col border border-app-primary">
-                        {/* day name */}
-                        <div className="flex py-1 px-2 bg-app-primary text-white font-semibold">
-                          {dayName[day.day_no]}
+                    <div key={day.day_no} className="mb-5">
+                      <div className="flex flex-col border border-gray-300 rounded-lg bg-gray-100">
+                        {/* day name and Edit button*/}
+                        <div className="flex px-2 py-2 justify-between rounded">
+                          <h2 className="font-semibold">{dayName[day.day_no]}</h2>
+                          {/* Edit button or Add Button*/}
+                          <div
+                            className="flex px-2 py-1 text-xs bg-white items-center justify-center border border-gray-300 rounded-full gap-1 hover:cursor-pointer"
+                            onClick={() => {
+                              setDayData(day);
+                              setWeekData(week);
+                              setIsOpen(true);
+                            }}
+                          >
+                            {" "}
+                            {day.daily_meals.length === 0 ? (
+                              <>
+                                <div>
+                                  <IoMdAdd className="text-md" />
+                                </div>
+                                <p className="font-semibold">Add</p>
+                              </>
+                            ) : (
+                              <>
+                                <div>
+                                  <FaRegEdit />
+                                </div>
+                                <p className="font-semibold">Edit</p>
+                              </>
+                            )}
+                          </div>
                         </div>
                         {/* day plan section */}
-                        <div className="min-h-30">
-                          {day.daily_meals.map((meal) => (
-                            <div className="">
-                              {/* header */}
-                              <div className="flex mx-2 text-sm font-semibold">
-                                {foodplanData.meals.find((i) => i.meal_id === meal.meal_id).name}
+                        <div className="flex flex-col justify-center min-h-30 bg-white px-2 pt-2 pb-4 rounded-b-lg">
+                          {day.daily_meals.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center">
+                              <div className="text-xs text-gray-500 font-semibold">
+                                No meals planned for {dayName[day.day_no]}
                               </div>
-                              {meal.recipes.map((item, index) => (
-                                <div className="flex  text-sm">
-                                  {/* sr no */}
-                                  <div className="flex min-w-5 justify-end bg-amber-50">
-                                    {index + 1}.
+                              <div
+                                className="text-xs p-2 font-semibold hover:bg-gray-100 hover:rounded-full hover:cursor-pointer"
+                                onClick={() => {
+                                  setDayData(day);
+                                  setWeekData(week);
+                                  setIsOpen(true);
+                                }}
+                              >
+                                {" "}
+                                + Add Breakfast, Lunch or Dinner
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {day.daily_meals.map((meal) => (
+                                <div className="">
+                                  {/* header */}
+                                  <div className="flex mx-2 my-2 text-sm font-semibold text-gray-500">
+                                    {capitaliseWords(
+                                      foodplanData.meals.find((i) => i.meal_id === meal.meal_id)
+                                        .name,
+                                    )}
                                   </div>
-                                  {/* recipe name */}
-                                  <div className=" flex-1 line-clamp-2">{item.recipe_name}</div>
-                                  {/* optional Price */}
-                                  {/* <div className="">£ {item.cost}</div> */}
+                                  {meal.recipes.map((item, index) => (
+                                    <div className="flex text-xs border-l-2 border-gray-400 ml-2">
+                                      {/* sr no */}
+                                      <div className="flex min-w-5 text-gray-500 justify-end">
+                                        {index + 1}.{" "}
+                                      </div>
+                                      {/* recipe name */}
+                                      <div className=" flex-1 line-clamp-2 pl-1">
+                                        {" "}
+                                        {item.recipe_name}
+                                      </div>
+                                      {/* optional Price */}
+                                      {/* <div className="">£ {item.cost}</div> */}
+                                    </div>
+                                  ))}
                                 </div>
                               ))}
-                            </div>
-                          ))}
+                            </>
+                          )}
                         </div>
                         {/* edit button at the bottom */}
-                        <div className="flex p-2 justify-end">
+                        {/* <div className="flex p-2 justify-end">
                           <div
                             className="rounded bg-app-primary text-white px-3 py-1 hover:cursor-pointer hover:bg-green-800"
                             onClick={() => {
@@ -251,16 +316,10 @@ function ViewFoodPlan() {
                           >
                             Edit
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   ))}
-                  <Button
-                    className="bg-gray-600 hover:cursor-pointer hover:bg-gray-800"
-                    onClick={() => navigate(`/dashboard/${week.week_no}/${foodplanId}`)}
-                  >
-                    Dashboard
-                  </Button>
                 </AccordionContent>
               </AccordionPanel>
             ))}
