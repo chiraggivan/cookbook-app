@@ -740,7 +740,7 @@ function RecipeDetails() {
                 <div className="text-lg mt-2 mx-2 font-semibold">
                   {capitaliseWords(foundRecipeDetails?.recipe.name)}
                 </div>
-                {/* portion size & privacy */}
+                {/* portion size & privacy  AND recipe owner's name*/}
                 <div className="flex p-2 gap-2 justify-between">
                   {/* portion size AND recipe owner name if user NOT owner */}
                   <div className="flex gap-2 rounded-md text-gray-600">
@@ -758,7 +758,7 @@ function RecipeDetails() {
 
                         {/* recipe owner's pic */}
                         <div
-                          className="flex min-w-4 min-h-4 h-5 w-5 rounded-full bg-neutral-500 p-2 text-xs text-white items-center justify-center hover:cursor-pointer"
+                          className="flex min-w-4 min-h-4 h-5 w-5 rounded-full bg-neutral-500 text-xs text-white items-center justify-center hover:cursor-pointer"
                           onClick={() => {
                             navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`);
                           }}
