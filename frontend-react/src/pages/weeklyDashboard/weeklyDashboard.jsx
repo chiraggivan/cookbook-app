@@ -55,7 +55,7 @@ function WeeklyDashboard() {
       try {
         const res = await api[method](url);
         // console.log("res is:", res.data.data);
-        // setGenerateDashboard(true);
+        setGenerateDashboard(true);
         setAggData(res?.data?.data?.aggData);
         setWeeklyData(res?.data?.data?.weeklyData);
         setDayData(res?.data?.data?.dayCostList);

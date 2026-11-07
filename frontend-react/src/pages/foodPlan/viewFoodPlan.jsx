@@ -172,7 +172,7 @@ function ViewFoodPlan() {
       <div className="mt-(--top-bar-height)  md:ml-(--left-side-bar) md:p-5 ">
         <div className="border border-gray-400 rounded-lg mx-3 p-3 text-gray-800">
           <div className="mt-2 text-xl font-bold">Plan Your Week with Ease</div>
-          <div className="mt-1 flex grow border-b border-gray-300 border-2"></div>
+          <div className="mt-1 flex grow border-b border-gray-400 border-2"></div>
           <div className="mt-2 ">
             Create a personalised weekly food timetable using the recipes you already have. Once
             your food plan is created, the dashboard helps you stay organised with useful insights
@@ -222,7 +222,8 @@ function ViewFoodPlan() {
                 <AccordionContent>
                   {/* Dashboard button */}
                   <Button
-                    className="bg-gray-600 hover:cursor-pointer hover:bg-gray-800 mb-4"
+                    className="hover:cursor-pointer mb-4"
+                    color={"dark"}
                     onClick={() => navigate(`/dashboard/${week.week_no}/${foodplanId}`)}
                   >
                     Dashboard
@@ -231,13 +232,13 @@ function ViewFoodPlan() {
                   {/* days */}
                   {week?.weekly_meals.map((day) => (
                     <div key={day.day_no} className="mb-5">
-                      <div className="flex flex-col border border-gray-300 rounded-xl bg-gray-200">
+                      <div className="flex flex-col border border-gray-400 rounded-xl bg-gray-200">
                         {/* day name and Edit button*/}
                         <div className="flex px-2 py-2 justify-between rounded">
                           <h2 className="font-semibold">{dayName[day.day_no]}</h2>
                           {/* Edit button or Add Button*/}
                           <div
-                            className="flex px-2 py-1 text-xs bg-white items-center justify-center border border-gray-300 rounded-full gap-1 hover:cursor-pointer"
+                            className="flex px-2 py-1 text-xs bg-white items-center justify-center border border-gray-400 rounded-full gap-1 hover:cursor-pointer"
                             onClick={() => {
                               setDayData(day);
                               setWeekData(week);
@@ -266,7 +267,7 @@ function ViewFoodPlan() {
                         <div className="flex flex-col justify-center min-h-30 bg-white px-2 pt-2 pb-4 rounded-b-xl">
                           {day.daily_meals.length === 0 ? (
                             <div className="flex flex-col items-center justify-center">
-                              <div className="text-xs text-gray-500 font-semibold">
+                              <div className="text-xs text-gray-600 font-semibold">
                                 No meals planned for {dayName[day.day_no]}
                               </div>
                               <div
@@ -286,7 +287,7 @@ function ViewFoodPlan() {
                               {day.daily_meals.map((meal) => (
                                 <div className="">
                                   {/* header */}
-                                  <div className="flex mx-2 my-2 text-sm font-semibold text-gray-500">
+                                  <div className="flex mx-2 my-2 text-sm font-semibold text-gray-600">
                                     {capitaliseWords(
                                       foodplanData.meals.find((i) => i.meal_id === meal.meal_id)
                                         .name,
@@ -295,7 +296,7 @@ function ViewFoodPlan() {
                                   {meal.recipes.map((item, index) => (
                                     <div className="flex text-sm font-semibold border-l-2 border-gray-400 ml-2">
                                       {/* sr no */}
-                                      <div className="flex min-w-5 text-gray-500 justify-end">
+                                      <div className="flex min-w-5 text-gray-600 justify-end">
                                         {index + 1}.{" "}
                                       </div>
                                       {/* recipe name */}
@@ -312,19 +313,6 @@ function ViewFoodPlan() {
                             </>
                           )}
                         </div>
-                        {/* edit button at the bottom */}
-                        {/* <div className="flex p-2 justify-end">
-                          <div
-                            className="rounded bg-app-primary text-white px-3 py-1 hover:cursor-pointer hover:bg-green-800"
-                            onClick={() => {
-                              setDayData(day);
-                              setWeekData(week);
-                              setIsOpen(true);
-                            }}
-                          >
-                            Edit
-                          </div>
-                        </div> */}
                       </div>
                     </div>
                   ))}
