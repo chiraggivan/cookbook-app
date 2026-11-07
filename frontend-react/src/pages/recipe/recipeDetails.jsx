@@ -5,7 +5,7 @@ import api from "../../api/axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import Toggle from "../../components/toggle";
 import DishesModal from "../../components/dishesModal";
-import { capitaliseWords } from "../../utils/appUtils";
+import { capitaliseWords, getInitials } from "../../utils/appUtils";
 import {
   Alert,
   ToggleSwitch,
@@ -642,7 +642,7 @@ function RecipeDetails() {
                       ? i.price.toFixed(2)
                       : i.price.toFixed(3)}
                 </div>
-                <div className=" text-end px-2 text-sm text-gray-500  pb-1">
+                <div className=" text-end px-2 text-sm text-gray-600  pb-1">
                   {currencySymbol} {Number(i.cost > 100 ? Math.ceil(i.cost) : i.cost.toFixed(2))}/
                   {Number(i.base_quantity) === 1 ? "" : i.base_quantity}
                   {i.unit === "l" ? "litre" : i.unit}
@@ -685,7 +685,7 @@ function RecipeDetails() {
   };
 
   // console.log("HiTrash :", HiTrash);
-  // console.log("foundRecipeDetails is :", foundRecipeDetails.recipe);
+  // console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("showBookmarkICon :", showBookmarkIcon);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
@@ -751,11 +751,45 @@ function RecipeDetails() {
                       {foundRecipeDetails?.recipe.portion_size}
                     </p>
                     {isRecipeOwner === false && (
-                      <div className="flex space-x-1 right-3 bottom-0 hover:cursor-pointer">
+                      <div className="flex space-x-1 right-3 bottom-0 items-center">
                         <div className="font-semibold">
                           <span>•</span>
                         </div>
+
+                        {/* recipe owner's pic */}
+                        <div
+                          className="flex min-w-4 min-h-4 h-5 w-5 rounded-full bg-neutral-500 p-2 text-xs text-white items-center justify-center hover:cursor-pointer"
+                          onClick={() => {
+                            navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`);
+                          }}
+                        >
+                          {foundRecipeDetails?.recipe?.user_img ? (
+                            <div className="w-full h-full">
+                              <img
+                                className="rounded-full h-full"
+                                src={foundRecipeDetails?.recipe?.user_img}
+                                alt={getInitials(
+                                  foundRecipeDetails?.recipe?.display_name ??
+                                    foundRecipeDetails?.recipe?.username ??
+                                    foundRecipeDetails?.recipe?.email,
+                                )}
+                                // onError={(e) => {
+                                //   console.log("Image failed:", e.currentTarget.src);
+                                // }}
+                              />
+                            </div>
+                          ) : (
+                            getInitials(
+                              foundRecipeDetails?.recipe?.display_name ??
+                                foundRecipeDetails?.recipe?.username ??
+                                foundRecipeDetails?.recipe?.email,
+                            )
+                          )}
+                        </div>
+
+                        {/* recipe owner's name */}
                         <p
+                          className="hover:cursor-pointer"
                           onClick={() =>
                             navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`)
                           }
@@ -775,12 +809,12 @@ function RecipeDetails() {
                       <div className="flex items-center ">
                         {foundRecipeDetails?.recipe.privacy === "private" ? (
                           <div className="flex gap-2">
-                            <FaLock className="text-gray-500 scale-80" />{" "}
+                            <FaLock className="text-gray-600 scale-80" />{" "}
                             <p className="text-xs">Private</p>
                           </div>
                         ) : (
                           <div className="flex gap-2">
-                            <IoIosGlobe className="text-gray-500 scale-110" />{" "}
+                            <IoIosGlobe className="text-gray-600 scale-110" />{" "}
                             <p className="text-xs">Public</p>
                           </div>
                         )}
@@ -1006,7 +1040,7 @@ function RecipeDetails() {
 
                 {/* show * description for user created ingredients */}
                 {hasUserCreatedIngredient.current && (
-                  <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-500 italic text-xs md:text-sm">
+                  <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-600 italic text-xs md:text-sm">
                     <GoNorthStar className="" /> User created Ingredient. Only available for recipe
                     owner.
                   </div>
@@ -1017,7 +1051,7 @@ function RecipeDetails() {
               <TabItem title="Steps" icon={TbFoodsteps}>
                 <div className="px-2 min-h-[calc(100vh-150px)] max-w-xl">
                   {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                    <div className="italic text-gray-400 text-center bg-amber-100">
+                    <div className="italic text-gray-600 text-center ">
                       No steps defined for recipe
                     </div>
                   )}
@@ -1110,7 +1144,7 @@ function RecipeDetails() {
 
                       {/* show * description for user created ingredients */}
                       {hasUserCreatedIngredient.current && (
-                        <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-500 italic text-xs md:text-sm">
+                        <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-600 italic text-xs md:text-sm">
                           <GoNorthStar className="" /> User created Ingredient. Only available for
                           recipe owner.
                         </div>
@@ -1120,7 +1154,7 @@ function RecipeDetails() {
                       {/* steps list */}
                       <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
                         {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                          <div className="italic text-gray-400 text-center">
+                          <div className="italic text-gray-600 text-center">
                             No steps defined for recipe
                           </div>
                         )}
@@ -1193,7 +1227,7 @@ function RecipeDetails() {
 
                       {/* show * description for user created ingredients */}
                       {hasUserCreatedIngredient.current && (
-                        <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-500 italic text-xs md:text-sm">
+                        <div className="flex min-h-[calc(100vh-300px)] px-2 text-gray-600 italic text-xs md:text-sm">
                           <GoNorthStar className="" /> User created Ingredient. Only available for
                           recipe owner.
                         </div>
@@ -1203,7 +1237,7 @@ function RecipeDetails() {
                       {/* steps list */}
                       <div className="px-2 min-h-[calc(100vh-200px)] max-w-xl">
                         {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
-                          <div className="italic text-gray-400 text-center">
+                          <div className="italic text-gray-600 text-center">
                             No steps defined for recipe
                           </div>
                         )}

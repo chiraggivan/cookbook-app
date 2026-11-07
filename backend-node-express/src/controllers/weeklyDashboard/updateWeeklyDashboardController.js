@@ -5,7 +5,6 @@ const {
   fillMissingMeals,
   getEasyQuantityText,
 } = require("../../utils/weeklyDashboardUtils");
-// const {} = require("../../utils/weeklyDashboardUtils.js")
 
 // save food plan week's record in food_plan_ingredient_records table for dashboard
 exports.set_daily_dashboard = async (req, res) => {
@@ -32,14 +31,6 @@ exports.set_daily_dashboard = async (req, res) => {
       });
     }
     // ----------------------------------------------- connect to db and verify data -----------------------------------
-
-    //  check user is valid
-    const [userRow] = await db.query(`SELECT 1 FROM users WHERE user_id = ? AND is_active = 1`, [
-      user.id,
-    ]);
-    if (userRow.length === 0) {
-      return res.status(404).json({ success: false, message: "User not found or not active" });
-    }
 
     // check if food_plan_id, food_plan_week_id, food_plan_day_id belong to the same user
     const [checkRow] = await db.query(
@@ -165,7 +156,7 @@ exports.get_weekly_dashboard = async (req, res) => {
 
     // check if data contains weekNo and FoodPlanId.
     if (!foodPlanId || !weekNo) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         message: `data missing. need these data : foodPlanId, weekNo`,
       });
@@ -173,7 +164,7 @@ exports.get_weekly_dashboard = async (req, res) => {
 
     // confirm the week No. (Currently only week 1 to 5 are to be used. FUTURE it can change)
     if (weekNo < 1 || weekNo > 6) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         message: `Invalid weekNo`,
       });

@@ -7,7 +7,7 @@ const { getLastRecordOfRecipeCreated } = require("./getLastRecordRecipeCreated")
 exports.getRecipeDetailsById = async (recipeId, userId) => {
   try {
     const [recipeResult] = await db.query(
-      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.image_url, r.created_at, r.user_id, u.username, u.display_name, u.email,
+      `SELECT r.recipe_id, r.name, r.portion_size, r.description, r.privacy, r.image_url, r.created_at, r.user_id, u.username, u.display_name, u.email, u.picture_url as user_img,
             CASE 
               WHEN usr.user_saved_recipe_id IS NOT NULL THEN 
                 true

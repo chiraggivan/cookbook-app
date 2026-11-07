@@ -58,6 +58,8 @@ function ViewFoodPlan() {
         }
       } catch (error) {
         console.log("Error while fetching data in viewFoodPlan page:", error.response);
+        alertMsg.current = "Something went wrong. Try again later.";
+        setOpenAlertToast(true);
       } finally {
         setIsLoading(false);
       }
@@ -71,7 +73,7 @@ function ViewFoodPlan() {
       setIsLoadingCreateFP(true);
       // create a food plan as user doesnt have one.
       const res = await api.get(`/foodplan/api/createfoodplanid`);
-      console.log("response from createNewFoodPlanForUser is :", res);
+      // console.log("response from createNewFoodPlanForUser is :", res);
 
       if (!res.data?.success) {
         setErrMsg(res.data?.message);
@@ -131,6 +133,12 @@ function ViewFoodPlan() {
 
           return;
         }
+        alertMsg.current = "Something went wrong during updating daily plan. Try again later.";
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          alertMsg.current = "";
+          setOpenAlertToast(false);
+        }, 3000);
       } finally {
         setIsLoading(false);
       }
@@ -210,7 +218,7 @@ function ViewFoodPlan() {
           <Accordion className="mx-2">
             {foodplanData?.food_plan?.map((week) => (
               <AccordionPanel key={week.week_no}>
-                <AccordionTitle>Week {week?.week_no}</AccordionTitle>
+                <AccordionTitle className="bg-gray-200">Week {week?.week_no}</AccordionTitle>
                 <AccordionContent>
                   {/* Dashboard button */}
                   <Button
@@ -223,7 +231,7 @@ function ViewFoodPlan() {
                   {/* days */}
                   {week?.weekly_meals.map((day) => (
                     <div key={day.day_no} className="mb-5">
-                      <div className="flex flex-col border border-gray-300 rounded-lg bg-gray-100">
+                      <div className="flex flex-col border border-gray-300 rounded-xl bg-gray-200">
                         {/* day name and Edit button*/}
                         <div className="flex px-2 py-2 justify-between rounded">
                           <h2 className="font-semibold">{dayName[day.day_no]}</h2>
@@ -255,7 +263,7 @@ function ViewFoodPlan() {
                           </div>
                         </div>
                         {/* day plan section */}
-                        <div className="flex flex-col justify-center min-h-30 bg-white px-2 pt-2 pb-4 rounded-b-lg">
+                        <div className="flex flex-col justify-center min-h-30 bg-white px-2 pt-2 pb-4 rounded-b-xl">
                           {day.daily_meals.length === 0 ? (
                             <div className="flex flex-col items-center justify-center">
                               <div className="text-xs text-gray-500 font-semibold">
@@ -285,7 +293,7 @@ function ViewFoodPlan() {
                                     )}
                                   </div>
                                   {meal.recipes.map((item, index) => (
-                                    <div className="flex text-xs border-l-2 border-gray-400 ml-2">
+                                    <div className="flex text-sm font-semibold border-l-2 border-gray-400 ml-2">
                                       {/* sr no */}
                                       <div className="flex min-w-5 text-gray-500 justify-end">
                                         {index + 1}.{" "}
@@ -326,6 +334,8 @@ function ViewFoodPlan() {
           </Accordion>
         )}
       </div>
+
+      {/* modal to fill in daily planner */}
       {isOpen && (
         <EditFoodplanModal
           isOpen={isOpen}

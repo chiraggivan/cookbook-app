@@ -19,12 +19,13 @@ import NotFoundPage from "../../components/notFoundPage";
 import EmptyResponsePage from "../../components/emptyResponsePage";
 import { IoMdHome } from "react-icons/io";
 import { TbCalendarMonthFilled } from "react-icons/tb";
+import AlertToast from "../../components/alertToast";
+import { useRef } from "react";
 
 function WeeklyDashboard() {
   const params = useParams();
   const weekNo = Number(params.weekNo);
   const planId = Number(params.planId);
-  const [isDashboardNotFound, setIsDashboardNotFound] = useState(null);
   const [aggData, setAggData] = useState({});
   const [recipeData, setRecipeData] = useState([]);
   const [mealData, setMealData] = useState([]);
@@ -35,6 +36,8 @@ function WeeklyDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user"));
   const currencySymbol = user.currency_symbol;
+  const [alertToast, setAlertToast] = useState(false);
+  const alertMsg = useRef("");
 
   const [generateDashboard, setGenerateDashboard] = useState(null);
   const isScrnBlwMd = window.innerWidth < 768; // used for converting Mon to M
@@ -52,6 +55,7 @@ function WeeklyDashboard() {
       try {
         const res = await api[method](url);
         // console.log("res is:", res.data.data);
+        // setGenerateDashboard(true);
         setAggData(res?.data?.data?.aggData);
         setWeeklyData(res?.data?.data?.weeklyData);
         setDayData(res?.data?.data?.dayCostList);
@@ -66,6 +70,8 @@ function WeeklyDashboard() {
           setGenerateDashboard(false);
           return;
         }
+        alertMsg.current = "Something went wrong. Try again later.";
+        setAlertToast(true);
       } finally {
         setIsLoading(false);
       }
@@ -102,7 +108,7 @@ function WeeklyDashboard() {
 
   return (
     <>
-      {generateDashboard ? (
+      {!generateDashboard ? (
         <EmptyResponsePage
           title="Your Weekly Dashboard Is Waiting!"
           message="Add recipes to your meal planner to unlock helpful insights into your weekly meals, costs, and ingredients."
@@ -492,6 +498,9 @@ function WeeklyDashboard() {
           </div>
         </>
       )}
+
+      {/* Alert message in case of error */}
+      {alertToast && <AlertToast message={alertMsg.current} success={false} yPosition="top" />}
     </>
   );
 }

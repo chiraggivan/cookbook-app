@@ -44,6 +44,7 @@ function MySavedRecipes() {
 
   const [openUndoToast, setOpenUndoToast] = useState(false);
   const [openAlertToast, setOpenAlertToast] = useState(false);
+  const alertMsg = useRef("");
 
   //   for animation of delete bookmark
   const [parent] = useAutoAnimate();
@@ -95,6 +96,12 @@ function MySavedRecipes() {
         setHasMore(res?.data?.hasMore || false);
       } catch (err) {
         console.log("error while fetching my saved recipe list with axios is :", err);
+        alertMsg.current = "Something went wrong while fetching saved recipes. Try again later.";
+        setOpenAlertToast(true);
+        setTimeout(() => {
+          alertMsg.current = "";
+          setOpenAlertToast(false);
+        }, 3000);
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
@@ -123,14 +130,14 @@ function MySavedRecipes() {
     };
   }, [hasMore, isLoadingMore]);
 
-  // ------------------- search button result of user's recipe -----------------------
+  // ------------------- OPTIONAL for search button result of user's recipe -----------------------
   const searchButton = () => {
     const stringText = inputText.trim().replace(/\s+/g, " ");
     setSearchText(stringText);
     setCursor(null);
   };
 
-  // ------------------- OPTIONAL for AUTO SEARCH as you type feature ----------------
+  // ------------------- AUTO SEARCH as you type feature ----------------
   useEffect(() => {
     const stringText = inputText.trim().replace(/\s+/g, " ");
     // clear old search setTimeout
@@ -172,8 +179,10 @@ function MySavedRecipes() {
       setHasNoSavedRecipe(latestRecipesList.current.length > 0 ? false : true);
     } catch (err) {
       console.log("Error while removing bookmark from a recipe :", err);
+      alertMsg.current = "Error. Please try later.";
       setOpenAlertToast(true);
       setTimeout(() => {
+        alertMsg.current = "";
         setOpenAlertToast(false);
       }, 3000);
       totalRecipes.current = totalRecipes.current + 1;
@@ -445,7 +454,7 @@ function MySavedRecipes() {
           message={"Bookmark removed"}
         />
       )}
-      {openAlertToast && <AlertToast message={"Error. Please try later."} success={false} />}
+      {openAlertToast && <AlertToast message={alertMsg.current} success={false} />}
     </>
   );
 }
