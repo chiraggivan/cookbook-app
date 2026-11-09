@@ -24,6 +24,7 @@ function ViewFoodPlan() {
   const navigate = useNavigate();
   const [openAlertToast, setOpenAlertToast] = useState(false);
   const alertMsg = useRef(null);
+  const dayNameForEditScreen = useRef("");
 
   const method = "get";
   const url = `/foodplan/api/view`;
@@ -240,6 +241,7 @@ function ViewFoodPlan() {
                           <div
                             className="flex px-2 py-1 text-xs bg-white items-center justify-center border border-gray-400 rounded-full gap-1 hover:cursor-pointer"
                             onClick={() => {
+                              dayNameForEditScreen.current = dayName[day.day_no];
                               setDayData(day);
                               setWeekData(week);
                               setIsOpen(true);
@@ -263,6 +265,7 @@ function ViewFoodPlan() {
                             )}
                           </div>
                         </div>
+
                         {/* day plan section */}
                         <div className="flex flex-col justify-center min-h-30 bg-white px-2 pt-2 pb-4 rounded-b-xl">
                           {day.daily_meals.length === 0 ? (
@@ -334,6 +337,7 @@ function ViewFoodPlan() {
           OKtextIcon={MdEditNote}
           cancelText={"cancel"}
           dayData={dayData}
+          dayName={dayNameForEditScreen.current}
           weekData={weekData}
           foodplanId={foodplanId}
           meals={foodplanData.meals}

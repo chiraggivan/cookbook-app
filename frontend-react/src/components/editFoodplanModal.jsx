@@ -3,6 +3,8 @@ import Dropdown from "./dropdown";
 import Input from "../components/input";
 import { use, useEffect, useRef, useState } from "react";
 import api from "../api/axios";
+import { FaEdit } from "react-icons/fa";
+import { IoIosClose } from "react-icons/io";
 
 function EditFoodplanModal({
   isOpen,
@@ -14,6 +16,7 @@ function EditFoodplanModal({
   cancelText,
   meals,
   dayData,
+  dayName,
   weekData,
   foodplanId,
   selectedMeal,
@@ -252,162 +255,355 @@ function EditFoodplanModal({
   // console.log("meal Type is :", mealType);
   // console.log("recipeList is :", recipeList);
   // console.log("week data :", weekData);
+  // console.log("dayData is :", dayData);
+  // console.log("Day name is :", dayName);
   // console.log("data is :", data);
 
   return (
-    <Modal size="lg" show={isOpen} onClose={onClose} popup>
-      <ModalHeader className="">{title}</ModalHeader>
-      <ModalBody>
-        <div className="flex w-full">
-          {/* left column in modal */}
-          <div className="flex flex-1 flex-col">
-            <div className="m-2 text-blue-400 text-sm font-semibold">Select the Meal first</div>
-            {/* select meal */}
-            <div className="flex">
-              {/* <div className="flex items-center">Meal</div> */}
-              <Dropdown
-                className="text-xs rounded-md border border-gray-300 mt-2"
-                title={"Meal: "}
-                options={meals}
-                optionValueText={"meal_id"}
-                optionText={"name"}
-                value={mealType}
-                onChange={(e) => {
-                  setMealType(e.target.value);
-                  setErrMsg("");
-                }}
-              />
-            </div>
+    <>
+      <div className="fixed left-0 top-0 h-full w-full bg-gray-600/50 z-50 pt-5 px-3 ">
+        <div className="mx-auto max-w-3xl px-5 py-3 rounded-2xl bg-white border border-gray-400">
+          <div className="">
+            {/* header */}
+            <div className="flex items-center justify-between">
+              {/* header left side */}
+              <div className="flex items-center gap-2 py-2">
+                <div className="">
+                  <FaEdit />
+                </div>
+                <h2 className="font-semibold">
+                  Edit {dayName.slice(0, 1) + dayName.slice(1).toLowerCase()} Meals
+                </h2>
+              </div>
 
-            {/* error line */}
-            <div className="mt-2 h-6 text-xs text-app-danger">{errMsg}</div>
-
-            {/* recipe search field */}
-            <div className="mt-2">
-              <div className="text-sm">Recipe:</div>
-              <div className="relative h-10">
-                <Input
-                  className="rounded border-gray-300 h-8 w-38 text-sm placeholder:text-gray-300"
-                  value={searchText}
-                  placeholder={"Your recipe name..."}
-                  onChange={(e) => {
-                    setSearchText(e.target.value);
-                    searchRecipe(e.target.value);
-                    setErrMsg("");
-                  }}
-                  onKeyDown={(e) => handleKeyDown(e)}
-                  onBlur={() =>
-                    (blurTimeout.current = setTimeout(() => {
-                      setSearchText("");
-                      setRecipeList([]);
-                      setHighlightedIndex(0);
-                    }, 400))
-                  }
-                />
-                {recipeList.length > 0 && (
-                  <div className="absolute bottom-full bg-white left-0 w-38 max-h-35 z-10 overflow-y-auto rounded-b border border-gray-300">
-                    {recipeList.map((recipe, index) => (
-                      <div
-                        key={recipe.recipe_id}
-                        ref={(el) => (recipeRefs.current[index] = el)}
-                        className={
-                          index === highlightedIndex
-                            ? "border-b border-gray-300 hover:cursor-pointer bg-gray-100"
-                            : "border-b border-gray-300 hover:cursor-pointer"
-                        }
-                        onMouseEnter={() => setHighlightedIndex(index)}
-                        onClick={(e) => {
-                          clearTimeout(blurTimeout.current);
-                          blurTimeout.current = null;
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setErrMsg("");
-                          handleSelectedRecipe(recipe);
-                        }}
-                      >
-                        <div className="text-sm font-semibold">{recipe.recipe_name}</div>
-                        <div className="italic text-xs text-gray-400">{recipe.portion_size}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              {/* header close button */}
+              <div
+                className="flex items-center justify-center text-sm bg-gray-200 rounded-full h-6 w-6 hover:cursor-pointer hover:bg-gray-300 transition duration-300"
+                onClick={onClose}
+              >
+                <IoIosClose className="scale-125" />
               </div>
             </div>
-          </div>
 
-          {/* middle vertical divider */}
-          <div className="mx-1 border-l border-gray-400"></div>
+            {/* line separator */}
+            <div className="w-full border border-gray-200 my-2"></div>
 
-          {/* right window in modal for showing day's food plan */}
-          <div className="flex flex-1 justify-center">
-            <div className="w-full h-40 overflow-y-auto scrollbar-gutter-stable">
+            {/* meal and recipe selection */}
+            <div className="flex p-4 gap-2 bg-gray-200 border border-gray-400 rounded-xl">
+              {/* meal type selection */}
+              <div className="flex flex-col">
+                {/* meal type header */}
+                <div className="text-gray-600 text-xs font-semibold">Meal Type</div>
+
+                {/* drop down for meal type */}
+                <div className="">
+                  <Dropdown
+                    className="text-xs rounded-lg w-23 border border-gray-400 mt-2"
+                    title={""}
+                    options={meals}
+                    optionValueText={"meal_id"}
+                    optionText={"name"}
+                    value={mealType}
+                    onChange={(e) => {
+                      setMealType(e.target.value);
+                      setErrMsg("");
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* recipe search bar */}
+              <div className="flex flex-1 flex-col">
+                {/* search recipe header */}
+                <div className="text-gray-600 text-xs font-semibold">Search Recipe</div>
+
+                {/* drop down for meal type */}
+                <div className="relative">
+                  <Input
+                    className=" mt-2 border rounded-lg border-gray-400 h-8.5 w-38 text-sm placeholder:text-gray-300"
+                    value={searchText}
+                    placeholder={"Your recipe name..."}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      searchRecipe(e.target.value);
+                      setErrMsg("");
+                    }}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onBlur={() =>
+                      (blurTimeout.current = setTimeout(() => {
+                        setSearchText("");
+                        setRecipeList([]);
+                        setHighlightedIndex(0);
+                      }, 400))
+                    }
+                  />
+                  {recipeList.length > 0 && (
+                    <div className="absolute bottom rounded scrollbar-thin bg-white left-0 w-38 max-h-35 z-10 overflow-y-auto rounded-b border border-gray-300">
+                      {recipeList.map((recipe, index) => (
+                        <div
+                          key={recipe.recipe_id}
+                          ref={(el) => (recipeRefs.current[index] = el)}
+                          className={
+                            index === highlightedIndex
+                              ? "px-1 border-b border-gray-300 hover:cursor-pointer bg-gray-100"
+                              : "px-1 border-b border-gray-300 hover:cursor-pointer"
+                          }
+                          onMouseEnter={() => setHighlightedIndex(index)}
+                          onClick={(e) => {
+                            clearTimeout(blurTimeout.current);
+                            blurTimeout.current = null;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setErrMsg("");
+                            handleSelectedRecipe(recipe);
+                          }}
+                        >
+                          <div className="text-sm font-semibold">{recipe.recipe_name}</div>
+                          <div className="italic text-xs text-gray-400">{recipe.portion_size}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className=""></div>
+            </div>
+
+            {/* current plan header */}
+            <div className="flex my-3 justify-between">
+              <div className="text-xs font-semibold">CURRENT MEALS</div>
+              <div className="flex items-center border px-1 bg-gray-200 border-gray-400 rounded-full text-xs">
+                {data &&
+                  data.food_plan[0].weekly_meals[0].daily_meals
+                    .map((i) => i.recipes.length)
+                    .reduce((total, num) => total + num, 0)}{" "}
+                item(s)
+              </div>
+            </div>
+
+            {/* current plan */}
+            <div className="flex flex-col border border-gray-400 bg-gray-200 rounded-lg p-2 max-h-50 overflow-y-auto scrollbar-thumb-white scrollbar-thin">
               {data &&
                 data?.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
                   meal.recipes.length > 0 ? (
-                    <div key={meal.m_uid}>
-                      <div className="px-1 text-sm font-semibold text-blue-400">
-                        {meals.find((i) => i.meal_id === meal.meal_id).name}
+                    <>
+                      <div
+                        className="flex items-center justify-between text-xs font-semibold"
+                        key={meal.m_uid}
+                      >
+                        <div className="">
+                          {meals.find((i) => i.meal_id === meal.meal_id).name.toUpperCase()}
+                        </div>
+                        <div className="flex items-center justify-center bg-gray-300 py-0 px-2 rounded-full">
+                          {meal.recipes.length}
+                        </div>
                       </div>
-                      {meal.recipes.map((recipe, index) => (
-                        <div key={recipe.r_uid} className="flex text-xs">
-                          <div className="px-1"> {index + 1}.</div>
-                          <div className="pr-1 flex flex-1">{recipe.recipe_name}</div>
-                          <div className="">
+                      <div className="bg-white rounded-lg p-2 my-2">
+                        {meal.recipes.map((recipe, index) => (
+                          <div className="flex my-1 gap-2 text-xs" key={recipe.r_uid}>
+                            <div className="">{index + 1}</div>
+                            <div className="flex flex-1">{recipe.recipe_name}</div>
                             <div
-                              className="flex items-center justify-center text-xs hover:cursor-pointer rounded-full w-3 h-3 pb-px text-red-500"
+                              className="flex items-center justify-center text-xs px-1 rounded-full"
                               onClick={() => removeRecipe(meal.m_uid, recipe.r_uid)}
                             >
-                              x
+                              <IoIosClose className="scale-150" />
                             </div>
                           </div>
-                        </div>
-                      ))}
-                      <div className=""></div>
-                    </div>
+                        ))}
+                      </div>
+                    </>
                   ) : (
                     ""
                   ),
                 )}
             </div>
+
+            {/* error or message lines */}
+            <div className="mt-2 h-6 text-xs font-bold text-red-600">{errMsg}</div>
+
+            {/* cancel and save button */}
+            <div className="flex items-center justify-between">
+              <Button
+                className=" rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 hover:cursor-pointer"
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                className=" rounded-full hover:cursor-pointer"
+                color={"dark"}
+                onClick={() => {
+                  onConfirm(data);
+                  setSearchText("");
+                  setRecipeList([]);
+                  onClose();
+                }}
+              >
+                Save
+              </Button>
+            </div>
           </div>
         </div>
-      </ModalBody>
-      <ModalFooter>
-        <div className="flex justify-between w-full text-sm">
-          <div
-            className=" flex  items-center px-3 py-1 bg-app-primary rounded text-white hover:cursor-pointer"
-            onClick={() => {
-              onConfirm(data);
-              setSearchText("");
-              setRecipeList([]);
-              onClose();
-            }}
-          >
-            <OKtextIcon className=" flex w-5 h-5 pr-1" /> {OKtext}
-          </div>
-          <div
-            className="flex py-1 justify-end bg-gray-200 rounded px-3 hover:cursor-pointer hover:bg-gray-400"
-            onClick={onClose}
-          >
-            {cancelText}
-          </div>
-        </div>
-      </ModalFooter>
-      {/* <ModalFooter>
-        <Button
-          className="border"
-          color="success"
-          onClick={() => onConfirm({ date: selectedDate, comment: customMsg, meal: selectedMeal })}
-        >
-          <OKtextIcon className="mr-2 w-5 h-5" />
-          {OKtext}
-        </Button>
-        <Button color="gray" onClick={onClose}>
-          {cancelText}
-        </Button>
-      </ModalFooter> */}
-    </Modal>
+
+        <div className=""></div>
+      </div>
+    </>
   );
 }
 
 export default EditFoodplanModal;
+
+// // old code
+// <Modal className="" size="lg" show={isOpen} onClose={onClose} popup>
+//         <ModalHeader className="">{title}</ModalHeader>
+//         <ModalBody>
+//           <div className="flex w-full">
+//             {/* left column in modal */}
+//             <div className="flex flex-1 flex-col">
+//               <div className="m-2 text-blue-400 text-sm font-semibold">Select the Meal first</div>
+//               {/* select meal */}
+//               <div className="flex">
+//                 {/* <div className="flex items-center">Meal</div> */}
+//                 <Dropdown
+//                   className="text-xs rounded-md border border-gray-300 mt-2"
+//                   title={"Meal: "}
+//                   options={meals}
+//                   optionValueText={"meal_id"}
+//                   optionText={"name"}
+//                   value={mealType}
+//                   onChange={(e) => {
+//                     setMealType(e.target.value);
+//                     setErrMsg("");
+//                   }}
+//                 />
+//               </div>
+
+//               {/* error line */}
+//               <div className="mt-2 h-6 text-xs text-app-danger">{errMsg}</div>
+
+//               {/* recipe search field */}
+//               <div className="mt-2">
+//                 <div className="text-sm">Recipe:</div>
+//                 <div className="relative h-10">
+//                   <Input
+//                     className="rounded border-gray-300 h-8 w-38 text-sm placeholder:text-gray-300"
+//                     value={searchText}
+//                     placeholder={"Your recipe name..."}
+//                     onChange={(e) => {
+//                       setSearchText(e.target.value);
+//                       searchRecipe(e.target.value);
+//                       setErrMsg("");
+//                     }}
+//                     onKeyDown={(e) => handleKeyDown(e)}
+//                     onBlur={() =>
+//                       (blurTimeout.current = setTimeout(() => {
+//                         setSearchText("");
+//                         setRecipeList([]);
+//                         setHighlightedIndex(0);
+//                       }, 400))
+//                     }
+//                   />
+//                   {recipeList.length > 0 && (
+//                     <div className="absolute bottom-full bg-white left-0 w-38 max-h-35 z-10 overflow-y-auto rounded-b border border-gray-300">
+//                       {recipeList.map((recipe, index) => (
+//                         <div
+//                           key={recipe.recipe_id}
+//                           ref={(el) => (recipeRefs.current[index] = el)}
+//                           className={
+//                             index === highlightedIndex
+//                               ? "border-b border-gray-300 hover:cursor-pointer bg-gray-100"
+//                               : "border-b border-gray-300 hover:cursor-pointer"
+//                           }
+//                           onMouseEnter={() => setHighlightedIndex(index)}
+//                           onClick={(e) => {
+//                             clearTimeout(blurTimeout.current);
+//                             blurTimeout.current = null;
+//                             e.preventDefault();
+//                             e.stopPropagation();
+//                             setErrMsg("");
+//                             handleSelectedRecipe(recipe);
+//                           }}
+//                         >
+//                           <div className="text-sm font-semibold">{recipe.recipe_name}</div>
+//                           <div className="italic text-xs text-gray-400">{recipe.portion_size}</div>
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* middle vertical divider */}
+//             <div className="mx-1 border-l border-gray-400"></div>
+
+//             {/* right window in modal for showing day's food plan */}
+//             <div className="flex flex-1 justify-center">
+//               <div className="w-full h-40 overflow-y-auto scrollbar-gutter-stable">
+//                 {data &&
+//                   data?.food_plan[0].weekly_meals[0].daily_meals.map((meal) =>
+//                     meal.recipes.length > 0 ? (
+//                       <div key={meal.m_uid}>
+//                         <div className="px-1 text-sm font-semibold text-blue-400">
+//                           {meals.find((i) => i.meal_id === meal.meal_id).name}
+//                         </div>
+//                         {meal.recipes.map((recipe, index) => (
+//                           <div key={recipe.r_uid} className="flex text-xs">
+//                             <div className="px-1"> {index + 1}.</div>
+//                             <div className="pr-1 flex flex-1">{recipe.recipe_name}</div>
+//                             <div className="">
+//                               <div
+//                                 className="flex items-center justify-center text-xs hover:cursor-pointer rounded-full w-3 h-3 pb-px text-red-500"
+//                                 onClick={() => removeRecipe(meal.m_uid, recipe.r_uid)}
+//                               >
+//                                 x
+//                               </div>
+//                             </div>
+//                           </div>
+//                         ))}
+//                         <div className=""></div>
+//                       </div>
+//                     ) : (
+//                       ""
+//                     ),
+//                   )}
+//               </div>
+//             </div>
+//           </div>
+//         </ModalBody>
+//         <ModalFooter>
+//           <div className="flex justify-between w-full text-sm">
+//             <div
+//               className=" flex  items-center px-3 py-1 bg-app-primary rounded text-white hover:cursor-pointer"
+//               onClick={() => {
+//                 onConfirm(data);
+//                 setSearchText("");
+//                 setRecipeList([]);
+//                 onClose();
+//               }}
+//             >
+//               <OKtextIcon className=" flex w-5 h-5 pr-1" /> {OKtext}
+//             </div>
+//             <div
+//               className="flex py-1 justify-end bg-gray-200 rounded px-3 hover:cursor-pointer hover:bg-gray-400"
+//               onClick={onClose}
+//             >
+//               {cancelText}
+//             </div>
+//           </div>
+//         </ModalFooter>
+//         {/* <ModalFooter>
+//         <Button
+//           className="border"
+//           color="success"
+//           onClick={() => onConfirm({ date: selectedDate, comment: customMsg, meal: selectedMeal })}
+//         >
+//           <OKtextIcon className="mr-2 w-5 h-5" />
+//           {OKtext}
+//         </Button>
+//         <Button color="gray" onClick={onClose}>
+//           {cancelText}
+//         </Button>
+//       </ModalFooter> */}
+//       </Modal>
