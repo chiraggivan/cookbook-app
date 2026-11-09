@@ -286,10 +286,10 @@ function EditFoodplanModal({
             </div>
 
             {/* line separator */}
-            <div className="w-full border border-gray-200 my-2"></div>
+            <div className="w-full border border-gray-200 mb-2"></div>
 
             {/* meal and recipe selection */}
-            <div className="flex p-4 gap-2 bg-gray-200 border border-gray-400 rounded-xl">
+            <div className="flex px-4 py-2 gap-2 bg-gray-200 border border-gray-400 rounded-xl">
               {/* meal type selection */}
               <div className="flex flex-col">
                 {/* meal type header */}
@@ -370,7 +370,7 @@ function EditFoodplanModal({
             </div>
 
             {/* current plan header */}
-            <div className="flex my-3 justify-between">
+            <div className="flex mt-2 mb-1 justify-between">
               <div className="text-xs font-semibold">CURRENT MEALS</div>
               <div className="flex items-center border px-1 bg-gray-200 border-gray-400 rounded-full text-xs">
                 {data &&
