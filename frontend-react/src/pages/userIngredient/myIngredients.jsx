@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
@@ -16,6 +16,7 @@ import { TbBowlSpoonFilled } from "react-icons/tb";
 import { FaCarrot } from "react-icons/fa6";
 import { IoMdAdd } from "react-icons/io";
 import EmptyResponsePage from "../../components/emptyResponsePage";
+import { GoDash } from "react-icons/go";
 
 function MyIngredients() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -29,13 +30,13 @@ function MyIngredients() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [inputText, setInputText] = useState("");
-  const [isSrchInputActive, setIsSrchInputActive] = useState(false);
 
-  const limit = 3;
+  const limit = 5;
   const scrollwindowPercent = 99;
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [pageNo, setPageNo] = useState(1);
+  const srchBtnPrsd = useRef(false);
 
   const [parent] = useAutoAnimate();
 
@@ -46,9 +47,17 @@ function MyIngredients() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (pageNo === 1 && searchText === "") {
+        // for initial load - as no search button is pressed ang page is 1
+        if (pageNo === 1 && searchText === "" && !srchBtnPrsd.current) {
           setIsLoading(true);
         }
+
+        // for search button pressed with no text in it and for page no 1.
+        if (pageNo === 1 && searchText === "" && srchBtnPrsd.current) {
+          setIsLoadingMore(true);
+        }
+
+        // spinner for any other page
         if (pageNo > 1) {
           setIsLoadingMore(true);
         }
@@ -99,6 +108,7 @@ function MyIngredients() {
   // ------------------- search button result of user's recipe -----------------------
   const searchButton = () => {
     const stringText = inputText.trim().replace(/\s+/g, " ");
+    srchBtnPrsd.current = true;
     setSearchText(stringText);
     setPageNo(1);
   };
@@ -119,6 +129,7 @@ function MyIngredients() {
   // console.log("myIngredients before return html : ", myIngredients);
   // console.log("ingredient list :", ingredientList);
   // console.log("hasMore :", hasMore);
+  console.log("page no :", pageNo);
   return (
     <>
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
@@ -141,7 +152,7 @@ function MyIngredients() {
         ) : (
           <>
             {/* Create header and search bar for your ingredients and a line separator */}
-            <div className="flex flex-col sticky z-8 top-(--top-bar-height) bg-white shadow-md">
+            <div className="flex flex-col sticky z-8 top-(--top-bar-height) bg-white shadow-md mb-3">
               {/* header of your custom ingredients & search bar */}
               <div
                 className="flex flex-col mb-4 items-center
@@ -196,48 +207,77 @@ function MyIngredients() {
           </div> */}
             </div>
 
-            {/* show all your custom ingredients */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
-              {ingredientList?.map((i) => (
-                <div
-                  key={i.user_ingredient_id}
-                  className="flex shadow-md border-gray-400 rounded-r-xl mt-3
-                          hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
-                >
-                  {/* image section - left */}
-                  <div className="h-40 aspect-square border-0 rounded-r-lg bg-gray-100 ">
-                    <FaCarrot className="p-[30%] h-full w-full text-orange-400" />
-                  </div>
-                  {/* details section right */}
-                  <div className="px-2">
-                    <p className="text-lg font-semibold line-clamp-1">{capitaliseWords(i.name)}</p>
-                    <p className="text-gray-500 italic text-md line-clamp-1">
-                      {currencySymbol} {i.display_price} for {i.display_quantity}{" "}
-                      {i.display_unit}{" "}
-                    </p>
-                    <div className="flex items-center line-clamp-2">
-                      <TbBowlSpoonFilled className="text-gray-500" />
-                      <p className="px-1 text-md text-gray-500">
-                        <span className="font-semibold">Cup Weight : </span>{" "}
-                        {i.cup_weight ? i.cup_weight : null} {i.cup_unit}
-                      </p>
+            {/* check if search text is there and no data found */}
+            {searchText && hasNoSearchedIng ? (
+              <EmptyResponsePage
+                title={"No results found!"}
+                message={
+                  <>
+                    We couldn't find any of your ingredient matching{" "}
+                    <span className="font-semibold text-black">'{searchText}'</span>. Try a
+                    different search.
+                  </>
+                }
+                urlPath={"/"}
+                imageSrc={"/images/no_search_recipe_found2.png"}
+                ButtonText={""}
+                ButtonIcon={null}
+                hideSecondButton={true}
+                hideFirstButton={true}
+              />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
+                {ingredientList?.map((i) => (
+                  <div
+                    key={i.user_ingredient_id}
+                    className="flex shadow-md rounded-xl mx-2 p-2 border-2 border-gray-400"
+                  >
+                    {/* image section - left */}
+                    <div className="aspect-square border-0 rounded-r-lg bg-gray-100 ">
+                      <FaCarrot className="p-[30%] h-full w-full text-orange-400" />
                     </div>
 
-                    <p className="px-1 mb-1 text-md text-gray-500  line-clamp-1">{i.notes}</p>
-                    <div>
-                      <Button
-                        className="mb-1 cursor-pointer "
-                        color="dark"
-                        outline
-                        onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
-                      >
-                        Edit
-                      </Button>
+                    {/* details section right */}
+                    <div className="w-full px-2">
+                      {/* ing name PLUS edit button */}
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold line-clamp-1">
+                          {capitaliseWords(i.name)}
+                        </h2>
+
+                        {/* edit button */}
+                        <Button
+                          className=" rounded-full cursor-pointer "
+                          color="dark"
+                          outline
+                          onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+
+                      {/* price per unit */}
+                      <p className="text-gray-500 italic text-md line-clamp-1">
+                        {currencySymbol} {i.display_price} for {i.display_quantity}{" "}
+                        {i.display_unit}{" "}
+                      </p>
+
+                      {/* cup weight info */}
+                      <div className="flex items-center line-clamp-2">
+                        <TbBowlSpoonFilled className="text-gray-500" />
+                        <p className="flex items-center px-1 text-md text-gray-500">
+                          <span className="font-semibold">Cup Weight : </span>{" "}
+                          {i.cup_weight ? i.cup_weight : <GoDash className="ml-2" />} {i.cup_unit}
+                        </p>
+                      </div>
+
+                      <p className="px-1 mb-1 text-md text-gray-500  line-clamp-1">{i.notes}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+            {/* show all your custom ingredients */}
           </>
         )}
       </div>

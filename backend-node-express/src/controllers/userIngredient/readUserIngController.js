@@ -158,7 +158,7 @@ exports.list_user_ings = async (req, res) => {
     }
     const hasMore = rows.length > limit;
     const data = rows.slice(0, limit);
-    console.log("hasMore :", hasMore);
+    // console.log("hasMore :", hasMore);
 
     // FINAL response
     res.json({

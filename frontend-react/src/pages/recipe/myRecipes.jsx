@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import api from "../../api/axios";
 import { MyRecipeContext } from "../../context/myRecipeContext";
 import {
@@ -48,6 +48,8 @@ function MyRecipes() {
   // variables for search criteria infinite scroll
   const [searchPage, setSearchPage] = useState(1);
   const [searchHasMore, setSearchHasMore] = useState(false);
+  const hasDataForSrchdTxt = useRef(false);
+  const searchedTxtRef = useRef("");
   // const [searchPageChanged, setSearchPageChanged] = useState(false);
 
   //-------------------------------- initialise url, method and config -----------------------------------
@@ -107,8 +109,13 @@ function MyRecipes() {
 
           if (searchText) {
             setSearchHasMore(res?.data?.hasMore);
+            searchedTxtRef.current = searchText;
             // console.log("searchHasMore:", res?.data?.hasMore);
             if (searchPage === 1) {
+              // flaging empty list for searched text
+              hasDataForSrchdTxt.current = res?.data?.data.length > 0;
+
+              // udpate the data in setMainList
               setMainList(res?.data?.data);
             } else {
               setMainList((prev) => [...prev, ...res?.data?.data]);
@@ -173,6 +180,7 @@ function MyRecipes() {
     // const searchText = searchRecipe.trim().replace(/\s+/g, " ");
     if (searchText === "") {
       setMainList(myRecipesCntxt);
+      searchedTxtRef.current = "";
     } else {
       setSrchTxtToggle((prev) => !prev);
     }
@@ -213,6 +221,8 @@ function MyRecipes() {
   // console.log("myRecipeList :", myRecipeList);
   // console.log("isLoading", isLoading);
   // console.log("has more :", hasMoreMyRecipesCntxt, " and page is :", pageNoMyRecipesCntxt);
+  // console.log("search text :", searchText);
+  // console.log("hasData  of searched text :", hasDataForSrchdTxt);
 
   return (
     <>
@@ -277,55 +287,77 @@ function MyRecipes() {
           </div> */}
             </div>
 
-            {/* recipe list */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8  p-4">
-              {mainList?.map((i) => (
-                <>
-                  <div
-                    key={i.recipe_id}
-                    onClick={() => navigate(`/recipe/${i.recipe_id}`)}
-                    className="flex flex-col max-h-40 rounded-r-2xl shadow-md border border-gray-200 justify-between
+            {/* check if search text and any recipes found */}
+            {searchedTxtRef.current && !hasDataForSrchdTxt.current ? (
+              <>
+                <EmptyResponsePage
+                  title={"No results found!"}
+                  message={
+                    <>
+                      We couldn't find any of your recipe matching{" "}
+                      <span className="font-semibold text-black">'{searchedTxtRef.current}'</span>.
+                      Try a different search.
+                    </>
+                  }
+                  urlPath={"/"}
+                  imageSrc={"/images/no_search_recipe_found2.png"}
+                  ButtonText={""}
+                  ButtonIcon={null}
+                  hideSecondButton={true}
+                  hideFirstButton={true}
+                />
+              </>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-8  p-4">
+                {/* list fo recipes found */}
+                {mainList?.map((i) => (
+                  <>
+                    <div
+                      key={i.recipe_id}
+                      onClick={() => navigate(`/recipe/${i.recipe_id}`)}
+                      className="flex flex-col max-h-40 rounded-r-2xl shadow-md border border-gray-200 justify-between
                         hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
-                  >
-                    <div className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
-                      {i.name}
-                    </div>
-                    <div className="">
-                      <div className="flex items-center">
-                        <div className="grow border-t border-gray-200"></div>
+                    >
+                      <div className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
+                        {i.name}
                       </div>
-                      <div className="flex h-25 gap-1 ml-1">
-                        <div className="flex flex-col flex-1 gap-1 ">
-                          <div className="">
-                            <p className="text-sm line-clamp-1 font-semibold text-gray-600 mt-1 ">
-                              portion : {i.portion_size}
-                            </p>
+                      <div className="">
+                        <div className="flex items-center">
+                          <div className="grow border-t border-gray-200"></div>
+                        </div>
+                        <div className="flex h-25 gap-1 ml-1">
+                          <div className="flex flex-col flex-1 gap-1 ">
+                            <div className="">
+                              <p className="text-sm line-clamp-1 font-semibold text-gray-600 mt-1 ">
+                                portion : {i.portion_size}
+                              </p>
+                            </div>
+                            <div className="">
+                              <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
+                                Description :{" "}
+                                <span className=" font-normal">{i.description}</span>{" "}
+                              </p>
+                            </div>
                           </div>
-                          <div className="">
-                            <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
-                              Description :{" "}
-                              <span className=" font-normal">{i.description}</span>{" "}
-                            </p>
+                          <div className="aspect-video">
+                            {failedImages[i.recipe_id] || !i?.image_url ? (
+                              <GiHotMeal className="h-full w-full bg-gray-200 rounded-br-2xl" />
+                            ) : (
+                              <img
+                                className="h-full w-full rounded-br-2xl"
+                                src={i?.image_url}
+                                alt="Recipe Image"
+                                onError={() => handleImageError(i.recipe_id)}
+                              />
+                            )}
                           </div>
                         </div>
-                        <div className="aspect-video">
-                          {failedImages[i.recipe_id] || !i?.image_url ? (
-                            <GiHotMeal className="h-full w-full bg-gray-200 rounded-br-2xl" />
-                          ) : (
-                            <img
-                              className="h-full w-full rounded-br-2xl"
-                              src={i?.image_url}
-                              alt="Recipe Image"
-                              onError={() => handleImageError(i.recipe_id)}
-                            />
-                          )}
-                        </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              ))}
-            </div>
+                  </>
+                ))}
+              </div>
+            )}
 
             {/* loading more -spinner */}
             {isLoadingMore && (
@@ -343,8 +375,6 @@ function MyRecipes() {
           </>
         )}
       </div>
-
-      {/* </div> */}
     </>
   );
 }
