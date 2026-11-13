@@ -2,7 +2,7 @@ const serverURL = import.meta.env.VITE_API_URL;
 
 // const JWTunverifiedMsg = "Invalid or Expired token."; // to check on every page if token is invalid from middleware
 // const showTokenErrMsgOnScreen = "Login expired";
-const pageContentLimit = 5;
+const pageContentLimit = 8;
 const fetchDataAtScroll = 90;
 const totalPagesInContext = 3;
 

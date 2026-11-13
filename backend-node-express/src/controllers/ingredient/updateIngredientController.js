@@ -248,7 +248,7 @@ exports.udpate_ing_base_values = async (req, res) => {
       if (user.role === "demo") {
         return res.status(403).json({
           success: false,
-          message: "Demo account. Cannot update Day Food Planner!!!",
+          message: "Demo account.",
           role: "demo",
           conversionList,
           custom_price,

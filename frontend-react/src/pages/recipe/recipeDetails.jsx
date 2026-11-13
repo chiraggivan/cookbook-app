@@ -681,7 +681,7 @@ function RecipeDetails() {
     setTimeout(() => {
       setOpenAlertToast(false);
       alertMsg.current = null;
-    }, 5000);
+    }, 8000);
   };
 
   // console.log("HiTrash :", HiTrash);

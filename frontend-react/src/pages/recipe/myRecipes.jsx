@@ -318,7 +318,7 @@ function MyRecipes() {
                       className="flex flex-col max-h-40 rounded-r-2xl shadow-md border border-gray-200 justify-between
                         hover:cursor-pointer hover:ring-10 hover:ring-amber-100 hover:bg-amber-100 transition duration-500"
                     >
-                      <div className="text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
+                      <div className=" text-sm sm:text-xl font-bold line-clamp-2 leading-[1.3] hover:cursor-pointer p-1">
                         {i.name}
                       </div>
                       <div className="">
@@ -326,18 +326,17 @@ function MyRecipes() {
                           <div className="grow border-t border-gray-200"></div>
                         </div>
                         <div className="flex h-25 gap-1 ml-1">
-                          <div className="flex flex-col flex-1 gap-1 ">
-                            <div className="">
-                              <p className="text-sm line-clamp-1 font-semibold text-gray-600 mt-1 ">
-                                portion : {i.portion_size}
-                              </p>
-                            </div>
-                            <div className="">
-                              <p className=" text-sm line-clamp-3 font-semibold text-gray-600  ">
-                                Description :{" "}
-                                <span className=" font-normal">{i.description}</span>{" "}
-                              </p>
-                            </div>
+                          <div className="flex flex-col flex-1 gap-1 text-xs sm:text-md">
+                            {/* portion size */}
+                            <p className=" line-clamp-1 font-semibold text-gray-600 mt-1 sm:text-sm">
+                              portion : {i.portion_size}
+                            </p>
+
+                            {/* Description */}
+                            <p className="line-clamp-4 sm:line-clamp-3 sm:text-sm font-semibold text-gray-600  ">
+                              Description :{" "}
+                              <span className=" font-normal">{i.description}</span>{" "}
+                            </p>
                           </div>
                           <div className="aspect-video">
                             {failedImages[i.recipe_id] || !i?.image_url ? (

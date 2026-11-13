@@ -47,7 +47,7 @@ function MyIngredients() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // for initial load - as no search button is pressed ang page is 1
+        // for initial load - as no search button is pressed and page is 1
         if (pageNo === 1 && searchText === "" && !srchBtnPrsd.current) {
           setIsLoading(true);
         }
@@ -129,7 +129,9 @@ function MyIngredients() {
   // console.log("myIngredients before return html : ", myIngredients);
   // console.log("ingredient list :", ingredientList);
   // console.log("hasMore :", hasMore);
-  console.log("page no :", pageNo);
+  // console.log("page no :", pageNo);
+  // console.log("srch btn prsd:", srchBtnPrsd.current);
+
   return (
     <>
       <div className="flex flex-col w-auto mt-(--top-bar-height) md:ml-(--left-side-bar) pt-5 ">
@@ -175,7 +177,7 @@ function MyIngredients() {
                 {/* search bar for custom ingredients */}
                 <div
                   className="flex flex-col items-start sm:w-1/2 
-                            lg:items-start  lg:w-1/3"
+                            lg:items-start  lg:w-1/3 lg:mr-5"
                 >
                   {/* search header */}
                   <div className="flex mt-4 lg:mt-0 "></div>
@@ -226,11 +228,11 @@ function MyIngredients() {
                 hideFirstButton={true}
               />
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8 mb-5">
                 {ingredientList?.map((i) => (
                   <div
                     key={i.user_ingredient_id}
-                    className="flex shadow-md rounded-xl mx-2 p-2 border-2 border-gray-400"
+                    className="flex shadow-md rounded-xl mx-2 p-2 border border-gray-400"
                   >
                     {/* image section - left */}
                     <div className="aspect-square border-0 rounded-r-lg bg-gray-100 ">
@@ -241,13 +243,13 @@ function MyIngredients() {
                     <div className="w-full px-2">
                       {/* ing name PLUS edit button */}
                       <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold line-clamp-1">
+                        <h2 className="text-md sm:text-lg font-semibold line-clamp-2">
                           {capitaliseWords(i.name)}
                         </h2>
 
                         {/* edit button */}
                         <Button
-                          className=" rounded-full cursor-pointer "
+                          className=" rounded-full border-gray-400 cursor-pointer bg-gray-200 text-xs sm:text-lg"
                           color="dark"
                           outline
                           onClick={() => navigate("/myIngredient/edit", { state: { data: i } })}
@@ -257,7 +259,7 @@ function MyIngredients() {
                       </div>
 
                       {/* price per unit */}
-                      <p className="text-gray-500 italic text-md line-clamp-1">
+                      <p className="text-gray-500 italic text-sm sm:text-lg line-clamp-1">
                         {currencySymbol} {i.display_price} for {i.display_quantity}{" "}
                         {i.display_unit}{" "}
                       </p>
@@ -265,9 +267,14 @@ function MyIngredients() {
                       {/* cup weight info */}
                       <div className="flex items-center line-clamp-2">
                         <TbBowlSpoonFilled className="text-gray-500" />
-                        <p className="flex items-center px-1 text-md text-gray-500">
-                          <span className="font-semibold">Cup Weight : </span>{" "}
-                          {i.cup_weight ? i.cup_weight : <GoDash className="ml-2" />} {i.cup_unit}
+                        <p className="flex items-center px-1 text-xs sm:text-sm text-gray-500">
+                          <span className="font-semibold ">Cup Weight : </span>{" "}
+                          {i.cup_weight ? (
+                            <span className="ml-2">{i.cup_weight}</span>
+                          ) : (
+                            <GoDash className="ml-2" />
+                          )}{" "}
+                          {i.cup_unit}
                         </p>
                       </div>
 
