@@ -20,5 +20,6 @@ exports.getRateOfGBPforCurrencies = async () => {
     }
   } catch (error) {
     console.log("error while fetching currencies data from frankfurter -  error:", error);
+    throw error;
   }
 };
