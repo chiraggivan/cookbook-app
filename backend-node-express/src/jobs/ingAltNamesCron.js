@@ -3,7 +3,7 @@ const cron = require("node-cron");
 
 // schedule find alternative names in different language for every hr at 15th min
 try {
-  cron.schedule("*/2 * * * *", async () => {
+  cron.schedule("*/5 * * * *", async () => {
     // console.log("TEST : Calling gemini AI to fetch alternative names of ingredients...");
 
     try {

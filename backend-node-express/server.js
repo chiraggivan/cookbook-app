@@ -10,7 +10,7 @@ const { cloudinary_js_config } = require("./src/config/cloudinary.js");
 
 // for cron job of currency xchange rate
 require("./src/jobs/currencyRateCron.js");
-require("./src/jobs/ingAltNamesCron.js");
+// require("./src/jobs/ingAltNamesCron.js");
 
 const PORT = process.env.PORT || 5001;
 
