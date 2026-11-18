@@ -26,3 +26,27 @@ db.getConnection()
     console.error("Database connection failed - server.js:", err);
     process.exit(1);
   });
+
+// for testing NOT REQUIRED
+// setInterval(() => {
+//   console.log(`SERVER ALIVE: ${new Date().toISOString()}`);
+// }, 60 * 1000);
+
+// const { monitorEventLoopDelay } = require("node:perf_hooks");
+
+// const histogram = monitorEventLoopDelay({
+//   resolution: 20,
+// });
+
+// histogram.enable();
+
+// setInterval(() => {
+//   console.log("Event Loop Delay:", {
+//     mean: (histogram.mean / 1e6).toFixed(2) + " ms",
+//     max: (histogram.max / 1e6).toFixed(2) + " ms",
+//   });
+
+//   histogram.reset();
+// }, 60000);
+
+// console.log("Node timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
