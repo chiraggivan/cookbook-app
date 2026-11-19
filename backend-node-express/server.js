@@ -50,3 +50,5 @@ db.getConnection()
 // }, 60000);
 
 // console.log("Node timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+// TZ=UTC node server.js
