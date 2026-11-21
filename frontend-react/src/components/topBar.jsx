@@ -190,7 +190,7 @@ function TopBar() {
             <Dropdown
               className=""
               label=""
-              dismissOnClick={false}
+              // dismissOnClick={false}
               renderTrigger={() => (
                 <div className="flex mim-w-9 min-h-9 h-9 w-9 rounded-full bg-blue-300 items-center justify-center hover:cursor-pointer">
                   {user?.picture_url ? (

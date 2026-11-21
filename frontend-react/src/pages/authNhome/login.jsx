@@ -37,6 +37,8 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const isPortrait = useRef(null);
   isPortrait.current = window.matchMedia("(orientation: portrait)").matches;
+  const [portraitScreen, setPortraitScreen] = useState(null);
+  const [landscapeSreen, setLandscapeScreen] = useState(null);
 
   const [loadMedia, setLoadMedia] = useState(true);
 
@@ -48,6 +50,8 @@ function Login() {
   };
 
   // first thing when login screen loads, reset fetchedOnce, myRecipes and recipeDetails context variables
+  // ALSO for initial period we are having snippet video shown of web app working, so will check the screen orientation to decide which video to display
+  // BUT mostly used here to fade-in the screen to appear smooth with the help of useState variables and transition in CSS
   useEffect(() => {
     setMyRecipesCntxt([]);
     setRecipeDetails([]);
@@ -56,6 +60,10 @@ function Login() {
     if (errorMessage) {
       setErrMessage(errorMessage);
     }
+
+    // code to load video by changing the state
+    setPortraitScreen(window.matchMedia("(orientation: portrait)").matches);
+    setLandscapeScreen(window.matchMedia("(orientation: landscape)").matches);
   }, []);
 
   // submit button function
@@ -150,6 +158,7 @@ function Login() {
 
   return (
     <>
+      {/* main login screen */}
       <div
         className={`min-h-screen flex items-center justify-center bg-slate-50 
           transition-opacity duration-1500 ease-in ${loadMedia ? "opacity-0 pointer-events-none" : "opacity-100"}`}
@@ -279,8 +288,11 @@ function Login() {
         </div>
       </div>
 
-      {!isPortrait.current && (
-        <>
+      {/* preview video if screen is landscape */}
+      {isPortrait.current === false && (
+        <div
+          className={`transition-opacity duration-3000 ease-in-out ${landscapeSreen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        >
           <div
             className={`absolute top-0 left-0 w-full h-screen z-10 overflow-hidden flex items-center justify-center pt-15 pb-7 bg-gray-600/30 
               transition-opacity duration-500 ease-in-out ${loadMedia ? "opacity-100" : "opacity-0 pointer-events-none"}`}
@@ -301,19 +313,22 @@ function Login() {
               SKIP
             </div>
           </div>
-        </>
+        </div>
       )}
 
-      {isPortrait.current && (
-        <>
+      {/* preview vdieo if screen is portrait */}
+      {isPortrait.current === true && (
+        <div
+          className={`transition-opacity duration-3000 ease-in-out ${portraitScreen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        >
           <div
-            className={`absolute top-0 left-0 w-screen h-screen z-10 overflow-hidden flex justify-center pt-15 pb-7 bg-gray-600/30 
+            className={`absolute top-0 left-0 w-screen h-screen z-10 overflow-hidden flex justify-center pt-7 pb-7 bg-gray-600/30 
               transition-opacity duration-500 ease-in-out ${loadMedia ? "opacity-100" : "opacity-0 pointer-events-none"}`}
           >
             <div className="flex flex-col gap-3">
               {/* header and skip button */}
               <div className="flex w-full items-center justify-center gap-3 text-gray-700">
-                <div className="">Actual application screen</div>
+                <div className="">Real web app screen</div>
                 <div
                   className="border-2 border-gray-600 text-xs rounded-full px-4 py-1 text-gray-600 bg-white hover:bg-gray-200 hover:cursor-pointer"
                   onClick={() => setLoadMedia(false)}
@@ -335,44 +350,16 @@ function Login() {
                 </video>
 
                 {/* top black space for camera */}
-                <div className="absolute top-4 left-27 h-5 w-18 rounded-full border border-gray-500 bg-gray-800"></div>
+                <div className="absolute flex top-4 left-30 h-5 w-15 rounded-full border border-gray-500 bg-black items-center justify-end pr-2">
+                  <div className="h-2.25 w-2.25 rounded-full border border-gray-500  bg-black"></div>
+                </div>
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
-
-      {!loadMedia && <></>}
     </>
   );
 }
 
 export default Login;
-{
-  /* header and skip button */
-}
-<div className="flex items-center gap-3 text-gray-700 mb-3">
-  <div className="">Actual application screen</div>
-  <div
-    className="border-2 border-gray-600 text-xs rounded-full px-4 py-1 text-gray-600 bg-white hover:bg-gray-200 hover:cursor-pointer"
-    onClick={() => setLoadMedia(false)}
-  >
-    SKIP
-  </div>
-</div>;
-
-{
-  /* mobile screen */
-}
-<div className="relative flex-1  h-full">
-  <video
-    autoPlay
-    loop
-    muted
-    playsInline
-    className="flex-1 rounded-4xl border-8 border-gray-800 h-full object-cover"
-  >
-    <source src="/videos/mobile-video.mp4" type="video/mp4" />
-  </video>
-  <div className="absolute top-4 left-27 h-5 w-20 rounded-full bg-gray-800"></div>
-</div>;
