@@ -1,6 +1,7 @@
 const db = require("../../../config/database");
 const { readRecipeDetailsQ } = require("../utils/mysqlQueries");
 const { getLastRecordOfRecipeCreated } = require("./getLastRecordRecipeCreated");
+const { weightUnits, volumeUnits } = require("../../../utils/constantValues");
 
 // get recipeDetails function that can be use multiple times (sending data after updating recipe
 // and also for read recipe data)
@@ -33,12 +34,69 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
       };
     }
 
+    const recipeDetails = recipeResult[0];
+
+    // get user's language preference for ingredients
+    const [lang_result] = await db.query(
+      `
+            SELECT u.preferred_ingredient_language_id as pil_id, l.name, l.native_script
+            FROM users u 
+              JOIN languages l ON u.preferred_ingredient_language_id = l.language_id
+            WHERE u.user_id = ?
+          `,
+      [userId],
+    );
+
+    // currently only on language for user BUT future can have multiple languages and provision taken care here
+    const user_langs = [];
+    const lang_obj = {};
+    lang_result.map((i) => {
+      lang_obj.lang_id = i.pil_id;
+      lang_obj.lang_name = i.name;
+      lang_obj.native_script = i.native_script;
+
+      user_langs.push(lang_obj);
+    });
+
+    recipeDetails.user_langs = user_langs;
+
     // get ingredients for  recipe if found
     const [ingredientResult] = await db.query(readRecipeDetailsQ, [userId, userId, recipeId]);
 
-    // add measuringUnits  and base units in data
+    // ----------------------------------------- function for getting base units ----------------------------------------
+    const getBaseUnits = (unit, measuringUnits) => {
+      const baseUnitsToShow = [];
+      const lookup = {};
+      measuringUnits.forEach((i) => (lookup[i.unit_name] = i.unit_name));
+
+      // // --------------------------------------------------- for weight units ----------------------------------
+      if (weightUnits.includes(unit)) {
+        // const baseUnitsToShow = [];
+        weightUnits.forEach((i) => {
+          if (lookup[i]) {
+            baseUnitsToShow.push(lookup[i]);
+          }
+        });
+        return baseUnitsToShow;
+      }
+      // // ----------------------------------------- for volume units ----------------------------------
+      else if (volumeUnits.includes(unit)) {
+        // const baseUnitsToShow = [];
+        volumeUnits.forEach((i) => {
+          if (lookup[i]) {
+            baseUnitsToShow.push(lookup[i]);
+          }
+        });
+        return baseUnitsToShow;
+      } else {
+        return [unit];
+      }
+    };
+
+    // add measuringUnits, base units in data and alternative ing names
     const updtdIngredientResult = await Promise.all(
       ingredientResult.map(async (ing) => {
+        // get measuring units
         const [rows] = await db.query(
           `SELECT unit_id, unit_name, conversion_factor
           FROM units 
@@ -55,9 +113,44 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
           }
         }
 
-        return { ...ing, measuring_units: rows };
+        // get base units
+        const base_units = getBaseUnits(ing.unit, rows);
+
+        // get alt name of ingredient
+        const alt_names = [];
+        if (ing.ingredient_source === "main") {
+          user_langs.map(async (lang) => {
+            const lang_ing_obj = {};
+            lang_ing_obj.lang_id = lang.lang_id;
+            lang_ing_obj.lang_name = lang.lang_name;
+            lang_ing_obj.ing_names = [];
+            const ing_name = {};
+
+            const [ingAltResult] = await db.query(
+              `
+              SELECT roman_text, native_text
+              FROM ingredient_translations
+              WHERE ingredient_id = ? AND language_id = ? AND is_active = 1
+            `,
+              [ing.ingredient_id, lang.lang_id],
+            );
+            ingAltResult.forEach((row) => {
+              ing_name.roman_text = row.roman_text;
+              ing_name.native_text = row.native_text;
+
+              lang_ing_obj.ing_names.push(ing_name);
+            });
+            alt_names.push(lang_ing_obj);
+          });
+        }
+
+        return { ...ing, measuring_units: rows, base_units, alt_names };
       }),
     );
+
+    // updtdIngredientResult.map((ing) => {
+    //   ing.base_units_new = getBaseUnits(ing.unit, ing.measuring_units);
+    // });
 
     // convert decimal columns - which are auto converted to string - to Number type
     for (const ing of updtdIngredientResult) {
@@ -99,12 +192,14 @@ exports.getRecipeDetailsById = async (recipeId, userId) => {
     recipeResult[0].last_prepared_time = data.last_prepared_time;
     recipeResult[0].last_prepared_date = data.last_prepared_date;
     recipeResult[0].meal = data.meal;
+
+    // console.log("ingredients are :", updtdIngredientResult[1]);
     // return data
     return {
       success: true,
       message: `Recipe details found`,
       data: {
-        recipe: recipeResult[0],
+        recipe: recipeDetails,
         ingredients: updtdIngredientResult,
         steps: stepResult,
         meals: mealResult,

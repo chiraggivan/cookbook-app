@@ -305,7 +305,7 @@ exports.getAlternativeNamesForIngredients = async () => {
 // ORDER BY i.created_at ASC
 // LIMIT 10;
 
-const sample_ai_reuslt = {
+const sample_ai_reuslt_should_be = {
   ingredients: [
     {
       name: "salt",
@@ -413,11 +413,3 @@ const sample_ai_reuslt = {
     },
   ],
 };
-// console.log("json_ing :", json_ing);
-
-// json_ing.forEach((ing) => {
-//   console.log("Ingredient name is ", ing.name);
-//   ing.languages.forEach((obj) => {
-//     console.log(obj);
-//   });
-// });

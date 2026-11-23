@@ -20,7 +20,12 @@ import {
 import { SlOptionsVertical } from "react-icons/sl";
 import { HiTrash, HiClipboardList, HiShare, HiPrinter, HiInformationCircle } from "react-icons/hi";
 import { GiHotMeal, GiAvocado } from "react-icons/gi";
-import { MdModeEditOutline, MdOutlineEditNote } from "react-icons/md";
+import {
+  MdModeEditOutline,
+  MdOutlineCheckBox,
+  MdOutlineCheckBoxOutlineBlank,
+  MdOutlineEditNote,
+} from "react-icons/md";
 import { TbCalendarHeart, TbFoodsteps } from "react-icons/tb";
 import { BsBookmark, BsBookmarkFill, BsFillHandThumbsUpFill } from "react-icons/bs";
 import { FaLock, FaUsers } from "react-icons/fa6";
@@ -86,6 +91,9 @@ function RecipeDetails() {
   const [ingId, setIngId] = useState(null);
   const [ingSource, setIngSource] = useState(null);
   const [recpIngUnitId, setRecpIngUnitId] = useState(null);
+  const [altIngNameTickBox, setAltIngNameTickBox] = useState(false);
+  const [isIngAltRoman, setIsIngAltRoman] = useState(false);
+  const [isIngAltNative, setIsIngAltNative] = useState(false);
   const [recpIngQty, setRecpIngQty] = useState(null);
   const [isMiniLoading, setIsMiniLoading] = useState(false);
 
@@ -113,10 +121,6 @@ function RecipeDetails() {
           // call api to get recipe details
           const res = await api[method](url);
           const tempRecipe = res?.data?.data;
-          // add base units to change base price
-          tempRecipe.ingredients.forEach(
-            (item) => (item.base_units = getBaseUnits(item.unit, item.measuring_units)),
-          );
 
           // save the new recipe details in recipeDetails Context variable if user's recipe
           // if (tempRecipe?.recipe?.user_id === user.user_id) {
@@ -333,36 +337,6 @@ function RecipeDetails() {
     }
   };
 
-  // ----------------------------------------- function for getting base units ----------------------------------------
-  const getBaseUnits = (unit, measuringUnits) => {
-    const baseUnitsToShow = [];
-    const lookup = {};
-    measuringUnits.forEach((i) => (lookup[i.unit_name] = i.unit_name));
-
-    // // --------------------------------------------------- for weight units ----------------------------------
-    if (weightUnits.includes(unit)) {
-      // const baseUnitsToShow = [];
-      weightUnits.forEach((i) => {
-        if (lookup[i]) {
-          baseUnitsToShow.push(lookup[i]);
-        }
-      });
-      return baseUnitsToShow;
-    }
-    // // ----------------------------------------- for volume units ----------------------------------
-    else if (volumeUnits.includes(unit)) {
-      // const baseUnitsToShow = [];
-      volumeUnits.forEach((i) => {
-        if (lookup[i]) {
-          baseUnitsToShow.push(lookup[i]);
-        }
-      });
-      return baseUnitsToShow;
-    } else {
-      return [unit];
-    }
-  };
-
   // -------------------- update the base values of ingredient thru modal -----------------------
   const updateBaseValues = async (compUid, ingUid, updateQuantity, updateUnit, updatePrice) => {
     const method = "put";
@@ -500,6 +474,18 @@ function RecipeDetails() {
     }
   };
 
+  // ------------------------------------toggle alt ingredient name tick box --------------------------------------------
+  const toggleAltIngNameTickBox = () => {
+    setAltIngNameTickBox(!altIngNameTickBox);
+    setIsIngAltNative(false);
+  };
+
+  // ------------------------------------toggle alt ingredient name tick box --------------------------------------------
+  const toggleAltIngNativeBox = () => {
+    setIsIngAltNative(!isIngAltNative);
+    setAltIngNameTickBox(false);
+  };
+
   // ------------------------------ Loading screen ---------------------------------
   if (isLoading) {
     return (
@@ -587,7 +573,22 @@ function RecipeDetails() {
               {/* ing name */}
               {i.ingredient_source === "main" ? (
                 <div className="flex flex-1 pl-1 pt-1">
-                  {capitaliseWords(i.name)}
+                  {/* if alt name tick box checked, find the alt name from the data, if found then capitalise it and if not found show original name */}
+                  {altIngNameTickBox
+                    ? i.alt_names.find(
+                        (i) => i.lang_id === foundRecipeDetails.recipe.user_langs[0].lang_id,
+                      )?.ing_names[0]?.roman_text
+                      ? capitaliseWords(
+                          i.alt_names.find(
+                            (i) => i.lang_id === foundRecipeDetails.recipe.user_langs[0].lang_id,
+                          )?.ing_names[0]?.roman_text,
+                        )
+                      : capitaliseWords(i.name)
+                    : isIngAltNative
+                      ? i.alt_names.find(
+                          (i) => i.lang_id === foundRecipeDetails.recipe.user_langs[0].lang_id,
+                        )?.ing_names[0]?.native_text
+                      : capitaliseWords(i.name)}
                   {i.form !== "" && ` (${i.form})`}{" "}
                   {i.ingredient_style !== null && i.ingredient_style !== "" && (
                     <div className="flex flex-1 pl-2 pt-0.75 md:pt-1.25 text-xs md:text-sm italic">
@@ -685,7 +686,7 @@ function RecipeDetails() {
   };
 
   // console.log("HiTrash :", HiTrash);
-  // console.log("foundRecipeDetails is :", foundRecipeDetails);
+  console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("showBookmarkICon :", showBookmarkIcon);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
@@ -1000,36 +1001,78 @@ function RecipeDetails() {
             >
               {/* Ingredients */}
               <TabItem active title="Ingredients" icon={GiAvocado}>
-                {/* change price button and mini loading screen when base price is being changed*/}
-                {isMiniLoading && (
-                  <div className="flex w-full h-8 items-center justify-center">
-                    <Spinner
-                      theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
-                      color="default"
-                      aria-label="Loading"
-                      size="xl"
-                    />
-                  </div>
-                )}
-                {!isMiniLoading && (
-                  <div className="flex justify-end pr-2 text-sm h-8">
-                    <div
-                      className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
-                      onClick={() => setChangePrice(!changePrice)}
-                    >
-                      {changePrice ? (
-                        <div className="flex">
-                          <span className="flex items-center pr-1.5">
-                            <FaLock />
-                          </span>{" "}
-                          Lock Price
-                        </div>
-                      ) : (
-                        "Change Price"
-                      )}
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  {/*Ingredient Language options on left*/}
+                  {foundRecipeDetails.recipe.user_langs[0].lang_id !== 37 ? (
+                    <div className="flex gap-4 items-center pl-2">
+                      <div className="flex gap-2 items-center">
+                        {foundRecipeDetails.recipe.user_langs[0].lang_name}
+                        {altIngNameTickBox ? (
+                          <MdOutlineCheckBox
+                            className="scale-150"
+                            onClick={() => toggleAltIngNameTickBox()}
+                          />
+                        ) : (
+                          <MdOutlineCheckBoxOutlineBlank
+                            className="scale-150"
+                            onClick={() => toggleAltIngNameTickBox()}
+                          />
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 items-center">
+                        {foundRecipeDetails.recipe.user_langs[0].native_script}
+                        {isIngAltNative ? (
+                          <MdOutlineCheckBox
+                            className="scale-150"
+                            onClick={() => toggleAltIngNativeBox()}
+                          />
+                        ) : (
+                          <MdOutlineCheckBoxOutlineBlank
+                            className="scale-150"
+                            onClick={() => toggleAltIngNativeBox()}
+                          />
+                        )}
+                      </div>
                     </div>
+                  ) : (
+                    <div></div>
+                  )}
+
+                  {/* change price button on right */}
+                  <div>
+                    {/* change price button and mini loading screen when base price is being changed*/}
+                    {isMiniLoading && (
+                      <div className="flex w-full h-8 items-center justify-center">
+                        <Spinner
+                          theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                          color="default"
+                          aria-label="Loading"
+                          size="xl"
+                        />
+                      </div>
+                    )}
+                    {!isMiniLoading && (
+                      <div className="flex justify-end pr-2 text-sm h-8">
+                        <div
+                          className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                          onClick={() => setChangePrice(!changePrice)}
+                        >
+                          {changePrice ? (
+                            <div className="flex">
+                              <span className="flex items-center pr-1.5">
+                                <FaLock />
+                              </span>{" "}
+                              Lock Price
+                            </div>
+                          ) : (
+                            "Change Price"
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* ingredients list */}
                 <div
@@ -1094,37 +1137,77 @@ function RecipeDetails() {
                 <TabItem active title="Ingredients" icon={GiAvocado}>
                   {/* change price button */}
                   <div className="flex">
-                    {/* change price button and mini loading screen when base price is being changed*/}
-                    <div className="flex-1">
-                      {isMiniLoading && (
-                        <div className="flex w-full h-8 items-center justify-center">
-                          <Spinner
-                            theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
-                            color="default"
-                            aria-label="Loading"
-                            size="xl"
-                          />
-                        </div>
-                      )}
-                      {!isMiniLoading && (
-                        <div className="flex justify-end pr-2 text-sm h-8">
-                          <div
-                            className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
-                            onClick={() => setChangePrice(!changePrice)}
-                          >
-                            {changePrice ? (
-                              <div className="flex">
-                                <span className="flex items-center pr-1.5">
-                                  <FaLock />
-                                </span>{" "}
-                                Lock Price
-                              </div>
+                    <div className="flex flex-1 justify-between items-center text-sm text-gray-600">
+                      {/*Ingredient Language options on left*/}
+                      {foundRecipeDetails.recipe.user_langs[0].lang_id !== 37 ? (
+                        <div className="flex gap-8 items-center pl-2">
+                          <div className="flex gap-2 items-center">
+                            {foundRecipeDetails.recipe.user_langs[0].lang_name}
+                            {altIngNameTickBox ? (
+                              <MdOutlineCheckBox
+                                className="scale-150"
+                                onClick={() => toggleAltIngNameTickBox()}
+                              />
                             ) : (
-                              "Change Price"
+                              <MdOutlineCheckBoxOutlineBlank
+                                className="scale-150"
+                                onClick={() => toggleAltIngNameTickBox()}
+                              />
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 items-center">
+                            {foundRecipeDetails.recipe.user_langs[0].native_script}
+                            {isIngAltNative ? (
+                              <MdOutlineCheckBox
+                                className="scale-150"
+                                onClick={() => toggleAltIngNativeBox()}
+                              />
+                            ) : (
+                              <MdOutlineCheckBoxOutlineBlank
+                                className="scale-150"
+                                onClick={() => toggleAltIngNativeBox()}
+                              />
                             )}
                           </div>
                         </div>
+                      ) : (
+                        <div></div>
                       )}
+
+                      {/* change price button on right */}
+                      <div>
+                        {/* change price button and mini loading screen when base price is being changed*/}
+                        {isMiniLoading && (
+                          <div className="flex w-full h-8 items-center justify-center">
+                            <Spinner
+                              theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                              color="default"
+                              aria-label="Loading"
+                              size="xl"
+                            />
+                          </div>
+                        )}
+                        {!isMiniLoading && (
+                          <div className="flex justify-end pr-2 text-sm h-8">
+                            <div
+                              className="border rounded-md bg-gray-700 text-white px-2 py-1 mb-1 hover:cursor-pointer hover:bg-gray-900"
+                              onClick={() => setChangePrice(!changePrice)}
+                            >
+                              {changePrice ? (
+                                <div className="flex">
+                                  <span className="flex items-center pr-1.5">
+                                    <FaLock />
+                                  </span>{" "}
+                                  Lock Price
+                                </div>
+                              ) : (
+                                "Change Price"
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* just to keep change price button within ingredients section  */}
