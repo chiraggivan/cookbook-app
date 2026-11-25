@@ -7,6 +7,7 @@ const DropdownWithScrollBar = ({
   value,
   optionValueText,
   optionText,
+  optionText2,
   onChange,
   placeholder = "Select",
   error,
@@ -29,7 +30,12 @@ const DropdownWithScrollBar = ({
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full border border-slate-300 rounded-lg p-3 cursor-pointer bg-white justify-between "
       >
-        <div> {selectedOption ? selectedOption[optionText] : placeholder}</div>
+        <div>
+          {" "}
+          {selectedOption
+            ? `${selectedOption[optionText]} ${selectedOption[optionText2] ? `(${selectedOption[optionText2]})` : ``} `
+            : placeholder}
+        </div>
         <div className="flex items-center ">
           <FaAngleDown />
         </div>
@@ -45,9 +51,9 @@ const DropdownWithScrollBar = ({
                 onChange(option[optionValueText]);
                 setIsOpen(false);
               }}
-              className="p-1 cursor-pointer hover:bg-slate-100 border-b border-slate-100"
+              className="p-1 cursor-pointer hover:bg-slate-100 border-b border-slate-100 text-sm"
             >
-              {option[optionText]}
+              {option[optionText]} {option[optionText2] ? `(${option[optionText2]})` : ``}
             </div>
           ))}
         </div>

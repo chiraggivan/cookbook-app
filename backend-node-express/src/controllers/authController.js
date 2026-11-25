@@ -253,6 +253,23 @@ exports.countryList = async (req, res) => {
   }
 };
 
+// language list data while registration or updation of user account
+exports.languageList = async (req, res) => {
+  try {
+    const languageQuery = `SELECT language_id, name, native_script FROM languages WHERE is_active = 1`;
+    const [result] = await db.query(languageQuery, []);
+    // console.log("result is: ", result);
+
+    return res.json({
+      success: true,
+      message: `Got the list of languages for user to select from`,
+      data: result,
+    });
+  } catch (error) {
+    console.log("error in AuthController during countryList", error);
+  }
+};
+
 // verifying user email  via link provided to user
 exports.verifyUser = async (req, res) => {
   const token = req.query.t;

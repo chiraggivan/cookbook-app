@@ -585,9 +585,9 @@ function RecipeDetails() {
                         )
                       : capitaliseWords(i.name)
                     : isIngAltNative
-                      ? i.alt_names.find(
+                      ? (i.alt_names.find(
                           (i) => i.lang_id === foundRecipeDetails.recipe.user_langs[0].lang_id,
-                        )?.ing_names[0]?.native_text
+                        )?.ing_names[0]?.native_text ?? capitaliseWords(i.name))
                       : capitaliseWords(i.name)}
                   {i.form !== "" && ` (${i.form})`}{" "}
                   {i.ingredient_style !== null && i.ingredient_style !== "" && (
@@ -686,7 +686,7 @@ function RecipeDetails() {
   };
 
   // console.log("HiTrash :", HiTrash);
-  console.log("foundRecipeDetails is :", foundRecipeDetails);
+  // console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("showBookmarkICon :", showBookmarkIcon);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
@@ -1001,6 +1001,7 @@ function RecipeDetails() {
             >
               {/* Ingredients */}
               <TabItem active title="Ingredients" icon={GiAvocado}>
+                {/* Ingredient Language option and change price button */}
                 <div className="flex justify-between items-center text-sm text-gray-600">
                   {/*Ingredient Language options on left*/}
                   {foundRecipeDetails.recipe.user_langs[0].lang_id !== 37 ? (

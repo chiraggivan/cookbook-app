@@ -9,6 +9,7 @@ const authToken = require("../middleware/authenticateToken");
 router.get("/profile", authToken, authController.profile);
 router.get("/userDetailsForSettings/:user_id", authToken, readUserDetailController.userSettings);
 router.get("/userDetailsForSettings/country/countryList", authToken, authController.countryList);
+router.get("/userDetailsForSettings/language/languageList", authToken, authController.languageList);
 
 // Update api
 router.get(
@@ -20,6 +21,11 @@ router.get(
   "/userDetailsForSettings/updateName/:name",
   authToken,
   updtUserDetailController.updateDisplayName,
+);
+router.post(
+  "/userDetailsForSettings/updateLanguage/:id",
+  authToken,
+  updtUserDetailController.updateUserPreferredLanguage,
 );
 
 module.exports = router;

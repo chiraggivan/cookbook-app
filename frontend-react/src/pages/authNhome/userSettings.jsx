@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Button from "../../components/button";
 import api from "../../api/axios";
 import DropdownWithScrollBar from "../../components/dropdownWithScrollBar";
@@ -39,6 +39,11 @@ export default function UserSettings() {
   const [crncySymbol, setCurncySymbol] = useState();
   const [displayName, setDisplayName] = useState();
   const [tempName, setTempName] = useState();
+  const [altIngLangId, setAltIngLangId] = useState();
+  const userOrgLangId = useRef();
+  const [altIngLang, setAltIngLang] = useState();
+  const [altIngNative, setAltIngNative] = useState();
+  const [languageId, setLanguageId] = useState();
   const [email, setEmail] = useState();
   const [tempEmail, setTempEmail] = useState(); // future provision for changing email
   const [emailVerified, setEmailVerfied] = useState();
@@ -46,15 +51,26 @@ export default function UserSettings() {
   const [picURL, setPicURL] = useState();
   const [errMsg, setErrMsg] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalTitle, seteModalTitle] = useState();
+  const [modalTitle, setModalTitle] = useState();
   const [isloadingMData, setIsLoadingMData] = useState(false);
   const [editCountry, setEditCountry] = useState(false);
   const [countryList, setCountryList] = useState([]);
+  const [editLanguage, setEditLanguage] = useState(false);
+  const [languageList, setLanguageList] = useState([]);
 
   const [editName, setEditName] = useState(false);
   const [newName, setNewName] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isMiniLoading, setIsMiniLoading] = useState(false);
+
+  // variables for mini loading for each edit button
+  const [isloadingName, setIsLoadingName] = useState(false);
+  const [isloadingUsername, setIsLoadingUsername] = useState(false);
+  const [isloadingPassword, setIsLoadingPassword] = useState(false);
+  const [isloadingEmail, setIsLoadingEmail] = useState(false);
+  const [isloadingCountry, setIsLoadingCountry] = useState(false);
+  const [isloadingLanguage, setIsLoadingLanguage] = useState(false);
 
   // update tempName to same as display name.
   useEffect(() => {
@@ -80,6 +96,10 @@ export default function UserSettings() {
         setEmailVerfied(data.email_verified);
         setPicURL(data.picture_url);
         setUsername(data.username);
+        setAltIngLangId(data.pil_id);
+        userOrgLangId.current = data.pil_id;
+        setAltIngLang(data.ingredient_language);
+        setAltIngNative(data.native_script);
       } catch (error) {
         console.log("Error in userSettings page :", error);
         setErrMsg("Something went wrong. Please try later.");
@@ -114,6 +134,30 @@ export default function UserSettings() {
     }
   }, [editCountry]);
 
+  // ----------------- fetch language list from db for Language Modal ------------------
+  useEffect(() => {
+    if (editLanguage && languageList.length === 0) {
+      const url = `/userDetail/api/userDetailsForSettings/language/languageList`;
+      const method = "get";
+
+      setIsLoadingMData(true);
+      const fetchlanguages = async () => {
+        try {
+          const res = await api[method](url);
+          setLanguageList(res?.data?.data);
+          // console.log("languages are:", res);
+        } catch (error) {
+          console.log("Error while fetching language list :", error);
+          setErrMsg("Something went wrong while fetching language list");
+        } finally {
+          setIsLoadingMData(false);
+        }
+      };
+
+      fetchlanguages();
+    }
+  }, [editLanguage]);
+
   // Open modal for editing
   const handleEditClick = (field) => {
     setEditingField(field);
@@ -128,16 +172,18 @@ export default function UserSettings() {
   };
 
   // -------------------------- Handle submit button for Country update ------------------------------
-  const handleSave = async (e) => {
+  const handleSaveCountry = async (e) => {
     e.preventDefault();
+
     // close the modal
     setEditCountry(false);
     setIsModalOpen(false);
-    setIsLoading(true);
+    setIsLoadingCountry(true);
 
     // check if country changed from the previous country
     if (Number(countryId) === Number(user.country_id)) {
       // console.log("Same country no need to call api");
+      setIsLoadingCountry(false);
       return;
     }
 
@@ -159,7 +205,42 @@ export default function UserSettings() {
       console.log("Error while updating user's country :", error);
       setErrMsg("Something went wrong while saving. Please try later");
     } finally {
-      setIsLoading(false);
+      setIsLoadingCountry(false);
+    }
+  };
+
+  // -------------------------- Handle submit button for Language update ------------------------------
+  const handleSaveLanguage = async (e) => {
+    e.preventDefault();
+    // close the modal
+    setEditLanguage(false);
+    setIsModalOpen(false);
+    setIsLoadingLanguage(true);
+
+    // check if language changed from the previous language
+    if (Number(userOrgLangId.current) === Number(altIngLangId)) {
+      // console.log("Same language, no need to call api");
+      setIsLoadingLanguage(false);
+      return;
+    }
+
+    // Language id not same , proceed with api call
+    const url = `/userDetail/api/userDetailsForSettings/updateLanguage/${altIngLangId}`;
+    const method = "post";
+
+    try {
+      const res = await api[method](url);
+
+      const userLangDetails = res?.data?.userLangDetails;
+      // update current page data with useState variable and update token and user data in localStorage
+      setAltIngLangId(userLangDetails.language_id);
+      setAltIngLang(userLangDetails.name);
+      setAltIngNative(userLangDetails.native_script);
+    } catch (error) {
+      console.log("Error while updating user's language :", error);
+      setErrMsg("Something went wrong while saving. Please try later");
+    } finally {
+      setIsLoadingLanguage(false);
     }
   };
 
@@ -175,7 +256,7 @@ export default function UserSettings() {
     // close the modal
     setEditName(false);
     setIsModalOpen(false);
-    setIsLoading(true);
+    setIsLoadingName(true);
 
     // Country id not same , proceed with api call
     const url = `/userDetail/api/userDetailsForSettings/updateName/${tempName}`;
@@ -197,7 +278,7 @@ export default function UserSettings() {
       console.log("Error while updating user's country :", error);
       setErrMsg("Something went wrong while saving. Please try later");
     } finally {
-      setIsLoading(false);
+      setIsLoadingName(false);
     }
   };
 
@@ -225,18 +306,31 @@ export default function UserSettings() {
               </div>
 
               {/* Right Aligned Edit Button */}
-              <Button
-                type="button"
-                onClick={() => {
-                  setEditName(true);
-                  setIsModalOpen(true);
-                  seteModalTitle("Name");
-                }}
-                className="border rounded-md ml-auto px-4 py-1 text-sm font-semibold text-gray-600 
+              {isloadingName ? (
+                <div className="flex items-center justify-center pr-5">
+                  <Spinner
+                    theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                    color="default"
+                    aria-label="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                user.role !== "demo" && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setEditName(true);
+                      setIsModalOpen(true);
+                      setModalTitle("Name");
+                    }}
+                    className="border rounded-md ml-auto px-4 py-1 text-sm font-semibold text-gray-600 
                         hover:text-gray-700 hover:bg-slate-100 transition-colors hover:cursor-pointer"
-              >
-                Edit
-              </Button>
+                  >
+                    Edit
+                  </Button>
+                )
+              )}
             </div>
 
             {/* User ID/username */}
@@ -309,18 +403,67 @@ export default function UserSettings() {
               </div>
 
               {/* Right Aligned Edit Button */}
-              <Button
-                type="button"
-                onClick={() => {
-                  setEditCountry(true);
-                  setIsModalOpen(true);
-                  seteModalTitle("Country");
-                }}
-                className="border rounded-md ml-auto px-4 py-1 text-sm font-semibold text-gray-600 
+              {isloadingCountry ? (
+                <div className="flex items-center justify-center pr-5">
+                  <Spinner
+                    theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                    color="default"
+                    aria-label="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setEditCountry(true);
+                    setIsModalOpen(true);
+                    setModalTitle("Country");
+                  }}
+                  className="border rounded-md ml-auto px-4 py-1 text-sm font-semibold text-gray-600 
                         hover:text-gray-700 hover:bg-slate-100 transition-colors hover:cursor-pointer"
-              >
-                Edit
-              </Button>
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
+
+            {/* Ingredient alternative language section */}
+            <div className="p-5 flex items-start justify-between  transition-colors">
+              {/* Title and Value Column */}
+              <div className="space-y-1 pr-4">
+                <div className="font-bold text-slate-900 text-base">
+                  {"Language for Ingredient"}
+                </div>
+                <div className="text-slate-600 font-normal text-sm">
+                  {altIngLang ? `${altIngLang} ${altIngNative ? `(${altIngNative})` : ``}` : "--"}
+                </div>
+              </div>
+
+              {/* Right Aligned Edit Button */}
+              {isloadingLanguage ? (
+                <div className="flex items-center justify-center pr-5">
+                  <Spinner
+                    theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                    color="default"
+                    aria-label="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setEditLanguage(true);
+                    setIsModalOpen(true);
+                    setModalTitle("Language");
+                  }}
+                  className="border rounded-md ml-auto px-4 py-1 text-sm font-semibold text-gray-600 
+                        hover:text-gray-700 hover:bg-slate-100 transition-colors hover:cursor-pointer"
+                >
+                  Edit
+                </Button>
+              )}
             </div>
           </div>
 
@@ -330,12 +473,14 @@ export default function UserSettings() {
           {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
               <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+                {/* header */}
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                  {/* header */}
                   <h3 className="text-lg font-bold text-slate-900">Edit {modalTitle}</h3>
                   <button
                     onClick={() => {
                       setEditCountry(false);
+                      setCountryId(user.country_id);
+                      setAltIngLangId(userOrgLangId.current);
                       setIsModalOpen(false);
                       setErrMsg("");
                     }}
@@ -345,9 +490,47 @@ export default function UserSettings() {
                   </button>
                 </div>
 
+                {/* Name section for Modal along with buttons */}
+                {editName && (
+                  <form onSubmit={handleSaveName} className="space-y-4">
+                    <header className="text-gray-800 font-semibold text-lg">Name</header>
+                    <input
+                      type={"text"}
+                      value={tempName}
+                      maxLength={20}
+                      onChange={(e) => {
+                        setTempName(e.target.value);
+                        setErrMsg("");
+                      }}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-800"
+                      required
+                    />
+                    {/* Modal Actions - Cancel and Save button */}
+                    <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditName(false);
+                          setIsModalOpen(false);
+                          setErrMsg("");
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                )}
+
                 {/* Country section for modal along with buttons */}
                 {editCountry && (
-                  <form onSubmit={handleSave} className="space-y-4">
+                  <form onSubmit={handleSaveCountry} className="space-y-4">
                     <div>
                       {/*Dropdown list for countr, once the countries are fetched for modal from backend */}
                       {!isloadingMData && (
@@ -406,6 +589,7 @@ export default function UserSettings() {
                         onClick={() => {
                           setEditCountry(false);
                           setIsModalOpen(false);
+                          setCountryId(user.country_id);
                           setErrMsg("");
                         }}
                         className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
@@ -422,27 +606,45 @@ export default function UserSettings() {
                   </form>
                 )}
 
-                {/* Name section for Modal along with buttons */}
-                {editName && (
-                  <form onSubmit={handleSaveName} className="space-y-4">
-                    <header className="text-gray-800 font-semibold text-lg">Name</header>
-                    <input
-                      type={"text"}
-                      value={tempName}
-                      maxLength={20}
-                      onChange={(e) => {
-                        setTempName(e.target.value);
-                        setErrMsg("");
-                      }}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-800"
-                      required
-                    />
+                {/* Language section for modal along with buttons */}
+                {editLanguage && (
+                  <form onSubmit={handleSaveLanguage} className="space-y-4">
+                    <div>
+                      {/*Dropdown list for countr, once the countries are fetched for modal from backend */}
+                      {!isloadingMData && (
+                        <DropdownWithScrollBar
+                          title={"Language"}
+                          options={languageList}
+                          value={altIngLangId}
+                          optionValueText={"language_id"}
+                          optionText={"name"}
+                          optionText2={"native_script"}
+                          onChange={setAltIngLangId}
+                          placeholder="Select"
+                          error
+                        />
+                      )}
+
+                      {/* show loading screen in modal at dropdown place while data is being fetched from backend */}
+                      {isloadingMData && (
+                        <div className="flex w-full h-20 items-center justify-center">
+                          <Spinner
+                            theme={{ color: { default: "fill-[var(--color-app-primary)]" } }}
+                            color="default"
+                            aria-label="Loading"
+                            size="xl"
+                          />
+                        </div>
+                      )}
+                    </div>
+
                     {/* Modal Actions - Cancel and Save button */}
                     <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => {
-                          setEditName(false);
+                          setAltIngLangId(userOrgLangId.current);
+                          setEditLanguage(false);
                           setIsModalOpen(false);
                           setErrMsg("");
                         }}
@@ -464,34 +666,9 @@ export default function UserSettings() {
               </div>
             </div>
           )}
-
-          {/* Settings Container Div with Border */}
-          {/* <div className="bg-white border border-slate-200 rounded-2xl shadow-sm divide-y divide-slate-100 overflow-hidden">
-            {SETTING_FIELDS.map((field) => (
-              <div
-                key={field.id}
-                className="p-5 flex items-center justify-between  transition-colors"
-              > */}
-          {/* Title and Value Column */}
-          {/* <div className="space-y-1 pr-4">
-                  <div className="font-bold text-slate-900 text-base">{field.title}</div>
-                  <div className="text-slate-600 font-normal text-sm">{settings[field.id]}</div>
-                </div> */}
-
-          {/* Right Aligned Edit Button */}
-          {/* <Button
-                  type="button"
-                  onClick={() => handleEditClick(field)}
-                  className="border rounded-md ml-auto px-4 py-1 text-sm font-semibold text-gray-600 
-                        hover:text-gray-700 hover:bg-slate-100 transition-colors hover:cursor-pointer"
-                >
-                  Edit
-                </Button>
-              </div>
-            ))}
-          </div> */}
         </div>
       )}
+
       {isLoading && (
         <div className="flex w-full h-screen items-center justify-center">
           <Spinner
@@ -502,6 +679,7 @@ export default function UserSettings() {
           />
         </div>
       )}
+
       {/* Edit Modal */}
       {editingField && (
         <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">

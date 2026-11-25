@@ -22,10 +22,12 @@ exports.userSettings = async (req, res) => {
 
   try {
     const query = `SELECT u.username, u.display_name, u.picture_url, u.email, u.email_verified, u.country_id, 
-                          c.name as country_name, crncy.currency_id, crncy.symbol as currency_symbol
+                    u.preferred_ingredient_language_id as pil_id, l.name as ingredient_language, l.native_script,
+                    c.name as country_name, crncy.currency_id, crncy.symbol as currency_symbol
                   FROM users u 
                     JOIN countries c ON u.country_id = c.country_id AND c.is_active = 1
                     JOIN currencies crncy ON crncy.currency_id = c.currency_id AND crncy.is_active = 1
+                    JOIN languages l ON l.language_id = u.preferred_ingredient_language_id AND l.is_active = 1
                   WHERE u.user_id = ? AND u.is_active = 1`;
 
     const [result] = await db.query(query, [user.id]);
