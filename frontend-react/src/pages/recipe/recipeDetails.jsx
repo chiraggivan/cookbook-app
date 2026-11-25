@@ -741,6 +741,7 @@ function RecipeDetails() {
                 <div className="text-lg mt-2 mx-2 font-semibold">
                   {capitaliseWords(foundRecipeDetails?.recipe.name)}
                 </div>
+
                 {/* portion size & privacy  AND recipe owner's name*/}
                 <div className="flex p-2 gap-2 justify-between">
                   {/* portion size AND recipe owner name if user NOT owner */}
