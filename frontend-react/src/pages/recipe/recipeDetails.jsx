@@ -563,12 +563,12 @@ function RecipeDetails() {
             }
             key={i.ingredient_display_order}
           >
-            <div className="flex w-full">
+            <div className="flex w-full text-xs md:text-sm">
               {/* ing qnty */}
               <div className="min-w-10 text-end pl-1 pt-1 ">{i.quantity}</div>
 
               {/* unit name */}
-              <div className="min-w-10 pl-1 pt-1">{i.unit_name}</div>
+              <div className="min-w-7 md:min-w-10 pl-1 pt-1">{i.unit_name}</div>
 
               {/* ing name */}
               {i.ingredient_source === "main" ? (
@@ -588,7 +588,9 @@ function RecipeDetails() {
                       ? (i.alt_names.find(
                           (i) => i.lang_id === foundRecipeDetails.recipe.user_langs[0].lang_id,
                         )?.ing_names[0]?.native_text ?? capitaliseWords(i.name))
-                      : capitaliseWords(i.name)}
+                      : isRecipeOwner && i.ing_trans_id
+                        ? capitaliseWords(i.roman_text)
+                        : capitaliseWords(i.name)}
                   {i.form !== "" && ` (${i.form})`}{" "}
                   {i.ingredient_style !== null && i.ingredient_style !== "" && (
                     <div className="flex flex-1 pl-2 pt-0.75 md:pt-1.25 text-xs md:text-sm italic">
@@ -643,7 +645,7 @@ function RecipeDetails() {
                       ? i.price.toFixed(2)
                       : i.price.toFixed(3)}
                 </div>
-                <div className=" text-end px-2 text-sm text-gray-600  pb-1">
+                <div className=" text-end px-2 text-[10px] md:text-xs text-gray-600  pb-1">
                   {currencySymbol} {Number(i.cost > 100 ? Math.ceil(i.cost) : i.cost.toFixed(2))}/
                   {Number(i.base_quantity) === 1 ? "" : i.base_quantity}
                   {i.unit === "l" ? "litre" : i.unit}
@@ -686,7 +688,7 @@ function RecipeDetails() {
   };
 
   // console.log("HiTrash :", HiTrash);
-  // console.log("foundRecipeDetails is :", foundRecipeDetails);
+  console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("showBookmarkICon :", showBookmarkIcon);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
@@ -1094,7 +1096,7 @@ function RecipeDetails() {
 
               {/* Recipe steps */}
               <TabItem title="Steps" icon={TbFoodsteps}>
-                <div className="px-2 min-h-[calc(100vh-150px)] max-w-xl">
+                <div className="px-2 min-h-[calc(100vh-150px)] max-w-xl text-xs md:text-sm">
                   {foundRecipeDetails?.steps && foundRecipeDetails.steps.length === 0 && (
                     <div className="italic text-gray-600 text-center ">
                       No steps defined for recipe

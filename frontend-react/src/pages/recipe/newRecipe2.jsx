@@ -29,6 +29,7 @@ import AlertToast from "../../components/alertToast";
 function NewRecipe() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
+  // console.log("user is :", user);
   const currencySymbol = user.currency_symbol;
   const [isPrivate, setIsPrivate] = useState(true);
   const recipeCosting = useRef(0);
@@ -45,6 +46,7 @@ function NewRecipe() {
     uid: "ing-" + (Date.now() + Math.random()),
     // rowNo: 1,
     ingredientId: "",
+    ingTransId: null,
     ingredientSource: "",
     name: "",
     style: null,
@@ -250,7 +252,7 @@ function NewRecipe() {
       const checkIng = async () => {
         try {
           const res = await api.get(`/recipe/api/search/ingredient/${val}`);
-          // console.log("res is :", res);
+          console.log("res is :", res);
           setSuggestedIng(res.data.rows);
         } catch (err) {
           // setExistIngs("");
@@ -383,6 +385,7 @@ function NewRecipe() {
                           ogDisplayPrice: Number(ing.display_price.toFixed(2)),
                           ingredientSource: ing.ingredient_source,
                           ingredientId: ing.id,
+                          ingTransId: ing.ing_trans_id,
                           measuringUnits: units,
                           baseUnits: getBaseUnits(ing.display_unit, units),
                         }
@@ -904,6 +907,7 @@ function NewRecipe() {
           ing.quantity = i.quantity ?? "";
           ing.unit = i.unit ?? "";
           ing.ingredient_style = i.style ?? null;
+          ing.ing_trans_id = i.ingTransId;
           // check if display values are same with ogDisplay values
           // console.log("ing.ingredient_style :", ing.ingredient_style);
           // console.log("is NULL :", ing.ingredient_style === null);
@@ -1620,7 +1624,7 @@ function NewRecipe() {
                                   {/* 3rd column - ing name */}
                                   <div className="relative flex flex-8 pt-1 items-start justify-start ">
                                     <Input
-                                      className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500"
+                                      className="flex w-full min-w-18 py-0.5 px-1 rounded placeholder:text-gray-500 h-7.5 text-xs md:text-sm"
                                       value={
                                         ing.form
                                           ? ing.name + " (" + ing.form + ")"
@@ -1677,7 +1681,7 @@ function NewRecipe() {
                                         // }
                                       }}
                                       onKeyDown={(e) => handleKeyDown(e, comp.uid, ing.uid)}
-                                      placeholder={"milk, blue cheese, etc.."}
+                                      placeholder={"milk, flour, oil, etc.."}
                                       error={
                                         ing?.errors?.errorName ?? ""
                                         // checkFinalData?.errors?.components?.[comp.uid]?.ingredients?.[ing.uid]?.name ?? ""
@@ -1699,14 +1703,15 @@ function NewRecipe() {
                                               <div
                                                 key={ingredient.ingredient_id + "-" + index}
                                                 ref={(el) => (itemRefs.current[index] = el)}
-                                                style={{
-                                                  backgroundColor:
-                                                    index === highlightedIndex
-                                                      ? "#f0f0f0"
-                                                      : "white",
-                                                  // padding: "10px",
-                                                  cursor: "pointer",
-                                                }}
+                                                // style={{
+                                                //   backgroundColor:
+                                                //     index === highlightedIndex
+                                                //       ? "#f0f0f0"
+                                                //       : "white",
+                                                //   // padding: "10px",
+                                                //   cursor: "pointer",
+                                                // }}
+                                                className={`flex flex-col hover:cursor-pointer ${index === highlightedIndex ? `bg-gray-200` : `bg-white`}`}
                                                 onMouseEnter={() => setHighlightedIndex(index)}
                                                 onClick={() => {
                                                   clearTimeout(blurTimeout.current);
@@ -1714,10 +1719,18 @@ function NewRecipe() {
                                                   handleSelectedIng(comp.uid, ing.uid, ingredient);
                                                 }}
                                               >
-                                                {ingredient.form
-                                                  ? ingredient.name + " (" + ingredient.form + ")"
-                                                  : ingredient.name}
-                                                {/* {ingredient.name} */}
+                                                {/* ing name */}
+                                                <div className="text-xs md:text-sm">
+                                                  {ingredient.form
+                                                    ? ingredient.name + " (" + ingredient.form + ")"
+                                                    : ingredient.name}
+                                                </div>
+                                                {/* english name of ingredient if available */}
+                                                {ingredient.english_name && (
+                                                  <div className=" text-[9px] md:text-xs text-gray-500 italic">
+                                                    EN: {ingredient.english_name}
+                                                  </div>
+                                                )}
                                               </div>
                                             ))}
                                           </div>
