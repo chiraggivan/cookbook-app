@@ -31,12 +31,12 @@ exports.login = async (req, res) => {
     // get user info from db with the username / email
     const [rows] = await db.query(
       `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, u.email, u.email_verified,
-          u.role, u.country_id , c.name as country_name, c.country_code, c.currency_id,
-          cu.symbol as currency_symbol
-      FROM users u JOIN countries c 
-      ON u.country_id = c.country_id
-      JOIN currencies cu
-      ON cu.currency_id = c.currency_id
+          u.role, u.country_id , u.preferred_ingredient_language_id as pil_id, c.name as country_name, c.country_code, c.currency_id,
+          cu.symbol as currency_symbol, l.name as ing_lang, l.native_script as ing_native_lang
+      FROM users u 
+        JOIN countries c ON u.country_id = c.country_id
+        JOIN currencies cu ON cu.currency_id = c.currency_id
+        JOIN languages l ON l.language_id = u.preferred_ingredient_language_id
       WHERE (LOWER(u.username) = LOWER(?) OR LOWER(u.email) = LOWER(?)) AND u.is_active = 1`,
       [username, username],
     );
@@ -77,6 +77,9 @@ exports.login = async (req, res) => {
         country_name: user.country_name,
         currency_id: user.currency_id,
         currency_symbol: user.currency_symbol,
+        pil_id: user.pil_id,
+        ing_lang: user.ing_lang,
+        ing_native_lang: user.ing_native_lang,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
@@ -96,6 +99,9 @@ exports.login = async (req, res) => {
         country_name: user.country_name,
         currency_id: user.currency_id,
         currency_symbol: user.currency_symbol,
+        pil_id: user.pil_id,
+        ing_lang: user.ing_lang,
+        ing_native_lang: user.ing_native_lang,
       },
     });
   } catch (error) {
@@ -763,8 +769,6 @@ exports.googleSignin = async (req, res) => {
       `,
       [email],
     );
-    // SELECT u.user_id, u.username, u.display_name, u.role, u.country_id, u.picture_url, u.email, u.google_sub, u.is_active
-    // FROM users u WHERE u.email = ?
 
     if (userResult.length != 0) {
       const user = userResult[0];
@@ -789,8 +793,13 @@ exports.googleSignin = async (req, res) => {
           id: user.user_id,
           username: user.username ?? user.email,
           role: user.role,
-          country: user.country_id,
-          currency: user.currency_symbol,
+          country_id: user.country_id,
+          country_name: user.country_name,
+          currency_id: user.currency_id,
+          currency_symbol: user.currency_symbol,
+          pil_id: user.pil_id,
+          ing_lang: user.ing_lang,
+          ing_native_lang: user.ing_native_lang,
         },
         process.env.JWT_SECRET,
         { expiresIn: "24h" },
@@ -803,13 +812,17 @@ exports.googleSignin = async (req, res) => {
         token,
         user: {
           user_id: user.user_id,
-          username: user.username,
+          username: user.username ?? user.email,
           role: user.role,
           display_name: user.display_name,
           picture_url: user.picture_url,
-          country: user.country_name,
+          country_id: user.country_id,
+          country_name: user.country_name,
           currency_id: user.currency_id,
           currency_symbol: user.currency_symbol,
+          pil_id: user.pil_id,
+          ing_lang: user.ing_lang,
+          ing_native_lang: user.ing_native_lang,
         },
       });
     } else {

@@ -11,11 +11,12 @@ const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 exports.search_ingredients = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    // console.log("user in search_ing is in createRecipe Contriller:", user);
+    console.log("user in search_ing is in createRecipe Contriller:", user);
     const q = (req.params.q || "").trim().toLowerCase();
     const i = `%${q}%`;
     const id = Number(user.id);
     const countryId = Number(user.country_id);
+    const pil_id = user.pil_id;
     // console.log(" id is :", id, " and search word is :", q);
     // console.log("q is a type of ", typeof q, " and id is type of ", typeof id);
 
@@ -39,7 +40,9 @@ exports.search_ingredients = async (req, res) => {
         END AS display_price, 
         ui.display_unit, 
         ui.display_quantity, 
-        'user' as ingredient_source
+        'user' as ingredient_source,
+        NULL as ing_trans_id,
+        NULL as english_name
         FROM user_ingredients ui
             JOIN countries cntry ON cntry.country_id =  ui.country_id AND cntry.is_active = 1
             JOIN currencies crncy ON crncy.currency_id = cntry.currency_id AND crncy.is_active = 1
@@ -51,7 +54,9 @@ exports.search_ingredients = async (req, res) => {
           COALESCE(up.display_price , ip.display_price , i.display_price * crncy.gbp_conversion_rate ) as price, 
           COALESCE(up.display_unit , ip.display_unit , i.display_unit) as display_unit, 
           COALESCE(up.display_quantity , ip.display_quantity , i.display_quantity) as display_quantity, 
-          'main' as ingredient_source
+          'main' as ingredient_source,
+          NULL as ing_trans_id,
+          NULL as english_name
         FROM ingredients i 
           LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = ? AND ip.is_active = 1
           LEFT JOIN user_prices up ON i.ingredient_id = up.ingredient_id AND up.user_id = ? AND up.country_id = 76 AND up.is_active = 1
@@ -60,8 +65,39 @@ exports.search_ingredients = async (req, res) => {
         WHERE LOWER(i.name) LIKE ?
           AND (i.approval_status = 'approved')
           AND i.is_active = 1
+        UNION ALL
+        SELECT it.ingredient_id as id, it.roman_text as name, '' as form,
+          COALESCE(up.display_price , ip.display_price , i.display_price * crncy.gbp_conversion_rate ) as price, 
+          COALESCE(up.display_unit , ip.display_unit , i.display_unit) as display_unit, 
+          COALESCE(up.display_quantity , ip.display_quantity , i.display_quantity) as display_quantity,
+          'main' as ingredient_source, 
+          ingredient_translation_id as ing_trans_id,
+          i.name as english_name
+        FROM ingredient_translations it
+          JOIN ingredients i ON i.ingredient_id = it.ingredient_id AND i.is_active = 1
+          LEFT JOIN ingredient_prices ip ON ip.ingredient_id = i.ingredient_id AND ip.country_id = ? AND ip.is_active = 1
+          LEFT JOIN user_prices up ON i.ingredient_id = up.ingredient_id AND up.user_id = ? AND up.country_id = 76 AND up.is_active = 1
+          LEFT JOIN countries cntry ON cntry.country_id = ? AND cntry.is_active = 1
+          LEFT JOIN currencies crncy ON crncy.currency_id = cntry.currency_id  AND crncy.is_active = 1
+        WHERE it.roman_text like ? AND it.language_id = ? AND it.same_as_english_name = 0
+        ORDER BY name
         LIMIT 40`,
-      [countryId, countryId, countryId, id, i, countryId, id, countryId, i],
+      [
+        countryId,
+        countryId,
+        countryId,
+        id,
+        i,
+        countryId,
+        id,
+        countryId,
+        i,
+        countryId,
+        id,
+        countryId,
+        i,
+        pil_id,
+      ],
     );
     if (rows.length > 0) {
       for (const row of rows) {
@@ -265,8 +301,24 @@ exports.create_recipe = async (req, res) => {
             });
           }
         }
+
+        // If ingredient translation id given then cross check it exist and related to thee submitted ingredient id
+        if (ing.ing_trans_id > 0) {
+          const [ingTransRow] = await db.query(
+            `SELECT 1 
+            FROM ingredient_translations 
+            WHERE ingredient_id = ? AND ingredient_translation_id = ? AND language_id = ? AND is_active = 1`,
+            [ing.ingredient_id, ing.ing_trans_id, user.pil_id],
+          );
+          if (ingTransRow.length === 0) {
+            return res.status(400).json({
+              error: `ing trans id ${ing.ing_trans_id} not valid for ingredient ID ${ing.ingredient_id}`,
+            });
+          }
+        }
       }
     }
+
     // validate steps for recipe_procedures if any wrt database
 
     // ---------------- Data checked and ready to be inserted. About to actually insert data in db ---------------------------
@@ -307,11 +359,12 @@ exports.create_recipe = async (req, res) => {
         // Insert into recipe_ingredients
         for (const ingredient of component.ingredients) {
           const [riResult] = await conn.query(
-            `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, ingredient_style, ingredient_source, quantity, unit_id, is_active, display_order, component_id)
-            VALUES (?, ?, ?, ?, ?, ?, 1, ?,?)`,
+            `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, ing_trans_id, ingredient_style, ingredient_source, quantity, unit_id, is_active, display_order, component_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?,?)`,
             [
               recipeId,
               ingredient.ingredient_id,
+              ingredient.ing_trans_id,
               ingredient.ingredient_style,
               ingredient.ingredient_source,
               ingredient.quantity,

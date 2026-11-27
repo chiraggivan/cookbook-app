@@ -11,6 +11,8 @@ export const readRecipeDetailsQ = `
             ri.recipe_ingredient_id,
             ri.quantity,
             ri.ingredient_source,
+            ri.ing_trans_id,
+            it.roman_text,
             ui.submitted_by as ingredient_by,
             u.unit_id,
             u.unit_name,
@@ -56,6 +58,7 @@ export const readRecipeDetailsQ = `
                 AND up.is_active = TRUE
             LEFT JOIN countries cntry2 ON cntry2.country_id = ui.country_id
             LEFT JOIN currencies crncy2 ON crncy2.currency_id  = cntry2.currency_id 
+            LEFT JOIN ingredient_translations it ON it.ingredient_translation_id = ri.ing_trans_id
         WHERE ri.recipe_id = ?
             AND ri.is_active = TRUE
         ORDER BY rc.display_order, ri.display_order`;

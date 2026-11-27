@@ -160,12 +160,11 @@ function validateRecipeIngredient(data) {
 
     const ingredients = component.ingredients || [];
     for (const ing of ingredients) {
+      // ---- Validate if ing_display_order in range
       const ingredientDisplayOrder = toInt(
         ing.ingredient_display_order,
         "ingredient_display_order",
       );
-
-      // ---- Validate if ing_display_order in range
       if (
         !ingredientDisplayOrder ||
         ingredientDisplayOrder <= 0 ||
@@ -180,7 +179,7 @@ function validateRecipeIngredient(data) {
         return "Invalid ingredient id";
       }
 
-      console.log("ing.ingredient_style :", ing.ingredient_style);
+      // console.log("ing.ingredient_style :", ing.ingredient_style);
       // // ---- limit check the ingredient_style value
       const ingredientStyle = ing.ingredient_style;
       if (ingredientStyle !== null && ingredientStyle !== undefined) {
@@ -209,6 +208,14 @@ function validateRecipeIngredient(data) {
       const unitId = toInt(ing.unit, "unit_id");
       if (unitId <= 0 || unitId >= 1e8) {
         return "Invalid unit_id";
+      }
+
+      // ---- check the ing_trans_id value - Optional, can be null
+      if (ing.ing_trans_id !== null) {
+        const ingTransId = toInt(ing.ing_trans_id, "ing_trans_id");
+        if (!ingTransId || ingTransId <= 0) {
+          return "Invalid ingredient translation id";
+        }
       }
 
       if (ing.display_price !== undefined) {
