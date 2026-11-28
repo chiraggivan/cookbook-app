@@ -78,7 +78,7 @@ function MyRecipes() {
   // -------------------- fetch data from backend on every page number change as well -------------------------------------
   useEffect(() => {
     // Run the api IF  1)mainList from myRecipeCntxt is empty OR 2)pageChanged via scrolling  OR 3) search text
-    if (mainList.length === 0 || pageChanged || searchText !== "") {
+    if (mainList.length <= 8 || pageChanged || searchText !== "") {
       const fetchData = async () => {
         let pageNo = 1;
 

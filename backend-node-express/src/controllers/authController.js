@@ -11,7 +11,11 @@ const {
   normaliseNewUserData,
   validateNewUserData,
 } = require("./authNhome/utils/normaliseNvalidateUserData");
-
+const { queryForUserDetailsForToken } = require("../controllers/utils/queryForUserDetails");
+const {
+  userObjForToken,
+  userObjForResponse,
+} = require("../controllers/utils/userObjForTokenAndResponse");
 const { emailVerification, passwordResetEmailer } = require("../utils/emailServiceUtils");
 
 // basic login with username/email and password
@@ -30,13 +34,7 @@ exports.login = async (req, res) => {
 
     // get user info from db with the username / email
     const [rows] = await db.query(
-      `SELECT u.user_id, u.username, u.display_name, u.password, u.picture_url, u.email, u.email_verified,
-          u.role, u.country_id , u.preferred_ingredient_language_id as pil_id, c.name as country_name, c.country_code, c.currency_id,
-          cu.symbol as currency_symbol, l.name as ing_lang, l.native_script as ing_native_lang
-      FROM users u 
-        JOIN countries c ON u.country_id = c.country_id
-        JOIN currencies cu ON cu.currency_id = c.currency_id
-        JOIN languages l ON l.language_id = u.preferred_ingredient_language_id
+      `${queryForUserDetailsForToken}
       WHERE (LOWER(u.username) = LOWER(?) OR LOWER(u.email) = LOWER(?)) AND u.is_active = 1`,
       [username, username],
     );
@@ -68,41 +66,14 @@ exports.login = async (req, res) => {
     // }
 
     // create token with user details to be sent as response
-    const token = jwt.sign(
-      {
-        id: user.user_id,
-        username: user.username,
-        role: user.role,
-        country_id: user.country_id,
-        country_name: user.country_name,
-        currency_id: user.currency_id,
-        currency_symbol: user.currency_symbol,
-        pil_id: user.pil_id,
-        ing_lang: user.ing_lang,
-        ing_native_lang: user.ing_native_lang,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" },
-    );
+    const token = jwt.sign(userObjForToken(user), process.env.JWT_SECRET, { expiresIn: "24h" });
 
+    // final response to frontend
     res.json({
       success: true,
       message: "Login successful",
       token,
-      user: {
-        user_id: user.user_id,
-        username: user.username,
-        role: user.role,
-        display_name: user.display_name,
-        picture_url: user.picture_url,
-        country_id: user.country_id,
-        country_name: user.country_name,
-        currency_id: user.currency_id,
-        currency_symbol: user.currency_symbol,
-        pil_id: user.pil_id,
-        ing_lang: user.ing_lang,
-        ing_native_lang: user.ing_native_lang,
-      },
+      user: userObjForResponse(user),
     });
   } catch (error) {
     console.error("Error in authController is : ", error);
@@ -758,13 +729,7 @@ exports.googleSignin = async (req, res) => {
 
     // check if user emailId exists to login directly or create new user and login after that
     const [userResult] = await db.query(
-      `SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified, u.is_active,
-              u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
-              cu.symbol as currency_symbol
-          FROM users u JOIN countries c 
-          ON u.country_id = c.country_id
-          JOIN currencies cu
-          ON cu.currency_id = c.currency_id
+      `${queryForUserDetailsForToken}
           WHERE u.email = ?    
       `,
       [email],
@@ -788,42 +753,14 @@ exports.googleSignin = async (req, res) => {
       );
 
       // create token with user details to be sent as response
-      const token = jwt.sign(
-        {
-          id: user.user_id,
-          username: user.username ?? user.email,
-          role: user.role,
-          country_id: user.country_id,
-          country_name: user.country_name,
-          currency_id: user.currency_id,
-          currency_symbol: user.currency_symbol,
-          pil_id: user.pil_id,
-          ing_lang: user.ing_lang,
-          ing_native_lang: user.ing_native_lang,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "24h" },
-      );
+      const token = jwt.sign(userObjForToken(user), process.env.JWT_SECRET, { expiresIn: "24h" });
 
       //  send response to frontend
       return res.json({
         success: true,
         message: "Login successful",
         token,
-        user: {
-          user_id: user.user_id,
-          username: user.username ?? user.email,
-          role: user.role,
-          display_name: user.display_name,
-          picture_url: user.picture_url,
-          country_id: user.country_id,
-          country_name: user.country_name,
-          currency_id: user.currency_id,
-          currency_symbol: user.currency_symbol,
-          pil_id: user.pil_id,
-          ing_lang: user.ing_lang,
-          ing_native_lang: user.ing_native_lang,
-        },
+        user: userObjForResponse(user),
       });
     } else {
       // create new user
@@ -841,62 +778,26 @@ exports.googleSignin = async (req, res) => {
         `,
           [fullName, imgUrl, email, google_sub, country_id],
         );
-        // console.log("inserted new user with id :", result.insertId);
+
+        // get user details of the just inserted user for token and response
         const [users] = await db.query(
-          `
-          SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified,
-              u.role, u.country_id , c.name as country_name, c.country_code as country_code, c.currency_id,
-              cu.symbol as currency_symbol
-          FROM users u JOIN countries c 
-          ON u.country_id = c.country_id
-          JOIN currencies cu
-          ON cu.currency_id = c.currency_id
-          WHERE u.user_id = ? AND u.is_active = 1
-          `,
+          `${queryForUserDetailsForToken}
+          WHERE u.user_id = ? AND u.is_active = 1`,
           [result.insertId],
         );
-        // SELECT user_id, display_name, role, picture_url, google_sub
-        // FROM users WHERE user_id = ? AND is_active = 1
+
         const user = users[0];
-        // console.log("new user details :", user);
+
         // create token with user details to be sent as response
-        const token = jwt.sign(
-          {
-            id: user.user_id,
-            username: user.username,
-            role: user.role,
-            country: user.country_id,
-            currency: user.currency_symbol,
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: "24h" },
-        );
+        const token = jwt.sign(userObjForToken(user), process.env.JWT_SECRET, { expiresIn: "24h" });
 
         //  send response to frontend
         return res.json({
           success: true,
           message: "Login successful",
           token,
-          user1: {
-            user_id: user.user_id,
-            username: user.username,
-            role: user.role,
-            display_name: user.display_name,
-            picture_url: user.picture_url,
-            country: user.country_name,
-            currency_id: user.currency_id,
-            currency_symbol: user.currency_symbol,
-          },
+          user: userObjForResponse(user),
         });
-        //  user: {
-        //   user_id: user.user_id,
-        //   username: user.username ?? user.display_name,
-        //   role: user.role,
-        //   picture_url: user.picture_url,
-        //   country: user.country_name,
-        //   currency_id: user.currency_id,
-        //   currency_symbol: user.currency_symbol,
-        // },
       } catch (error) {
         console.log("error found while creating new user with google signin :", error);
         return res
@@ -913,11 +814,6 @@ exports.googleSignin = async (req, res) => {
       message: "something went wrong with google signin. Please try again later",
     });
   }
-
-  return res.json({
-    success: true,
-    message: "from backend in googleSignin",
-  });
 };
 
 // user settings

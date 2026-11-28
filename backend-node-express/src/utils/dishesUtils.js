@@ -67,6 +67,7 @@ function normaliseIngredientData(data) {
       const ingredient_fields = [
         "ingredient_id",
         "name",
+        "ingredient_style",
         "ingredient_source",
         "quantity",
         "unit_id",
@@ -205,6 +206,14 @@ function validateIngredient(data) {
       const name = ing.name;
       if (typeof name !== "string" || name.length > 255) {
         return "Invalid name: must be string of length < 255";
+      }
+
+      // --- ingredient style ---
+      if (ing.ingredient_style) {
+        const ingredient_style = ing.ingredient_style;
+        if (typeof ingredient_style !== "string" || ingredient_style.length > 20) {
+          return "Invalid ingredient styl: if exist then must be string and less than 20 chars";
+        }
       }
 
       // --- ingredient_source ---

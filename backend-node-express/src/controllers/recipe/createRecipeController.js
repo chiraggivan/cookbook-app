@@ -11,7 +11,7 @@ const { getRecipeDetailsById } = require("./utils/readRecipeDetailsById");
 exports.search_ingredients = async (req, res) => {
   try {
     const user = req.user; // as we are doing authenticateToken with this api, user is attached with req in previous step
-    console.log("user in search_ing is in createRecipe Contriller:", user);
+    // console.log("user in search_ing is in createRecipe Contriller:", user);
     const q = (req.params.q || "").trim().toLowerCase();
     const i = `%${q}%`;
     const id = Number(user.id);

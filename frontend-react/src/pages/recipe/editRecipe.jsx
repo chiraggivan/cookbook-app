@@ -80,7 +80,8 @@ function EditRecipe() {
   const [showTopRow, setShowTopRow] = useState(false);
   let sameSubHeadIds = []; // ---> to save the list of same sub header text which will be used to clear the error onChange
   const [updateBtn, setUpdateBtn] = useState(true);
-  const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
+  const { myRecipesCntxt, setMyRecipesCntxt, recipeDetailsCntxt, setRecipeDetailsCntxt } =
+    useContext(MyRecipeContext);
   const navigate = useNavigate();
   const blurTimeout = useRef(null);
   const config = {
@@ -170,14 +171,9 @@ function EditRecipe() {
         // console.log("res is:", res.data.imageURL);
         setUploadProgress(0);
         setImgUploadSuccessMsg("Image updated successfully");
-        setRecipeDetails((prev) =>
-          prev.map((r) =>
-            r.recipe.recipe_id === Number(id)
-              ? { ...r, recipe: { ...r.recipe, image_url: res.data.imageURL } }
-              : r,
-          ),
-        );
-        setMyRecipes((prev) =>
+
+        // edit context variables as well
+        setMyRecipesCntxt((prev) =>
           prev.map((item) =>
             item.recipe_id === Number(id)
               ? {
@@ -187,6 +183,14 @@ function EditRecipe() {
               : item,
           ),
         );
+        // setRecipeDetailsCntxt((prev) =>
+        //   prev.map((r) =>
+        //     r.recipe.recipe_id === Number(id)
+        //       ? { ...r, recipe: { ...r.recipe, image_url: res.data.imageURL } }
+        //       : r,
+        //   ),
+        // );
+
         // setImageURL(res?.data?.file?.path);
       } catch (err) {
         console.log("Error in edit recipe- while sending image file:", err.response);
@@ -1280,22 +1284,24 @@ function EditRecipe() {
         // call api
         const res = await api[method](url, body);
         // console.log("response is :", res);
-        const x = res.data.data;
-        setRecipeDetails((prev) =>
-          prev.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
-        );
-        setMyRecipes((prev) =>
+        const updtdData = res.data.data;
+        // // edit context variables as well
+        setMyRecipesCntxt((prev) =>
           prev.map((item) =>
-            item.recipe_id === x.recipe.recipe_id
+            item.recipe_id === updtdData.recipe.recipe_id
               ? {
                   ...item,
-                  portion_size: x.recipe.portion_size,
-                  name: x.recipe.name,
-                  description: x.recipe.description,
+                  portion_size: updtdData.recipe.portion_size,
+                  name: updtdData.recipe.name,
+                  description: updtdData.recipe.description,
                 }
               : item,
           ),
         );
+        // setRecipeDetailsCntxt((prev) =>
+        //   prev.map((r) => (r.recipe.recipe_id === x.recipe.recipe_id ? x : r)),
+        // );
+
         navigate(`/recipe/${id}`);
       } catch (err) {
         console.log("error while updating finalData with axios is :", err.response.data.message);
@@ -1333,8 +1339,8 @@ function EditRecipe() {
   // console.log("OgData :", OgData);
   // console.log("checkFinalData :", checkFinalData);
   // console.log("total cost is :", totalCost);
-  // console.log("recipe Details is :", recipeDetails);
-  // console.log("My Recipes are :", myRecipes);
+  // console.log("recipe Details is :", recipeDetailsCntxt);
+  // console.log("My Recipes are :", myRecipesCntxt);
 
   // ------------------------------  initial page loading screen -------------------------------------------
   if (isLoading) {
@@ -1853,11 +1859,11 @@ function EditRecipe() {
                                             }));
                                           }}
                                           onBlur={(e) => {}}
-                                          error={ing?.errors?.erroringredientStyle ?? ""}
+                                          error={ing?.errors?.errorIngredientStyle ?? ""}
                                         />
                                       </div>
 
-                                      {ing.name && (
+                                      {ing.name && ing.displayQuantity && (
                                         <div className="flex px-1 pt-1 items-center sm:hidden">
                                           <MdModeEditOutline
                                             className=""
@@ -1871,7 +1877,10 @@ function EditRecipe() {
                                           />
                                         </div>
                                       )}
-                                      {!ing.name && (
+                                      {!ing.name && !ing.displayQuantity && (
+                                        <div className="flex px-1 pt-1 w-6 items-center sm:hidden"></div>
+                                      )}
+                                      {ing.name && !ing.displayQuantity && (
                                         <div className="flex px-1 pt-1 w-6 items-center sm:hidden"></div>
                                       )}
 
@@ -2294,8 +2303,8 @@ function EditRecipe() {
           onConfirm={(compUid, ingUid, updateQuantity, updateUnit, updatePrice) =>
             updateBaseValues(compUid, ingUid, updateQuantity, updateUnit, updatePrice)
           }
-          title={"Created This Dish On:"}
-          message={`Update values of ingredient bought`}
+          title={""}
+          message={`Update price of ingredient : ${capitaliseWords(ingName)}`}
           cancelText={"Cancel"}
           OKtext={"Update"}
           OKtextIcon={HiClipboardList}
@@ -2305,6 +2314,7 @@ function EditRecipe() {
           priceValue={priceValue}
           compUid={compUid}
           ingUid={ingUid}
+          currencySymbol={currencySymbol}
         />
       )}
 

@@ -103,8 +103,8 @@ exports.get_dish_details = async (req, res) => {
 
     // get dish ingredients
     const [ingResult] = await db.query(
-      `SELECT component_display_order, component_text, ingredient_display_order, ingredient_id, ingredient_name, quantity,
-            unit_id, unit_name, cost, base_quantity, base_price, base_unit, ingredient_source
+      `SELECT component_display_order, component_text, ingredient_display_order, ingredient_id, ingredient_name, ingredient_style, 
+            quantity, unit_id, unit_name, cost, base_quantity, base_price, base_unit, ingredient_source
         FROM dish_ingredients
         WHERE dish_id = ? AND is_active = 1`,
       [dishId],

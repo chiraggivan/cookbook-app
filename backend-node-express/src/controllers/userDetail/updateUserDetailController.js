@@ -1,6 +1,9 @@
 const db = require("../../config/database");
 const jwt = require("jsonwebtoken");
 
+const { queryForUserDetailsForToken } = require("../../controllers/utils/queryForUserDetails");
+const { userObjForToken, userObjForResponse } = require("../utils/userObjForTokenAndResponse");
+
 // Update user's Display Name of user
 exports.updateDisplayName = async (req, res) => {
   try {
@@ -172,50 +175,25 @@ exports.updateUserCountry = async (req, res) => {
 
       // fetch the new data for user
       const [userResult] = await conn.query(
-        `SELECT u.user_id, u.username, u.display_name, u.picture_url, u.email, u.email_verified,
-              u.role, u.country_id , c.name as country_name, c.country_code, c.currency_id,
-              cu.symbol as currency_symbol
-        FROM users u 
-            JOIN countries c ON u.country_id = c.country_id
-            JOIN currencies cu ON cu.currency_id = c.currency_id
+        `${queryForUserDetailsForToken}
         WHERE u.user_id = ? AND u.is_active = 1`,
         [user.id],
       );
       const userDetails = userResult[0];
 
-      //   console.log("new country is :", userDetails.country_name);
       // create token with user details to be sent as response
-      const token = jwt.sign(
-        {
-          id: userDetails.user_id,
-          username: userDetails.username,
-          role: userDetails.role,
-          country_id: userDetails.country_id,
-          country_name: userDetails.country_name,
-          currency_id: userDetails.currency_id,
-          currency_symbol: userDetails.currency_symbol,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "24h" },
-      );
+      const token = jwt.sign(userObjForToken(userDetails), process.env.JWT_SECRET, {
+        expiresIn: "24h",
+      });
 
       await conn.commit();
+
       // Final json to frontend
       res.json({
         success: true,
         message: "Country update successful",
         token,
-        user: {
-          user_id: userDetails.user_id,
-          username: userDetails.username,
-          role: userDetails.role,
-          display_name: userDetails.display_name,
-          picture_url: userDetails.picture_url,
-          country_id: userDetails.country_id,
-          country_name: userDetails.country_name,
-          currency_id: userDetails.currency_id,
-          currency_symbol: userDetails.currency_symbol,
-        },
+        user: userObjForResponse(userDetails),
       });
     } catch (error) {
       await conn.rollback();
@@ -291,21 +269,25 @@ exports.updateUserPreferredLanguage = async (req, res) => {
       await conn.query(query, [newLanguageId, user.id]);
 
       // fetch the new data for user
-      const [userLangResult] = await conn.query(
-        `SELECT l.language_id, l.name, l.native_script
-        FROM users u 
-            JOIN languages l ON u.preferred_ingredient_language_id = l.language_id
+      const [userResult] = await conn.query(
+        `${queryForUserDetailsForToken}
         WHERE u.user_id = ? AND u.is_active = 1`,
         [user.id],
       );
-      const userLangDetails = userLangResult[0];
-
+      const userDetails = userResult[0];
       await conn.commit();
+
+      // create token with user details to be sent as response
+      const token = jwt.sign(userObjForToken(userDetails), process.env.JWT_SECRET, {
+        expiresIn: "24h",
+      });
+
       // Final json to frontend
       res.json({
         success: true,
         message: "Language update successful",
-        userLangDetails,
+        token,
+        user: userObjForResponse(userDetails),
       });
     } catch (error) {
       await conn.rollback();

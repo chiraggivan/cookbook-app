@@ -50,7 +50,8 @@ function RecipeDetails() {
   const { id } = useParams();
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
   const [isNotFound, setIsNotFound] = useState(false);
-  const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
+  const { myRecipesCntxt, setMyRecipesCntxt, recipeDetailsCntxt, setRecipeDetailsCntxt } =
+    useContext(MyRecipeContext);
   const [foundRecipeDetails, setFoundRecipeDetails] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [showBookmarkIcon, setShowBookmarkIcon] = useState(null);
@@ -219,11 +220,12 @@ function RecipeDetails() {
     try {
       const res = await api.delete(deleteurl);
       if (res?.data?.success === true) {
-        // // edit context variables as well
+        // edit context variables as well
+        const updtdMyRecipesList = myRecipesCntxt.filter((i) => i.recipe_id !== Number(id));
+        setMyRecipesCntxt(updtdMyRecipesList);
         // const x = recipeDetails.filter((i) => i.recipe.recipe_id !== Number(id));
         // setRecipeDetails(x);
-        // const y = myRecipes.filter((i) => i.recipe_id !== Number(id));
-        // setMyRecipes(y);
+
         // ---------------------------
         alertMsg.current = res?.data?.message;
         alertForSuccess.current = true;
@@ -662,8 +664,11 @@ function RecipeDetails() {
         ing.base_unit = i.unit;
         ing.base_price = i.cost;
         ing.ingredient_id = i.ingredient_id;
-        ing.name = i.form ? i.name + " (" + i.form + ")" : i.name;
-        // ing.form = i.form;
+        ing.name =
+          isRecipeOwner && i.ing_trans_id
+            ? capitaliseWords(i.roman_text)
+            : capitaliseWords(i.form && i.form !== "" ? i.name + " (" + i.form + ")" : i.name);
+        ing.ingredient_style = i.ingredient_style;
         ing.cost = i.price;
         ing.quantity = i.quantity;
         ing.unit_id = i.unit_id;
@@ -688,11 +693,11 @@ function RecipeDetails() {
   };
 
   // console.log("HiTrash :", HiTrash);
-  console.log("foundRecipeDetails is :", foundRecipeDetails);
+  // console.log("foundRecipeDetails is :", foundRecipeDetails);
   // console.log("showBookmarkICon :", showBookmarkIcon);
   // console.log("details4Dish is :", details4Dish);
   // console.log("recipeDetails :", recipeDetails);
-  // console.log("myRecipes :", myRecipes);
+  // console.log("myRecipesCntxt :", myRecipesCntxt);
   // console.log("isDishModalOpen : ", isDishModalOpen);
   // console.log("isRecipeOwner :", isRecipeOwner);
   // console.log("recipeData : ", state?.recipeData);
@@ -1413,360 +1418,3 @@ function RecipeDetails() {
 }
 
 export default RecipeDetails;
-
-// {/* NEW DIV TO REPLACE Details and Image */}
-// <div className="flex flex-col-reverse mt-4 lg:flex-row lg:max-w-lg">
-//   {/* details */}
-//   <div className="">
-//     {/* portion size & privacy */}
-//     <div className="flex mt-2 mx-2 gap-2">
-//       {/* portion size */}
-//       <div className="flex-col flex-6 rounded-md p-2 ">
-//         <div className="text-md font-semibold">Portion Details</div>
-//         <div className="border-y w-28 border-gray-600"></div>
-//         <div className="flex gap-2">
-//           <div className="flex items-center">
-//             <FaUsers className="text-gray-600" />
-//           </div>
-//           <div className="">2 people</div>
-//         </div>
-//       </div>
-
-//       {/* privacy */}
-//       <div className="flex-col flex-4 rounded-md p-2">
-//         <div className="flex gap-2 justify-center">
-//           <div className="flex items-center ">
-//             <FaLock className="text-gray-600" />{" "}
-//           </div>
-//           <div className="text-md font-semibold">Recipe Public</div>
-//         </div>
-//         <div className="border-y mx-auto w-32 border-gray-600"></div>
-//         <div className="flex gap-2 justify-center">
-//           <div className="">toggle</div>
-//           <div className=""> text</div>
-//         </div>
-//       </div>
-//     </div>
-
-//     {/* created dish section */}
-//     <div className="flex flex-col mt-2 mx-2 py-2 gap-2 rounded-lg border bg-gray-50 border-gray-600 ">
-//       {/* first line  */}
-//       <div className="flex px-2 gap-2">
-//         <div className="flex items-center">
-//           <TbCalendarHeart />{" "}
-//         </div>
-//         <div className="text-md font-semibold">Last Prepared:</div>
-//         <div className="flex text-sm items-center"> 26th Oct '26 for Lunch</div>
-//       </div>
-
-//       {/* create dish Button */}
-//       <Button className="flex mx-2 text-center justify-center rounded" color={"dark"}>
-//         Create Dish
-//       </Button>
-//     </div>
-
-//     {/* Description */}
-//     <div className="flex flex-col mt-2 mx-2 py-2 gap-1 rounded-lg">
-//       <div className="px-2 font-semibold">Description Header</div>
-//       <div className="border-y w-38 ml-2 border-gray-600"></div>
-//       <div className="px-2 rounded-lg border-gray-600 text-sm max-h-50 overflow-y-auto scrollbar-thin">
-//         It has the details of a recipe and that includes the image of the recipe the
-//         portion details if the private on not private Toggles which it has got the last
-//         prepared details it has got also the button to create the create dish button
-//         which will be adjusting to last prepared as this two are dependent on each other
-//         or they are like a relative of each other and descriptions which is of the
-//         recipe and also the total price of the recipe which is displayed in that section
-//         or in that day now give me a nice way to display all these details on a large
-//         screen with a div having a landscape which is more of a wider angle like you can
-//         say something in the range of 20 years to 6 screen size or something like that
-//         so that my details are quite spread enough way which we can have as one section
-//         for image and another section for all the other details also you can think about
-//         it as description can be of a very length so keeping that thing within the same
-//         dev is it feasible or not because then the image size might keep on increasing
-//         dependent upon the size of description so just give me few examples as in the
-//         screenshots of how it the best way to make it look on the screen
-//       </div>
-//     </div>
-
-//     <div className=""></div>
-//   </div>
-
-//   {/* image */}
-//   <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
-//     {foundRecipeDetails?.recipe?.image_url && !imageError ? (
-//       <img
-//         className="h-full w-full md:rounded-md"
-//         src={foundRecipeDetails?.recipe?.image_url}
-//         alt="Recipe Image"
-//         onError={() => setImageError(true)}
-//       />
-//     ) : (
-//       <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
-//     )}
-//   </div>
-// </div>
-// <div className=""></div>
-
-// {/* Recipe Name header & recipe by OR option button */}
-//             <div className="flex flex-col relative">
-//               <div
-//                 className={
-//                   isRecipeOwner
-//                     ? `flex pl-2 pr-12 max-w-sm font-extrabold text-xl
-//                               md:text-2xl md:max-w-lg
-//                               lg:text-3xl lg:max-w-xl`
-//                     : `flex pl-2 pr-6 pb-6 max-w-sm font-extrabold text-xl
-//                               md:text-2xl md:max-w-lg
-//                               lg:text-3xl lg:max-w-xl`
-//                 }
-//               >
-//                 {capitaliseWords(foundRecipeDetails?.recipe.name)}
-//               </div>
-
-//               {/* Show recipe owner details if different from user */}
-//               {isRecipeOwner === false && (
-//                 <div className="absolute flex space-x-1 right-3 bottom-0 hover:cursor-pointer">
-//                   <div className="font-semibold">-</div>
-//                   <p onClick={() => navigate(`/recipesBy/${foundRecipeDetails?.recipe.user_id}`)}>
-//                     {foundRecipeDetails?.recipe.username ??
-//                       foundRecipeDetails?.recipe.dislay_name ??
-//                       foundRecipeDetails?.recipe.email}
-//                   </p>
-//                 </div>
-//               )}
-
-//               {/* show triple option for delete recipe for owner */}
-//               {isRecipeOwner === true && (
-//                 <div className="absolute right-2 top-0 scale-125  rounded-full transition duration-300">
-//                   <Dropdown
-//                     label=""
-//                     dismissOnClick={false}
-//                     renderTrigger={() => (
-//                       <span className="flex w-full h-full items-center justify-center p-2 hover:bg-amber-100 rounded-full">
-//                         <SlOptionsVertical className="" />
-//                       </span>
-//                     )}
-//                   >
-//                     <DropdownItem
-//                       className="flex gap-2"
-//                       onClick={() => navigate(`/recipe/edit/${id}`)}
-//                     >
-//                       <MdOutlineEditNote className="w-4 h-4" /> Edit
-//                     </DropdownItem>
-//                     <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
-//                       <HiPrinter className="w-4 h-4" /> Print
-//                     </DropdownItem>
-//                     <DropdownItem className="flex gap-2 text-gray-300 hover:bg-white hover:cursor-default">
-//                       <HiShare className="w-4 h-4" /> Share
-//                     </DropdownItem>
-//                     <DropdownItem
-//                       className="flex gap-2 text-sm text-app-danger"
-//                       onClick={() => setIsConfirmModalOpen(true)}
-//                     >
-//                       <HiTrash className=" w-4 h-4" />
-//                       Delete
-//                     </DropdownItem>
-//                   </Dropdown>
-//                 </div>
-//               )}
-//             </div>
-
-//             {/* Recipe Details and image */}
-//             <div className="flex  flex-col-reverse mt-4 lg:max-h-60 lg:flex-row lg:w-full  lg:justify-between">
-//               {/* recipe details */}
-//               <div className="flex flex-col w-full justify-center lg:max-w-lg">
-//                 {/* portion-size, privacy and cost */}
-//                 <div className="flex w-full justify-between px-2">
-//                   {/* portion size and privacy if owner */}
-//                   <div className="flex flex-col space-y-2">
-//                     {/* Portion size field */}
-//                     <div className="flex space-x-2 mt-2">
-//                       <div className="font-semibold">Portion:</div>
-//                       <div> {foundRecipeDetails?.recipe.portion_size}</div>
-//                     </div>
-
-//                     {/* toggle switch for private recipe */}
-//                     {isRecipeOwner === true && (
-//                       <div className="flex">
-//                         <div>
-//                           {!changePrvcyLoading && (
-//                             <Toggle
-//                               title="Private"
-//                               checked={
-//                                 foundRecipeDetails?.recipe.privacy === "private" ? true : false
-//                               }
-//                               onText="Private"
-//                               offText="Private"
-//                               onChange={(e) => {
-//                                 setChangePrvcyLoading(true);
-//                                 setFoundRecipeDetails((prev) => ({
-//                                   ...prev,
-//                                   recipe: {
-//                                     ...prev.recipe,
-//                                     privacy:
-//                                       prev.recipe.privacy === "private" ? "public" : "private",
-//                                   },
-//                                 }));
-//                                 // setRecipeDetails((prev) =>
-//                                 //   prev.map((item) =>
-//                                 //     item.recipe.recipe_id === Number(id)
-//                                 //       ? {
-//                                 //           ...item,
-//                                 //           recipe: {
-//                                 //             ...item.recipe,
-//                                 //             privacy: e.target.checked ? "private" : "public",
-//                                 //           },
-//                                 //         }
-//                                 //       : item,
-//                                 //   ),
-//                                 // );
-//                                 changePrivacy(e.target.checked ? "private" : "public");
-//                                 setChangePrvcyLoading(false);
-//                               }}
-//                             />
-//                           )}
-//                           {changePrvcyLoading && <h3> Privacy Loading .............</h3>}
-//                         </div>
-//                       </div>
-//                     )}
-//                   </div>
-
-//                   {/* cost of recipe */}
-//                   <div className="flex items-end text-3xl">
-//                     {currencySymbol} {totalCost.toFixed(2)}
-//                   </div>
-//                 </div>
-
-//                 {/* if Owner - Last prepared & create dish*/}
-//                 {isRecipeOwner && (
-//                   <div className="flex justify-between mt-2 px-2">
-//                     <div className="flex flex-col space-x-2">
-//                       <div className="font-semibold">Last Prepared:</div>
-//                       <p>
-//                         {(foundRecipeDetails?.recipe.last_prepared_date &&
-//                           formattedDate(foundRecipeDetails?.recipe.last_prepared_date) +
-//                             " for " +
-//                             foundRecipeDetails?.recipe.meal) ||
-//                           "No record of past"}
-//                       </p>
-//                     </div>
-//                     {/* Create dish button */}
-//                     <div className="hidden md:block">
-//                       <Button
-//                         className="cursor-pointer"
-//                         color="dark"
-//                         onClick={() => setIsDishModalOpen(true)}
-//                       >
-//                         <HiClipboardList className="mr-2 w-5 h-5" />
-//                         create dish
-//                       </Button>
-//                     </div>
-//                     <div className="block md:hidden ">
-//                       <div
-//                         className="flex w-17 h-17 rounded-full bg-gray-400 items-center justify-center
-//                                   border border-gray-600 hover:bg-gray-500"
-//                       >
-//                         <Button
-//                           className="cursor-pointer rounded-full w-15 h-15 "
-//                           color="dark"
-//                           onClick={() => setIsDishModalOpen(true)}
-//                         >
-//                           create dish
-//                         </Button>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 )}
-
-//                 {/* alert msg for succefully created dish record */}
-//                 {isRecipeOwner && successAlert && (
-//                   <div className="">
-//                     <Alert
-//                       color="success"
-//                       icon={BsFillHandThumbsUpFill}
-//                       onDismiss={() => setSuccessAlert(false)}
-//                     >
-//                       <span className="">Dish record successfully created</span>
-//                     </Alert>
-//                   </div>
-//                 )}
-//               </div>
-
-//               {/* recipe image */}
-//               <div className="flex w-full aspect-video sm:max-w-80 sm:mx-auto items-center justify-center md:rounded-md md:mr-2">
-//                 {foundRecipeDetails?.recipe?.image_url && !imageError ? (
-//                   <img
-//                     className="h-full w-full md:rounded-md"
-//                     src={foundRecipeDetails?.recipe?.image_url}
-//                     alt="Recipe Image"
-//                     onError={() => setImageError(true)}
-//                   />
-//                 ) : (
-//                   <GiHotMeal className="h-[80%] w-[80%] bg-gray-200" />
-//                 )}
-//               </div>
-//             </div>
-
-//             {/* description of recipe */}
-//             <div
-//               className="flex px-2 mt-2 text-sm
-//                           md:text-md lg:text-lg lg:max-w-2/3 "
-//             >
-//               <div>
-//                 <span className="font-semibold">Description: </span>{" "}
-//                 {foundRecipeDetails?.recipe.description}
-//               </div>
-//             </div>
-
-//             {/* Buttons for owner */}
-//             {isRecipeOwner && (
-//               <div className="hidden lg:flex justify-between p-2">
-//                 {/* Create edit button */}
-//                 <div className="">
-//                   <Button
-//                     className="cursor-pointer bg-app-secondary"
-//                     // color="light"
-//                     onClick={() => navigate(`/recipe/edit/${id}`)}
-//                   >
-//                     <MdOutlineEditNote className="mr-2 w-5 h-5" />
-//                     Edit Recipe
-//                   </Button>
-//                 </div>
-
-//                 {/* Delete recipe */}
-//                 <div>
-//                   <Button
-//                     className="cursor-pointer"
-//                     color="red"
-//                     onClick={() => setIsConfirmModalOpen(true)}
-//                   >
-//                     <HiTrash className="mr-2 w-5 h-5" />
-//                     Delete Recipe
-//                   </Button>
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Row for bookmark, forward, like, dislike, etc */}
-//             <div className="flex justify-end h-10 w-full pr-4 gap-3">
-//               {/* <TiArrowForward className="h-10 scale-200" /> */}
-//               {showBookmarkIcon && (
-//                 <>
-//                   {isBookmarked ? (
-//                     <BsBookmarkFill
-//                       className="h-10 scale-150 hover:scale-125 hover:cursor-pointer"
-//                       onClick={() => {
-//                         bookmarkRecipe();
-//                       }}
-//                     />
-//                   ) : (
-//                     <BsBookmark
-//                       className="h-10 scale-150 hover:scale-125 hover:cursor-pointer"
-//                       onClick={() => {
-//                         bookmarkRecipe();
-//                       }}
-//                     />
-//                   )}{" "}
-//                 </>
-//               )}
-//             </div>

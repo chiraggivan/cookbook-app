@@ -231,11 +231,13 @@ export default function UserSettings() {
     try {
       const res = await api[method](url);
 
-      const userLangDetails = res?.data?.userLangDetails;
+      const newUserDetails = res?.data?.user;
       // update current page data with useState variable and update token and user data in localStorage
-      setAltIngLangId(userLangDetails.language_id);
-      setAltIngLang(userLangDetails.name);
-      setAltIngNative(userLangDetails.native_script);
+      setAltIngLangId(newUserDetails.pil_id);
+      setAltIngLang(newUserDetails.ing_lang);
+      setAltIngNative(newUserDetails.native_lang);
+      localStorage.setItem("token", res?.data?.token);
+      localStorage.setItem("user", JSON.stringify(res?.data?.user));
     } catch (error) {
       console.log("Error while updating user's language :", error);
       setErrMsg("Something went wrong while saving. Please try later");

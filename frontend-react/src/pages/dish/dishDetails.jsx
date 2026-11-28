@@ -168,23 +168,44 @@ function DishDetails() {
             }
           >
             <div className="flex p-1 justify-between  ">
-              <div className="flex">
-                <div className="flex min-w-8 text-md items-start justify-end mr-1">
-                  {i.quantity}
+              {/* left section of ingredient row */}
+              <div className="flex text-xs md:text-sm">
+                {/* quantity */}
+                <div className="flex min-w-8 items-start justify-end mr-1">{i.quantity}</div>
+
+                {/* unit */}
+                <div className="flex min-w-8 md:min-w-10 items-start justify-start mr-1">
+                  {i.unit_name}
                 </div>
-                <div className="flex min-w-12 text-md items-start justify-start mr-1">
-                  {capitaliseWords(i.unit_name)}
+
+                {/* ingredient name */}
+                <div className="flex items-start justify-start mr-2">
+                  <span>
+                    {capitaliseWords(i.ingredient_name)}{" "}
+                    <span className=" italic text-gray-500">{i.ingredient_style}</span>
+                  </span>
                 </div>
-                <div className="flex text-md items-start justify-start mr-2">
-                  {capitaliseWords(i.ingredient_name)}
-                </div>
+
+                {/* ingredient style */}
+                {/* <div className="italic text-gray-500">{i.ingredient_style}</div> */}
               </div>
-              <div className="flex flex-col min-w-15 my-0.5">
-                <div className="flex w-full text-md justify-end mr-1">
-                  {currencySymbol} {i.cost.toFixed(3)}
+
+              {/* right side of ingredient row */}
+              <div className="flex flex-col text-xs md:text-sm min-w-15 my-0.5">
+                {/* cost of ingredient */}
+                <div className="flex w-full justify-end mr-1">
+                  {currencySymbol}{" "}
+                  {i.cost < 1
+                    ? i.cost.toFixed(3)
+                    : i.cost < 99
+                      ? i.cost.toFixed(2)
+                      : i.cost.toFixed(0)}
                 </div>
-                <div className="flex w-full text-sm justify-end mr-1 text-gray-500">
-                  {currencySymbol} {i.base_price}/{Number(i.base_quantity)} {i.base_unit}
+
+                {/* base price of ingredient */}
+                <div className="flex w-full text-[10px] md-xs justify-end mr-1 text-gray-500">
+                  {currencySymbol} {i.base_price < 100 ? i.base_price : i.base_price.toFixed(0)}/
+                  {Number(i.base_quantity)} {i.base_unit}
                 </div>
               </div>
             </div>

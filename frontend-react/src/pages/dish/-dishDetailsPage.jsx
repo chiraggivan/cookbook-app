@@ -87,7 +87,7 @@ function DishDetailsPage({
             )}
           </div>
         </div>
-        {/* comment and delete button  */}
+        {/* comment section  */}
         <div className="flex flex-col mt-3 md:w-full md:flex-row md:space-x-4 md:justify-between ">
           {/* comment */}
           <div className="flex items-center text-justify max-w-md mb-2 md:mb-0 lg:max-w-lg">
@@ -122,6 +122,7 @@ function DishDetailsPage({
           <div className="grow h-px bg-gray-300 "></div>
         </div>
       </div>
+
       {/* modal for delete dish */}
       {isConfirmModalOpen && (
         <ConfirmDeleteModal

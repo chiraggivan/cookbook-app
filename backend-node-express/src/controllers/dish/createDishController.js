@@ -176,6 +176,7 @@ exports.create_dish = async (req, res) => {
                 ingredient_id, 
                 ingredient_source, 
                 ingredient_name, 
+                ingredient_style,
                 ingredient_display_order, 
                 quantity, 
                 unit_id, 
@@ -184,7 +185,7 @@ exports.create_dish = async (req, res) => {
                 base_price, 
                 base_unit,
                 base_quantity)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [
             dishId,
             componentText,
@@ -192,6 +193,7 @@ exports.create_dish = async (req, res) => {
             ing.ingredient_id,
             ing.ingredient_source,
             ing.name,
+            ing.ingredient_style,
             ing.display_order,
             ing.quantity,
             ing.unit_id,

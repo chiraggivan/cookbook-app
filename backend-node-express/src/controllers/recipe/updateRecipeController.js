@@ -281,9 +281,8 @@ exports.update_recipe = async (req, res) => {
 
     // --------------------------------- normalise and validate data received for update --------------------------------------
     const data = normalizeRecipeIngredientDataForUpdate(req.body);
-    // console.log(" data after normali... :", data);
     const error = validateRecipeIngredientForUpdate(data);
-    // console.log("error value after validation : ", error);
+
     if (error) {
       return res.status(400).json({
         success: false,

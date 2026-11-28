@@ -25,6 +25,7 @@ import { TbFoodsteps } from "react-icons/tb";
 import EditBaseValuesModal from "../../components/editBaseValuesModal";
 import { MdModeEditOutline } from "react-icons/md";
 import AlertToast from "../../components/alertToast";
+import EditIngStyleModal from "../../components/editIngStyleModal";
 
 function NewRecipe() {
   const token = localStorage.getItem("token");
@@ -36,7 +37,8 @@ function NewRecipe() {
   const [errorMessage, setErrorMessage] = useState("");
   const [suggestedIng, setSuggestedIng] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const { myRecipes, setMyRecipes, recipeDetails, setRecipeDetails } = useContext(MyRecipeContext);
+  const { myRecipesCntxt, setMyRecipesCntxt, recipeDetailsCntxt, setRecipeDetailsCntxt } =
+    useContext(MyRecipeContext);
   const [openAlertToast, setOpenAlertToast] = useState(false);
   const alertMsg = useRef(null);
 
@@ -49,7 +51,7 @@ function NewRecipe() {
     ingTransId: null,
     ingredientSource: "",
     name: "",
-    style: null,
+    ingredientStyle: null,
     form: "",
     quantity: "",
     unit: "",
@@ -113,8 +115,13 @@ function NewRecipe() {
   const [priceValue, setPriceValue] = useState(0);
   const [compUid, setCompUid] = useState(null);
   const [ingUid, setIngUid] = useState(null);
-  const [ingName, setIngName] = useState(null);
+  // const [ingName, setIngName] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // variables for ing style modal
+  const [isEditIngstyle, setIsEditIngStyle] = useState(false);
+  const [ingName, setIngName] = useState();
+  const [prepStyle, setPrepStyle] = useState();
 
   // call useAuth hook to check if token is available in localstorage
   const { token: authToken, loading: authHookLoading, isAuthenticated } = useAuth();
@@ -252,7 +259,7 @@ function NewRecipe() {
       const checkIng = async () => {
         try {
           const res = await api.get(`/recipe/api/search/ingredient/${val}`);
-          console.log("res is :", res);
+          // console.log("res is :", res);
           setSuggestedIng(res.data.rows);
         } catch (err) {
           // setExistIngs("");
@@ -862,9 +869,31 @@ function NewRecipe() {
     setIsEditBaseValuesOpen(false);
   };
 
+  // ------------------------------- update prep Style via modal -----------------------------------------
+  const updateIngStyle = (compUid, ingUid, newStyle) => {
+    setSections(
+      sections.map((component) =>
+        component.uid === compUid
+          ? {
+              ...component,
+              ingredients: component.ingredients.map((i) =>
+                i.uid === ingUid
+                  ? {
+                      ...i,
+                      ingredientStyle: newStyle,
+                    }
+                  : i,
+              ),
+            }
+          : component,
+      ),
+    );
+
+    setIsEditIngStyle(false);
+  };
+
   // ---------------------------- save button logic ----------------------------------
   const handleSubmit = () => {
-    setIsLoading(true);
     // console.log("recipeInfo", recipeInfo);
     // console.log("sections in handlesubmit:", sections);
 
@@ -903,10 +932,10 @@ function NewRecipe() {
           ing.uid = i.uid;
           ing.ingredient_display_order = ing_display_order;
           ing.ingredient_id = i.ingredientId ?? 0;
+          ing.ingredient_style = i.ingredientStyle ?? null;
           ing.ingredient_source = i.ingredientSource ?? "";
           ing.quantity = i.quantity ?? "";
           ing.unit = i.unit ?? "";
-          ing.ingredient_style = i.style ?? null;
           ing.ing_trans_id = i.ingTransId;
           // check if display values are same with ogDisplay values
           // console.log("ing.ingredient_style :", ing.ingredient_style);
@@ -992,7 +1021,6 @@ function NewRecipe() {
     }
 
     // validate sub headers and ingredients (from sections variable)
-    setIsLoading(true);
     checkData.components.forEach((comp, index) => {
       let ingCount = 0; //---------------> to count valid ingredients in each component
 
@@ -1240,10 +1268,25 @@ function NewRecipe() {
         // setIsLoading(false);
         // return;
         const newData = res?.data?.data;
-        if (newData) {
-          setRecipeDetails((prev) => [...prev, newData]);
-          setMyRecipes((prev) => [newData.recipe, ...prev]);
+
+        // Update myRecipes Context Variable
+        if (newData.recipe) {
+          const recipe = {
+            recipe_id: newData.recipe.recipe_id,
+            name: newData.recipe.name,
+            portion_size: newData.recipe.portion_size,
+            description: newData.recipe.description,
+            image_url: newData.recipe.image_url,
+          };
+
+          setMyRecipesCntxt((prev) => [recipe, ...prev]);
         }
+
+        // Update recipeDetails Context Variable
+        if (newData) {
+          // setRecipeDetails((prev) => [...prev, newData]);
+        }
+
         // console.log("about to navigate");
         navigate(`/recipe/${newData.recipe.recipe_id}`);
       } catch (err) {
@@ -1288,6 +1331,7 @@ function NewRecipe() {
   // console.log("recipeInfo :", recipeInfo);
   // console.log("showTopHeader", showTopRow);
   // console.log("image url is :", imageURL);
+  // console.log("myRecipesCntxt: ", myRecipesCntxt);
   return (
     <>
       <div className="flex flex-col  mt-(--top-bar-height) md:ml-(--left-side-bar)">
@@ -1618,7 +1662,7 @@ function NewRecipe() {
                                 )}
                               </div>
 
-                              {/* col 3,4,5,6 in one div and base values for small screen */}
+                              {/* col 3,4,5,6,7 in one div and base values for small screen */}
                               <div className="flex flex-col flex-6">
                                 <div className="flex flex-6">
                                   {/* 3rd column - ing name */}
@@ -1743,26 +1787,56 @@ function NewRecipe() {
                                     <Input
                                       className="flex w-full p-0.5 rounded placeholder:text-gray-500 text-xs h-[93%]"
                                       placeholder={"dice, grated,chopped,etc.."}
-                                      maxLength={15}
-                                      value={ing?.style ?? ""}
+                                      maxLength={18}
+                                      value={ing?.ingredientStyle ?? ""}
                                       onChange={(e) => {
-                                        updateIngredientStyle(comp.uid, ing.uid, e.target.value);
+                                        // updateIngredientStyle(comp.uid, ing.uid, e.target.value);
+                                        setSections((prev) => ({
+                                          ...prev,
+                                          components: prev.components.map((component) =>
+                                            component.uid === comp.uid
+                                              ? {
+                                                  ...component,
+                                                  ingredients: component.ingredients.map((i) =>
+                                                    i.uid === ing.uid
+                                                      ? {
+                                                          ...i,
+                                                          ingredientStyle: e.target.value,
+                                                        }
+                                                      : i,
+                                                  ),
+                                                }
+                                              : component,
+                                          ),
+                                        }));
                                       }}
                                       onBlur={(e) => {}}
-                                      error={ing?.errors?.errorStyle ?? ""}
+                                      error={ing?.errors?.errorIngredientStyle ?? ""}
                                     />
                                   </div>
 
-                                  {ing.name && (
+                                  {ing.name && ing.displayQuantity && (
                                     <div className="flex px-1 pt-1 items-center sm:hidden">
-                                      <MdModeEditOutline />
+                                      <MdModeEditOutline
+                                        className=""
+                                        onClick={() => {
+                                          setIsEditIngStyle(true);
+                                          setIngName(ing.name);
+                                          setCompUid(comp.uid);
+                                          setIngUid(ing.uid);
+                                          setPrepStyle(ing.ingredientStyle);
+                                        }}
+                                      />
                                     </div>
                                   )}
-                                  {!ing.name && (
+                                  {!ing.name && !ing.displayQuantity && (
+                                    <div className="flex px-1 pt-1 w-6 items-center sm:hidden"></div>
+                                  )}
+                                  {ing.name && !ing.displayQuantity && (
                                     <div className="flex px-1 pt-1 w-6 items-center sm:hidden"></div>
                                   )}
 
-                                  {/* 4th column - quantity */}
+                                  {/* 5th column - quantity */}
                                   <div className="flex flex-3 p-1 min-w-7 justify-center ">
                                     <Input
                                       className="flex w-full p-0.5 text-center rounded placeholder:text-gray-500"
@@ -1787,7 +1861,7 @@ function NewRecipe() {
                                     />
                                   </div>
 
-                                  {/* 5th column */}
+                                  {/* 6th column */}
                                   <div className="flex flex-4 pt-1 justify-center">
                                     <Dropdown
                                       className="flex rounded w-14 md:min-w-18 text-sm h-7.5 pl-1 pr-7 py-0"
@@ -1834,7 +1908,7 @@ function NewRecipe() {
                                     />
                                   </div>
 
-                                  {/* 6th column */}
+                                  {/* 7th column */}
                                   {/* created 2 div- one for mobile(less than sm), 2nd for wider than mobile - for sm and more) */}
                                   <div className="hidden sm:flex flex-3 justify-center items-center text-sm">
                                     {ing?.cost ? Number(Number(ing?.cost).toFixed(4)) : ""}
@@ -1870,9 +1944,9 @@ function NewRecipe() {
                                 )}
                               </div>
 
-                              {/* col 7,8,9 in one div */}
+                              {/* col 8,9,10 in one div */}
                               <div className="bg-gray-300 item-stretch hidden lg:flex lg:flex-4 lg:justify-between">
-                                {/* 7th column - Base - Quantity */}
+                                {/* 8th column - Base - Quantity */}
                                 <div className="flex flex-3 px-2 pt-2 items-start justify-center">
                                   <Input
                                     className="flex w-full px-1 py-0 text-center  rounded "
@@ -1894,7 +1968,7 @@ function NewRecipe() {
                                   />
                                 </div>
 
-                                {/* 8th column - Base - Unit  */}
+                                {/* 9th column - Base - Unit  */}
                                 <div className="flex flex-4 pt-2 items-start justify-center">
                                   <DropdownArray
                                     className="flex w-full rounded text-sm h-6.5 py-0  pl-1"
@@ -1931,7 +2005,7 @@ function NewRecipe() {
                                   />
                                 </div>
 
-                                {/* 9th column - Base - price */}
+                                {/* 10th column - Base - price */}
                                 <div className="flex flex-3 px-2 pt-2 items-start justify-center ">
                                   <Input
                                     className="flex w-full pl-1 pr-3 py-0  rounded text-end "
@@ -1957,7 +2031,7 @@ function NewRecipe() {
                                 </div>
                               </div>
 
-                              {/* 10th Column - Delete ingredient */}
+                              {/* 11th Column - Delete ingredient */}
                               <div className="flex min-w-10 sm:w-15 text-center items-center justify-center">
                                 {index !== comp.ingredients.length - 1 && (
                                   <div className=" text-red-400 hover:text-red-900 transition duration-300">
@@ -2154,8 +2228,8 @@ function NewRecipe() {
           onConfirm={(compUid, ingUid, updateQuantity, updateUnit, updatePrice) =>
             updateBaseValues(compUid, ingUid, updateQuantity, updateUnit, updatePrice)
           }
-          title={"Created This Dish On:"}
-          message={`Bought Price of : ${capitaliseWords(ingName)}`}
+          title={""}
+          message={`Update price of ingredient : ${capitaliseWords(ingName)}`}
           cancelText={"Cancel"}
           OKtext={"Update"}
           OKtextIcon={HiClipboardList}
@@ -2166,6 +2240,25 @@ function NewRecipe() {
           compUid={compUid}
           ingUid={ingUid}
           currencySymbol={currencySymbol}
+        />
+      )}
+
+      {/* change ing style modal for small screen */}
+      {isEditIngstyle && (
+        <EditIngStyleModal
+          isOpen={isEditIngstyle}
+          onClose={() => setIsEditIngStyle(false)}
+          onConfirm={(compUid, ingUid, newStyle) => updateIngStyle(compUid, ingUid, newStyle)}
+          title={"Title"}
+          message={`Prep Style for `}
+          cancelText={"Cancel"}
+          OKtext={"Update"}
+          OKtextIcon={HiClipboardList}
+          placeholder={"(Optional) julienne, minced, chopped, mashed, etc.."}
+          ingName={ingName}
+          prepStyle={prepStyle}
+          compUid={compUid}
+          ingUid={ingUid}
         />
       )}
 
